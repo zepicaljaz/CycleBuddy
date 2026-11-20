@@ -1,0 +1,329 @@
+[
+ {
+  "id": "stage-mortirolo-ponte-di-legno",
+  "name": "Lovere – Ponte di Legno",
+  "inspiredBy": "Giro d'Italia 2019 stage 16 (Lovere - Ponte di Legno, after the Gavia was removed for snow)",
+  "description": "After the Mortirolo descent to Monno the last ~15 km drag up the valley at 3-4 % into Ponte di Legno; flat finish in town.",
+  "totalKm": 194,
+  "startElevation": 400,
+  "finish": "hill",
+  "terrain": "mountain",
+  "points": [
+   {
+    "km": 97,
+    "type": "climb",
+    "climb": {
+     "name": "Cevo",
+     "lengthKm": 10.6,
+     "avgGrade": 5.9
+    }
+   },
+   {
+    "km": 167,
+    "type": "climb",
+    "climb": "mortirolo-mazzo"
+   },
+   {
+    "km": 185.9,
+    "type": "sprint",
+    "name": "Intermediate sprint"
+   }
+  ]
+ },
+ {
+  "id": "stage-alpe-dhuez-galibier",
+  "name": "Modane – Alpe d’Huez",
+  "inspiredBy": "Tour de France 2011 stage 19 (Modane Valfréjus - Alpe d'Huez, 109.5 km)",
+  "description": "3 climbs on the road. It ends at the top of Alpe d'Huez: 14.59 km at 7.6%.",
+  "totalKm": 109.5,
+  "startElevation": 400,
+  "finish": "summit",
+  "terrain": "mountain",
+  "points": [
+   {
+    "km": 26.5,
+    "type": "climb",
+    "climb": {
+     "name": "Col du Télégraphe (from Saint-Michel-de-Maurienne)",
+     "lengthKm": 11.78,
+     "avgGrade": 7.2,
+     "kmGrades": [
+      6.1,
+      8.3,
+      8.9,
+      8.1,
+      7.2,
+      7.6,
+      7.0,
+      6.1,
+      6.2,
+      6.4,
+      6.6,
+      7.8
+     ]
+    },
+    "category": "1"
+   },
+   {
+    "km": 48.5,
+    "type": "climb",
+    "climb": "galibier-valloire",
+    "category": "HC"
+   },
+   {
+    "km": 94.5,
+    "type": "sprint",
+    "name": "Intermediate sprint"
+   },
+   {
+    "km": 109.5,
+    "type": "climb",
+    "climb": "alpe-dhuez-bourg-doisans",
+    "category": "HC"
+   }
+  ]
+ },
+ {
+  "id": "stage-ventoux-bedoin",
+  "name": "Givors – Mont Ventoux",
+  "inspiredBy": "Tour de France 2013 stage 15 (Givors - Mont Ventoux, 242.5 km)",
+  "description": "1 climb on the road. It ends at the top of Mont Ventoux: 21.3 km at 7.5%.",
+  "totalKm": 242.5,
+  "startElevation": 400,
+  "finish": "summit",
+  "terrain": "mountain",
+  "points": [
+   {
+    "km": 208,
+    "type": "sprint",
+    "name": "Intermediate sprint"
+   },
+   {
+    "km": 242.5,
+    "type": "climb",
+    "climb": "ventoux-bedoin",
+    "category": "HC"
+   }
+  ]
+ },
+ {
+  "id": "stage-tourmalet-pau",
+  "name": "Pau – Col du Tourmalet",
+  "inspiredBy": "Tour de France 2010 stage 17 (Pau - Col du Tourmalet, 174 km)",
+  "description": "4 climbs on the road. It ends at the top of Col du Tourmalet: 19 km at 7.4%.",
+  "totalKm": 174,
+  "startElevation": 400,
+  "finish": "summit",
+  "terrain": "mountain",
+  "points": [
+   {
+    "km": 13.5,
+    "type": "climb",
+    "climb": {
+     "name": "Côte de Renoir",
+     "lengthKm": 2.2,
+     "avgGrade": 6.0
+    },
+    "category": "4"
+   },
+   {
+    "km": 33,
+    "type": "sprint",
+    "name": "Intermediate sprint"
+   },
+   {
+    "km": 56.5,
+    "type": "climb",
+    "climb": {
+     "name": "Col de Marie-Blanque",
+     "lengthKm": 9.3,
+     "avgGrade": 7.6
+    },
+    "category": "1"
+   },
+   {
+    "km": 117.5,
+    "type": "climb",
+    "climb": {
+     "name": "Col du Soulor",
+     "lengthKm": 11.9,
+     "avgGrade": 7.8
+    },
+    "category": "1"
+   },
+   {
+    "km": 141.5,
+    "type": "sprint",
+    "name": "Intermediate sprint"
+   },
+   {
+    "km": 174,
+    "type": "climb",
+    "climb": "tourmalet-luz",
+    "category": "HC"
+   }
+  ]
+ },
+ {
+  "id": "stage-angliru-asturias",
+  "name": "Corvera – Angliru",
+  "inspiredBy": "Vuelta a España 2017 stage 20 (Corvera de Asturias - Alto de l'Angliru, 117.5 km)",
+  "description": "3 climbs on the road. It ends at the top of Alto de l'Angliru: 12.55 km at 9.9%.",
+  "totalKm": 117.5,
+  "startElevation": 400,
+  "finish": "summit",
+  "terrain": "mountain",
+  "points": [
+   {
+    "km": 79.5,
+    "type": "climb",
+    "climb": {
+     "name": "Alto de la Cobertoria",
+     "lengthKm": 8.1,
+     "avgGrade": 8.6
+    },
+    "category": "1"
+   },
+   {
+    "km": 89.5,
+    "type": "sprint",
+    "name": "Intermediate sprint"
+   },
+   {
+    "km": 96.4,
+    "type": "climb",
+    "climb": {
+     "name": "Alto del Cordal",
+     "lengthKm": 5.7,
+     "avgGrade": 8.6
+    },
+    "category": "1"
+   },
+   {
+    "km": 117.5,
+    "type": "climb",
+    "climb": "angliru-la-vega",
+    "category": "HC"
+   }
+  ]
+ },
+ {
+  "id": "stage-liege-classic-finale",
+  "name": "Ardennes classic",
+  "inspiredBy": "Liège-Bastogne-Liège 2023 (258.5 km)",
+  "description": "Flat run-in to Liège after the last côte (13.3 km to go); usually decided by a small group or solo attack.",
+  "totalKm": 258.5,
+  "startElevation": 150,
+  "finish": "sprint",
+  "terrain": "hilly",
+  "points": [
+   {
+    "km": 69.7,
+    "type": "climb",
+    "climb": {
+     "name": "Côte de la Roche-en-Ardenne",
+     "lengthKm": 2.9,
+     "avgGrade": 5.6
+    }
+   },
+   {
+    "km": 123.5,
+    "type": "climb",
+    "climb": {
+     "name": "Côte de Saint-Roch",
+     "lengthKm": 1.0,
+     "avgGrade": 11.2
+    }
+   },
+   {
+    "km": 164.8,
+    "type": "climb",
+    "climb": {
+     "name": "Côte de Mont-le-Soie",
+     "lengthKm": 4.0,
+     "avgGrade": 6.1
+    }
+   },
+   {
+    "km": 173.5,
+    "type": "climb",
+    "climb": {
+     "name": "Côte de Wanne",
+     "lengthKm": 2.8,
+     "avgGrade": 7.4
+    }
+   },
+   {
+    "km": 180,
+    "type": "climb",
+    "climb": {
+     "name": "Côte de Stockeu",
+     "lengthKm": 1.0,
+     "avgGrade": 12.5
+    }
+   },
+   {
+    "km": 184.2,
+    "type": "climb",
+    "climb": {
+     "name": "Côte de la Haute-Levée",
+     "lengthKm": 3.6,
+     "avgGrade": 5.6
+    }
+   },
+   {
+    "km": 198.5,
+    "type": "climb",
+    "climb": {
+     "name": "Col du Rosier",
+     "lengthKm": 4.4,
+     "avgGrade": 5.9
+    }
+   },
+   {
+    "km": 211.8,
+    "type": "climb",
+    "climb": {
+     "name": "Côte de Desnié",
+     "lengthKm": 1.6,
+     "avgGrade": 8.1
+    }
+   },
+   {
+    "km": 224.5,
+    "type": "climb",
+    "climb": {
+     "name": "Côte de La Redoute (from Remouchamps)",
+     "lengthKm": 1.72,
+     "avgGrade": 9.4,
+     "kmGrades": [
+      8.1,
+      11.1
+     ]
+    }
+   },
+   {
+    "km": 235.2,
+    "type": "climb",
+    "climb": {
+     "name": "Côte des Forges",
+     "lengthKm": 1.3,
+     "avgGrade": 7.8
+    }
+   },
+   {
+    "km": 245.2,
+    "type": "climb",
+    "climb": {
+     "name": "Côte de la Roche-aux-Faucons (from Hony)",
+     "lengthKm": 1.31,
+     "avgGrade": 10.9,
+     "kmGrades": [
+      11.1,
+      10.3
+     ]
+    }
+   }
+  ]
+ }
+]

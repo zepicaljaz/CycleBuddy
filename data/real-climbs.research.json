@@ -1,0 +1,3960 @@
+{
+ "_about": {
+  "generated": "2026-11-15",
+  "method": "Per-km gradients are re-binned from published segment profiles: cols-cyclisme.com SVG profiles (exact segment endpoints and elevations), cols-cyclisme/salite.ch profile images (elevation labels read off the image, segment boundaries from pixel positions, every segment checked against its printed grade), and the myCols profile SVG for Krvavec. Each km value = (elevation at km end - elevation at km start) / km length, using linear interpolation between published points. A remainder shorter than 200 m is folded into the last km, so last_km_length_km can be up to 1.2.",
+  "fields": {
+   "elevation_gain_m": "net gain, summit minus start (what the km grades sum to)",
+   "total_ascent_m": "sum of all uphill (differs only where the climb has dips)",
+   "max_grade_pct": "as published by the main source; usually the steepest profile segment, not a 100 m peak; see max_grade_note",
+   "source_segments": "[from_km, to_km, grade_pct] at the source resolution (useful for short climbs like Mur de Huy)",
+   "gain_check": "sum over km of grade x length vs elevation_gain_m, plus independent published figures for comparison"
+  }
+ },
+ "climbs": [
+  {
+   "id": "stelvio-prato",
+   "name": "Passo dello Stelvio",
+   "side": "Prato allo Stelvio",
+   "country": "Italy",
+   "region": "South Tyrol (Trentino-Alto Adige)",
+   "length_km": 25.3,
+   "start_elevation_m": 916,
+   "summit_elevation_m": 2758,
+   "elevation_gain_m": 1842,
+   "total_ascent_m": 1842,
+   "avg_grade_pct": 7.3,
+   "max_grade_pct": 9.5,
+   "max_grade_note": "cols-cyclisme published max (steepest profile segment average, not a 100 m peak)",
+   "hairpins": 48,
+   "km_grades": [
+    1.8,
+    5.2,
+    5.2,
+    5.2,
+    5.7,
+    6.1,
+    6.1,
+    4.8,
+    7.8,
+    7.8,
+    6.6,
+    7.4,
+    8.8,
+    7.7,
+    8.2,
+    8.9,
+    8.7,
+    9.2,
+    8.9,
+    8.2,
+    8.4,
+    8.7,
+    7.7,
+    8.6,
+    9.5,
+    9.5
+   ],
+   "last_km_length_km": 0.3,
+   "gain_check": {
+    "sum_of_km_grades_m": 1840,
+    "elevation_gain_m": 1842,
+    "diff_pct": 0.11,
+    "independent_references": [
+     {
+      "source": "salite.ch",
+      "length_km": 24.3,
+      "gain_m": 1808,
+      "avg_pct": 7.4
+     },
+     {
+      "source": "road.cc / mycols",
+      "length_km": 24.5,
+      "gain_m": 1824,
+      "avg_pct": 7.5,
+      "max_pct": 9.5
+     }
+    ]
+   },
+   "source_segments": [
+    [
+     0,
+     1,
+     1.8
+    ],
+    [
+     1,
+     4.5,
+     5.2
+    ],
+    [
+     4.5,
+     6,
+     6.1
+    ],
+    [
+     6,
+     6.74,
+     6.5
+    ],
+    [
+     6.74,
+     8,
+     4.8
+    ],
+    [
+     8,
+     9,
+     7.8
+    ],
+    [
+     9,
+     10,
+     7.8
+    ],
+    [
+     10,
+     11,
+     6.6
+    ],
+    [
+     11,
+     12,
+     7.4
+    ],
+    [
+     12,
+     13,
+     8.8
+    ],
+    [
+     13,
+     14,
+     7.7
+    ],
+    [
+     14,
+     15,
+     8.2
+    ],
+    [
+     15,
+     16,
+     8.9
+    ],
+    [
+     16,
+     17,
+     8.7
+    ],
+    [
+     17,
+     18,
+     9.2
+    ],
+    [
+     18,
+     19,
+     8.9
+    ],
+    [
+     19,
+     20,
+     8.2
+    ],
+    [
+     20,
+     21,
+     8.4
+    ],
+    [
+     21,
+     22,
+     8.7
+    ],
+    [
+     22,
+     23,
+     7.7
+    ],
+    [
+     23,
+     24,
+     8.6
+    ],
+    [
+     24,
+     25.3,
+     9.5
+    ]
+   ],
+   "description": "The east side climbs out of the Vinschgau valley past Gomagoi and Trafoi, then stacks 48 numbered hairpins up a bare wall below the Ortler glaciers to 2,758 m, one of the highest paved passes in the Alps. The Giro has crossed it many times, usually as its highest point of the race, and Fausto Coppi's 1953 attack here is part of Giro legend.",
+   "famous_for": "48 numbered hairpins on the Prato side; Giro's highest point (Cima Coppi); Coppi 1953",
+   "sources": [
+    "https://www.cols-cyclisme.com/massif-de-l-ortles/italie/passo-dello-stelvio-depuis-prato-c360.htm",
+    "https://profils.cols-cyclisme.com/360.svg",
+    "https://mycols.app/it/salita/passo-dello-stelvio-prato-allo-stelvio",
+    "https://road.cc/content/feature/227754-road-trip-climbing-2758m-passo-dello-stelvio"
+   ],
+   "notes": "Profile starts at the edge of Prato (916 m), so it is ~1 km longer than tables that start at 934-950 m. First 8 km are a gentle valley approach (5-6 %); the real wall starts at Trafoi."
+  },
+  {
+   "id": "alpe-dhuez-bourg-doisans",
+   "name": "Alpe d'Huez",
+   "side": "Le Bourg-d'Oisans",
+   "country": "France",
+   "region": "Isère (Auvergne-Rhône-Alpes)",
+   "length_km": 14.59,
+   "start_elevation_m": 728,
+   "summit_elevation_m": 1840,
+   "elevation_gain_m": 1112,
+   "total_ascent_m": 1119,
+   "avg_grade_pct": 7.6,
+   "max_grade_pct": 14.0,
+   "max_grade_note": "cols-cyclisme published max (steepest profile segment); first 3 km after the valley are the steepest part",
+   "hairpins": 21,
+   "km_grades": [
+    3.2,
+    10.7,
+    9.6,
+    8.0,
+    8.0,
+    8.8,
+    7.9,
+    8.8,
+    8.0,
+    7.3,
+    8.7,
+    8.5,
+    7.9,
+    4.7,
+    1.7
+   ],
+   "last_km_length_km": 0.59,
+   "gain_check": {
+    "sum_of_km_grades_m": 1111,
+    "elevation_gain_m": 1112,
+    "diff_pct": 0.09,
+    "independent_references": [
+     {
+      "source": "salite.ch",
+      "length_km": 14.2,
+      "gain_m": 1091,
+      "avg_pct": 7.7
+     }
+    ]
+   },
+   "source_segments": [
+    [
+     0,
+     0.2,
+     -2.0
+    ],
+    [
+     0.2,
+     0.7,
+     1.0
+    ],
+    [
+     0.7,
+     1.49,
+     10.3
+    ],
+    [
+     1.49,
+     2.15,
+     11.2
+    ],
+    [
+     2.15,
+     2.29,
+     12.1
+    ],
+    [
+     2.29,
+     2.6,
+     8.4
+    ],
+    [
+     2.6,
+     3,
+     9.0
+    ],
+    [
+     3,
+     3.19,
+     10.5
+    ],
+    [
+     3.19,
+     3.89,
+     7.1
+    ],
+    [
+     3.89,
+     4.19,
+     9.0
+    ],
+    [
+     4.19,
+     4.69,
+     6.8
+    ],
+    [
+     4.69,
+     5,
+     9.4
+    ],
+    [
+     5,
+     5.39,
+     10.8
+    ],
+    [
+     5.39,
+     5.89,
+     7.6
+    ],
+    [
+     5.89,
+     6.5,
+     7.4
+    ],
+    [
+     6.5,
+     7.09,
+     8.5
+    ],
+    [
+     7.09,
+     7.7,
+     9.0
+    ],
+    [
+     7.7,
+     8.2,
+     8.6
+    ],
+    [
+     8.2,
+     8.79,
+     8.5
+    ],
+    [
+     8.79,
+     9,
+     6.2
+    ],
+    [
+     9,
+     9.29,
+     10.0
+    ],
+    [
+     9.29,
+     9.79,
+     5.0
+    ],
+    [
+     9.79,
+     9.9,
+     7.3
+    ],
+    [
+     9.9,
+     10.29,
+     10.5
+    ],
+    [
+     10.29,
+     11.19,
+     8.0
+    ],
+    [
+     11.19,
+     11.6,
+     9.3
+    ],
+    [
+     11.6,
+     12.19,
+     8.0
+    ],
+    [
+     12.19,
+     12.89,
+     8.4
+    ],
+    [
+     12.89,
+     13,
+     4.5
+    ],
+    [
+     13,
+     13.49,
+     4.5
+    ],
+    [
+     13.49,
+     14,
+     4.9
+    ],
+    [
+     14,
+     14.3,
+     -1.0
+    ],
+    [
+     14.3,
+     14.59,
+     4.5
+    ]
+   ],
+   "description": "From the Romanche valley floor the road kicks straight into its steepest ramps and then winds through 21 numbered hairpins, each signed with the names of past stage winners, to the ski resort. It is the Tour de France's most famous summit finish, with huge roadside crowds, including the Dutch corner at hairpin 7.",
+   "famous_for": "21 numbered hairpins; the Tour de France summit finish",
+   "sources": [
+    "https://www.cols-cyclisme.com/arves-et-grandes-rousses/france/station-de-l-alpe-d-huez-depuis-bourg-d-oisans-c1.htm",
+    "https://profils.cols-cyclisme.com/1.svg"
+   ],
+   "notes": "Profile runs from the roundabout in Bourg d'Oisans to the Tour finish line (1,840 m); includes a short flat/downhill start and the -1 % dip near the finish."
+  },
+  {
+   "id": "ventoux-bedoin",
+   "name": "Mont Ventoux",
+   "side": "Bédoin",
+   "country": "France",
+   "region": "Vaucluse (Provence-Alpes-Côte d'Azur)",
+   "length_km": 21.3,
+   "start_elevation_m": 314,
+   "summit_elevation_m": 1903,
+   "elevation_gain_m": 1589,
+   "total_ascent_m": 1590,
+   "avg_grade_pct": 7.5,
+   "max_grade_pct": 12.5,
+   "max_grade_note": "cols-cyclisme published max (steepest profile segment)",
+   "hairpins": null,
+   "km_grades": [
+    2.0,
+    3.2,
+    4.4,
+    6.1,
+    5.2,
+    4.9,
+    10.7,
+    9.3,
+    10.3,
+    8.9,
+    9.0,
+    10.4,
+    8.9,
+    9.0,
+    7.9,
+    6.5,
+    5.6,
+    7.2,
+    7.8,
+    8.8,
+    9.3,
+    11.3
+   ],
+   "last_km_length_km": 0.3,
+   "gain_check": {
+    "sum_of_km_grades_m": 1588,
+    "elevation_gain_m": 1589,
+    "diff_pct": 0.06,
+    "independent_references": []
+   },
+   "source_segments": [
+    [
+     0,
+     0.49,
+     0.6
+    ],
+    [
+     0.49,
+     0.7,
+     6.2
+    ],
+    [
+     0.7,
+     1.29,
+     1.4
+    ],
+    [
+     1.29,
+     1.6,
+     3.9
+    ],
+    [
+     1.6,
+     2.39,
+     4.1
+    ],
+    [
+     2.39,
+     3,
+     4.6
+    ],
+    [
+     3,
+     3.5,
+     6.4
+    ],
+    [
+     3.5,
+     4.49,
+     5.9
+    ],
+    [
+     4.49,
+     5.19,
+     4.6
+    ],
+    [
+     5.19,
+     5.49,
+     -0.3
+    ],
+    [
+     5.49,
+     5.69,
+     4.5
+    ],
+    [
+     5.69,
+     6.09,
+     10.5
+    ],
+    [
+     6.09,
+     6.69,
+     10.8
+    ],
+    [
+     6.69,
+     7.2,
+     10.6
+    ],
+    [
+     7.2,
+     7.7,
+     8.4
+    ],
+    [
+     7.7,
+     8.18,
+     9.8
+    ],
+    [
+     8.18,
+     8.69,
+     10.8
+    ],
+    [
+     8.69,
+     9.19,
+     9.8
+    ],
+    [
+     9.19,
+     9.69,
+     8.8
+    ],
+    [
+     9.69,
+     10.19,
+     8.6
+    ],
+    [
+     10.19,
+     10.7,
+     8.6
+    ],
+    [
+     10.7,
+     11.2,
+     10.0
+    ],
+    [
+     11.2,
+     11.7,
+     10.6
+    ],
+    [
+     11.7,
+     12.19,
+     10.4
+    ],
+    [
+     12.19,
+     12.69,
+     8.4
+    ],
+    [
+     12.69,
+     13.19,
+     8.8
+    ],
+    [
+     13.19,
+     13.69,
+     9.0
+    ],
+    [
+     13.69,
+     14.19,
+     9.2
+    ],
+    [
+     14.19,
+     14.7,
+     6.9
+    ],
+    [
+     14.7,
+     15.09,
+     8.7
+    ],
+    [
+     15.09,
+     15.59,
+     5.4
+    ],
+    [
+     15.59,
+     16.1,
+     7.5
+    ],
+    [
+     16.1,
+     16.6,
+     5.2
+    ],
+    [
+     16.6,
+     17.09,
+     5.7
+    ],
+    [
+     17.09,
+     17.59,
+     7.0
+    ],
+    [
+     17.59,
+     18.09,
+     7.8
+    ],
+    [
+     18.09,
+     18.59,
+     7.6
+    ],
+    [
+     18.59,
+     19.09,
+     8.0
+    ],
+    [
+     19.09,
+     19.6,
+     8.8
+    ],
+    [
+     19.6,
+     20.04,
+     8.9
+    ],
+    [
+     20.04,
+     20.6,
+     8.7
+    ],
+    [
+     20.6,
+     21.09,
+     10.0
+    ],
+    [
+     21.09,
+     21.3,
+     11.9
+    ]
+   ],
+   "description": "After an easy start through vineyards, the road turns sharp left at Saint-Estève into a long forest section at around 9-10 %, then breaks out at Chalet Reynard onto the white, treeless scree slopes to the weather station at the top. The 'Giant of Provence' is famous for wind and heat, and for the memorial to Tom Simpson, who died near the summit during the 1967 Tour.",
+   "famous_for": "Giant of Provence; lunar summit; Tom Simpson memorial",
+   "sources": [
+    "https://www.cols-cyclisme.com/provence/france/mont-ventoux-depuis-bedoin-c34.htm",
+    "https://profils.cols-cyclisme.com/34.svg"
+   ],
+   "notes": "Profile ends at 1,903 m (cols-cyclisme summit point)."
+  },
+  {
+   "id": "tourmalet-luz",
+   "name": "Col du Tourmalet",
+   "side": "Luz-Saint-Sauveur",
+   "country": "France",
+   "region": "Hautes-Pyrénées (Occitanie)",
+   "length_km": 19,
+   "start_elevation_m": 711,
+   "summit_elevation_m": 2115,
+   "elevation_gain_m": 1404,
+   "total_ascent_m": 1404,
+   "avg_grade_pct": 7.4,
+   "max_grade_pct": 10.2,
+   "max_grade_note": "cols-cyclisme published max (steepest profile segment)",
+   "hairpins": null,
+   "km_grades": [
+    3.6,
+    5.3,
+    6.5,
+    7.8,
+    7.3,
+    7.0,
+    7.0,
+    7.5,
+    8.5,
+    8.4,
+    5.5,
+    8.0,
+    7.5,
+    8.0,
+    7.6,
+    9.3,
+    7.8,
+    7.6,
+    10.2
+   ],
+   "last_km_length_km": 1.0,
+   "gain_check": {
+    "sum_of_km_grades_m": 1404,
+    "elevation_gain_m": 1404,
+    "diff_pct": 0.0,
+    "independent_references": []
+   },
+   "source_segments": [
+    [
+     0,
+     1,
+     3.6
+    ],
+    [
+     1,
+     2,
+     5.3
+    ],
+    [
+     2,
+     3,
+     6.5
+    ],
+    [
+     3,
+     4,
+     7.8
+    ],
+    [
+     4,
+     5,
+     7.3
+    ],
+    [
+     5,
+     6,
+     7.0
+    ],
+    [
+     6,
+     7,
+     7.0
+    ],
+    [
+     7,
+     8,
+     7.5
+    ],
+    [
+     8,
+     9,
+     8.5
+    ],
+    [
+     9,
+     10,
+     8.4
+    ],
+    [
+     10,
+     11,
+     5.5
+    ],
+    [
+     11,
+     12,
+     8.0
+    ],
+    [
+     12,
+     13,
+     7.5
+    ],
+    [
+     13,
+     14,
+     8.0
+    ],
+    [
+     14,
+     15,
+     7.6
+    ],
+    [
+     15,
+     16,
+     9.3
+    ],
+    [
+     16,
+     17,
+     7.8
+    ],
+    [
+     17,
+     18,
+     7.6
+    ],
+    [
+     18,
+     19,
+     10.2
+    ]
+   ],
+   "description": "The western side climbs from Luz through the Gorge de Barèges and the village of Barèges, then up open high pasture to the 2,115 m pass. The Tourmalet is the most-crossed mountain in Tour de France history, first raced in 1910, and the 2010 Tour finished on its summit.",
+   "famous_for": "Most-climbed pass in Tour de France history (first in 1910)",
+   "sources": [
+    "https://www.cols-cyclisme.com/pyrenees-centrales/france/col-du-tourmalet-depuis-luz-saint-sauveur-c65.htm",
+    "https://profils.cols-cyclisme.com/65.svg",
+    "https://www.cols-cyclisme.com/pyrenees-centrales/france/col-du-tourmalet-depuis-sainte-marie-de-campan-c64.htm"
+   ],
+   "notes": "Alternative east side (Sainte-Marie-de-Campan, 17.2 km, 1,268 m, cols-cyclisme c64 SVG) has equally good data if wanted. Stage 17 of the 2010 Tour used this Luz side (18.6 km at 7.5 % per race roadbook figures quoted on fr.wikipedia)."
+  },
+  {
+   "id": "galibier-valloire",
+   "name": "Col du Galibier",
+   "side": "Valloire",
+   "country": "France",
+   "region": "Savoie (Auvergne-Rhône-Alpes)",
+   "length_km": 18.02,
+   "start_elevation_m": 1406,
+   "summit_elevation_m": 2642,
+   "elevation_gain_m": 1236,
+   "total_ascent_m": 1236,
+   "avg_grade_pct": 6.9,
+   "max_grade_pct": 10.5,
+   "max_grade_note": "max from cols-cyclisme Saint-Michel profile segment (Les Granges du Galibier); not a 100 m peak",
+   "hairpins": null,
+   "km_grades": [
+    5.2,
+    8.2,
+    3.3,
+    2.5,
+    4.3,
+    7.3,
+    7.0,
+    7.2,
+    7.4,
+    5.2,
+    7.4,
+    8.6,
+    8.7,
+    8.6,
+    7.1,
+    7.4,
+    8.5,
+    9.4
+   ],
+   "last_km_length_km": 1.02,
+   "gain_check": {
+    "sum_of_km_grades_m": 1235,
+    "elevation_gain_m": 1236,
+    "diff_pct": 0.08,
+    "independent_references": [
+     {
+      "source": "fr.wikipedia (Tour 2011 stage 19 roadbook figure)",
+      "length_km": 16.7,
+      "avg_pct": 6.8,
+      "note": "race measured from a later point in Valloire"
+     }
+    ]
+   },
+   "source_segments": [
+    [
+     0.0,
+     0.22,
+     3.6
+    ],
+    [
+     0.22,
+     1.22,
+     5.6
+    ],
+    [
+     1.22,
+     2.11,
+     9.0
+    ],
+    [
+     2.11,
+     3.6,
+     2.6
+    ],
+    [
+     3.6,
+     4.22,
+     2.3
+    ],
+    [
+     4.22,
+     5.02,
+     4.9
+    ],
+    [
+     5.02,
+     5.32,
+     8.0
+    ],
+    [
+     5.32,
+     6.22,
+     7.1
+    ],
+    [
+     6.22,
+     7.22,
+     7.0
+    ],
+    [
+     7.22,
+     8.22,
+     7.3
+    ],
+    [
+     8.22,
+     9.22,
+     7.4
+    ],
+    [
+     9.22,
+     10.12,
+     4.6
+    ],
+    [
+     10.12,
+     11.22,
+     7.8
+    ],
+    [
+     11.22,
+     12.22,
+     8.8
+    ],
+    [
+     12.22,
+     13.22,
+     8.7
+    ],
+    [
+     13.22,
+     13.6,
+     11.1
+    ],
+    [
+     13.6,
+     14.22,
+     6.1
+    ],
+    [
+     14.22,
+     15.22,
+     7.4
+    ],
+    [
+     15.22,
+     16.22,
+     7.4
+    ],
+    [
+     16.22,
+     17.0,
+     8.8
+    ],
+    [
+     17.0,
+     17.5,
+     10.4
+    ],
+    [
+     17.5,
+     18.02,
+     8.5
+    ]
+   ],
+   "description": "The ride follows the D 902 from the centre of Valloire, along the Valloirette past Plan Lachat, and up the open road to the 2,642 m summit. The tunnel below the last kilometre is closed to bicycles. Raced by the Tour since 1911, it is where Marco Pantani made his decisive 1998 attack, and it is usually ridden straight after the Col du Télégraphe.",
+   "famous_for": "Tour de France high point since 1911; Pantani 1998; paired with the Télégraphe",
+   "sources": [
+    "https://www.cols-cyclisme.com/arves-et-grandes-rousses/france/col-du-galibier-depuis-saint-michel-de-maurienne-c37.htm",
+    "https://profils.cols-cyclisme.com/37.svg"
+   ],
+   "notes": "Sliced from the Saint-Michel-de-Maurienne profile (c37) starting at \"Valloire (centre)\" (km 16.78, 1,406 m) to the summit (km 34.8). Includes the gentle 2-3 % section around La Rivine. Full Saint-Michel profile (Télégraphe + descent + Galibier) is 34.8 km / 1,922 m on the same source. The 1:1 road is the D 902 from the OpenStreetMap point beside Valloire centre to pass node 5541498001 (2,642 m). The tunnel is not part of the ride; the last kilometre is the D 902 B over the top."
+  },
+  {
+   "id": "mortirolo-mazzo",
+   "name": "Passo del Mortirolo",
+   "side": "Mazzo di Valtellina",
+   "country": "Italy",
+   "region": "Lombardy (Valtellina, Sondrio)",
+   "length_km": 12.4,
+   "start_elevation_m": 552,
+   "summit_elevation_m": 1852,
+   "elevation_gain_m": 1300,
+   "total_ascent_m": 1300,
+   "avg_grade_pct": 10.5,
+   "max_grade_pct": 14.2,
+   "max_grade_note": "steepest 500 m section in the source profile; peak ramps of ~18 % are widely quoted (official Giro text: \"gradients of up to 18%\")",
+   "hairpins": null,
+   "km_grades": [
+    6.8,
+    8.9,
+    10.7,
+    11.8,
+    13.8,
+    12.9,
+    11.3,
+    13.1,
+    11.2,
+    9.0,
+    9.0,
+    8.4,
+    7.8
+   ],
+   "last_km_length_km": 0.4,
+   "gain_check": {
+    "sum_of_km_grades_m": 1300,
+    "elevation_gain_m": 1300,
+    "diff_pct": 0.0,
+    "independent_references": [
+     {
+      "source": "salite.ch list",
+      "length_km": 12.4,
+      "gain_m": 1300,
+      "avg_pct": 10.5
+     },
+     {
+      "source": "cyclingstage (Giro 2019)",
+      "length_km": 12.8,
+      "avg_pct": 10.1
+     },
+     {
+      "source": "inrng (Giro 2019)",
+      "length_km": 11.9,
+      "avg_pct": 10.9
+     }
+    ]
+   },
+   "source_segments": [
+    [
+     0.0,
+     0.5,
+     5.0
+    ],
+    [
+     0.5,
+     1.0,
+     8.6
+    ],
+    [
+     1.0,
+     1.5,
+     8.0
+    ],
+    [
+     1.5,
+     2.0,
+     9.8
+    ],
+    [
+     2.0,
+     2.5,
+     11.6
+    ],
+    [
+     2.5,
+     3.0,
+     9.8
+    ],
+    [
+     3.0,
+     3.5,
+     11.2
+    ],
+    [
+     3.5,
+     4.0,
+     12.4
+    ],
+    [
+     4.0,
+     4.5,
+     14.2
+    ],
+    [
+     4.5,
+     5.0,
+     13.4
+    ],
+    [
+     5.0,
+     5.5,
+     14.0
+    ],
+    [
+     5.5,
+     6.0,
+     11.8
+    ],
+    [
+     6.0,
+     6.5,
+     11.2
+    ],
+    [
+     6.5,
+     7.0,
+     11.4
+    ],
+    [
+     7.0,
+     7.5,
+     12.8
+    ],
+    [
+     7.5,
+     8.0,
+     13.4
+    ],
+    [
+     8.0,
+     8.5,
+     10.8
+    ],
+    [
+     8.5,
+     9.0,
+     11.6
+    ],
+    [
+     9.0,
+     9.5,
+     9.2
+    ],
+    [
+     9.5,
+     10.0,
+     8.8
+    ],
+    [
+     10.0,
+     10.5,
+     9.2
+    ],
+    [
+     10.5,
+     11.0,
+     8.8
+    ],
+    [
+     11.0,
+     11.5,
+     9.0
+    ],
+    [
+     11.5,
+     12.0,
+     7.8
+    ],
+    [
+     12.0,
+     12.4,
+     7.8
+    ]
+   ],
+   "description": "A narrow, wooded road that leaves the Valtellina at Mazzo and stays above 10 % for most of its length with almost no rest, only easing in the last 3 km to the pass at 1,852 m. It is the side where Marco Pantani launched his famous 1994 Giro attack, and a monument to him stands on the climb.",
+   "famous_for": "One of the hardest climbs in Europe; Pantani 1994",
+   "sources": [
+    "https://www.cols-cyclisme.com/massif-de-l-ortles/italie/passo-del-mortirolo-depuis-mazzo-c420.htm",
+    "https://profils.cols-cyclisme.com/420.gif",
+    "https://archivio.giroditalia.it/eng/stage/stage-16-2019/",
+    "https://en.wikipedia.org/wiki/Mortirolo_Pass"
+   ],
+   "notes": "Read from the cols-cyclisme/salite-style profile image (elevations every 500 m); every computed 500 m grade matches the printed label."
+  },
+  {
+   "id": "zoncolan-ovaro",
+   "name": "Monte Zoncolan",
+   "side": "Ovaro",
+   "country": "Italy",
+   "region": "Friuli-Venezia Giulia (Carnia, Udine)",
+   "length_km": 10.2,
+   "start_elevation_m": 525,
+   "summit_elevation_m": 1730,
+   "elevation_gain_m": 1205,
+   "total_ascent_m": 1205,
+   "avg_grade_pct": 11.8,
+   "max_grade_pct": 20.3,
+   "max_grade_note": "steepest profile segment (400 m); short pitches above 20 % are commonly quoted",
+   "hairpins": null,
+   "km_grades": [
+    9.3,
+    5.5,
+    12.1,
+    14.9,
+    16.3,
+    15.2,
+    15.5,
+    13.1,
+    8.2,
+    8.7
+   ],
+   "last_km_length_km": 1.2,
+   "gain_check": {
+    "sum_of_km_grades_m": 1205,
+    "elevation_gain_m": 1205,
+    "diff_pct": 0.0,
+    "independent_references": []
+   },
+   "source_segments": [
+    [
+     0.0,
+     0.55,
+     7.6
+    ],
+    [
+     0.55,
+     1.09,
+     11.5
+    ],
+    [
+     1.09,
+     1.69,
+     6.9
+    ],
+    [
+     1.69,
+     2.2,
+     1.0
+    ],
+    [
+     2.2,
+     2.69,
+     15.8
+    ],
+    [
+     2.69,
+     3.2,
+     13.2
+    ],
+    [
+     3.2,
+     3.79,
+     13.9
+    ],
+    [
+     3.79,
+     4.19,
+     19.4
+    ],
+    [
+     4.19,
+     4.54,
+     19.8
+    ],
+    [
+     4.54,
+     4.79,
+     8.2
+    ],
+    [
+     4.79,
+     5.39,
+     17.4
+    ],
+    [
+     5.39,
+     6.29,
+     13.9
+    ],
+    [
+     6.29,
+     6.69,
+     20.4
+    ],
+    [
+     6.69,
+     7.2,
+     10.9
+    ],
+    [
+     7.2,
+     7.8,
+     13.9
+    ],
+    [
+     7.8,
+     8.2,
+     12.6
+    ],
+    [
+     8.2,
+     8.59,
+     7.6
+    ],
+    [
+     8.59,
+     9.2,
+     6.6
+    ],
+    [
+     9.2,
+     9.4,
+     10.0
+    ],
+    [
+     9.4,
+     9.57,
+     2.9
+    ],
+    [
+     9.57,
+     10.2,
+     10.6
+    ]
+   ],
+   "description": "From Ovaro the road rises gently through Liariis, then turns into a relentless wall averaging 13-16 % for 6 km through the forest, finishing through three short tunnels on the open summit at 1,730 m. The Giro has used it as one of its most brutal summit finishes, with huge crowds packed into the steep final kilometres.",
+   "famous_for": "The Giro's most brutal summit finish",
+   "sources": [
+    "https://www.cols-cyclisme.com/alpes-carniques/italie/monte-zoncolan-depuis-ovaro-c422.htm",
+    "https://profils.cols-cyclisme.com/422.gif"
+   ],
+   "notes": "Read from the profile image; segment lengths derived from printed grades and checked against pixel positions. One short segment (km 9.2-9.4, before the second tunnel) has no printed grade; length taken from pixel position. Source header lists 10.5 km / 1,210 m to 1,735 m; the profile itself ends at 1,730 m after ~10.2 km."
+  },
+  {
+   "id": "gavia-ponte-di-legno",
+   "name": "Passo di Gavia",
+   "side": "Ponte di Legno",
+   "country": "Italy",
+   "region": "Lombardy (Valcamonica, Brescia)",
+   "length_km": 17.39,
+   "start_elevation_m": 1258,
+   "summit_elevation_m": 2621,
+   "elevation_gain_m": 1363,
+   "total_ascent_m": 1363,
+   "avg_grade_pct": 7.8,
+   "max_grade_pct": 12.2,
+   "max_grade_note": "steepest profile segment in the salite.ch profile (km 7.5-8)",
+   "hairpins": null,
+   "km_grades": [
+    3.8,
+    4.9,
+    4.9,
+    6.6,
+    8.8,
+    6.8,
+    8.1,
+    11.0,
+    10.0,
+    8.7,
+    7.3,
+    8.3,
+    7.8,
+    8.7,
+    9.6,
+    9.3,
+    9.0,
+    6.8
+   ],
+   "last_km_length_km": 0.39,
+   "gain_check": {
+    "sum_of_km_grades_m": 1363,
+    "elevation_gain_m": 1363,
+    "diff_pct": 0.0,
+    "independent_references": [
+     {
+      "source": "salite.ch list",
+      "length_km": 17.3,
+      "gain_m": 1363,
+      "avg_pct": 7.9
+     },
+     {
+      "source": "cols-cyclisme header",
+      "length_km": 17.3,
+      "gain_m": 1363,
+      "avg_pct": 7.88,
+      "max_pct": 12.2
+     }
+    ]
+   },
+   "source_segments": [
+    [
+     0.0,
+     1.0,
+     3.8
+    ],
+    [
+     1.0,
+     1.5,
+     4.0
+    ],
+    [
+     1.5,
+     2.0,
+     5.8
+    ],
+    [
+     2.0,
+     3.0,
+     4.9
+    ],
+    [
+     3.0,
+     3.5,
+     6.2
+    ],
+    [
+     3.5,
+     4.0,
+     7.0
+    ],
+    [
+     4.0,
+     4.6,
+     9.1
+    ],
+    [
+     4.6,
+     5.0,
+     8.4
+    ],
+    [
+     5.0,
+     5.5,
+     7.2
+    ],
+    [
+     5.5,
+     6.5,
+     6.4
+    ],
+    [
+     6.5,
+     7.49,
+     9.9
+    ],
+    [
+     7.49,
+     7.99,
+     12.2
+    ],
+    [
+     7.99,
+     8.99,
+     10.0
+    ],
+    [
+     8.99,
+     9.4,
+     7.1
+    ],
+    [
+     9.4,
+     9.99,
+     9.8
+    ],
+    [
+     9.99,
+     10.6,
+     7.8
+    ],
+    [
+     10.6,
+     10.99,
+     6.6
+    ],
+    [
+     10.99,
+     11.4,
+     6.9
+    ],
+    [
+     11.4,
+     12.0,
+     9.3
+    ],
+    [
+     12.0,
+     13.0,
+     7.8
+    ],
+    [
+     13.0,
+     14.2,
+     8.7
+    ],
+    [
+     14.2,
+     14.7,
+     9.0
+    ],
+    [
+     14.7,
+     15.0,
+     11.3
+    ],
+    [
+     15.0,
+     15.7,
+     9.3
+    ],
+    [
+     15.7,
+     16.1,
+     9.3
+    ],
+    [
+     16.1,
+     16.5,
+     10.1
+    ],
+    [
+     16.5,
+     17.0,
+     8.0
+    ],
+    [
+     17.0,
+     17.39,
+     6.8
+    ]
+   ],
+   "description": "The south side climbs from Ponte di Legno past Sant'Apollonia, then narrows to a single-lane road with a tunnel high up and steep hairpins to the 2,621 m pass between glacial peaks. In the 1988 Giro, Andy Hampsten crossed it in a snowstorm and took the pink jersey, one of cycling's most famous days.",
+   "famous_for": "Snowstorm stage of the 1988 Giro (Hampsten)",
+   "sources": [
+    "https://www.salite.ch/004817.asp",
+    "https://www.salite.ch/Grafici4001/004817.gif",
+    "https://salite.ch/struttura/salite_ricerca.asp?cerca=Gavia",
+    "https://www.cols-cyclisme.com/massif-de-l-ortles/italie/passo-di-gavia-depuis-ponte-di-legno-c358.htm"
+   ],
+   "notes": "Used salite.ch profile (17.3 km, 1,258 -> 2,621 m, matches salite list 17.3 km / 1,363 m / 7.9 %). The cols-cyclisme SVG for this side (c358) was rejected: its distance axis runs to 20.1 km with a descent at km 2.5-3.8, inconsistent with its own 17.3 km header."
+  },
+  {
+   "id": "giau-selva",
+   "name": "Passo Giau",
+   "side": "Selva di Cadore",
+   "country": "Italy",
+   "region": "Veneto (Belluno, Dolomites)",
+   "length_km": 10.12,
+   "start_elevation_m": 1314,
+   "summit_elevation_m": 2236,
+   "elevation_gain_m": 922,
+   "total_ascent_m": 922,
+   "avg_grade_pct": 9.1,
+   "max_grade_pct": 10.4,
+   "max_grade_note": "steepest profile segment",
+   "hairpins": 29,
+   "km_grades": [
+    9.5,
+    9.1,
+    8.1,
+    9.6,
+    9.2,
+    8.2,
+    10.2,
+    9.3,
+    8.6,
+    9.5
+   ],
+   "last_km_length_km": 1.12,
+   "gain_check": {
+    "sum_of_km_grades_m": 924,
+    "elevation_gain_m": 922,
+    "diff_pct": 0.22,
+    "independent_references": []
+   },
+   "source_segments": [
+    [
+     0.0,
+     0.29,
+     8.3
+    ],
+    [
+     0.29,
+     1.31,
+     9.9
+    ],
+    [
+     1.31,
+     1.64,
+     10.0
+    ],
+    [
+     1.64,
+     2.05,
+     7.6
+    ],
+    [
+     2.05,
+     2.71,
+     7.3
+    ],
+    [
+     2.71,
+     3.32,
+     9.9
+    ],
+    [
+     3.32,
+     4.04,
+     9.5
+    ],
+    [
+     4.04,
+     4.41,
+     9.5
+    ],
+    [
+     4.41,
+     5.36,
+     9.0
+    ],
+    [
+     5.36,
+     6.01,
+     7.7
+    ],
+    [
+     6.01,
+     6.52,
+     10.4
+    ],
+    [
+     6.52,
+     7.46,
+     10.0
+    ],
+    [
+     7.46,
+     8.3,
+     8.6
+    ],
+    [
+     8.3,
+     9.48,
+     8.6
+    ],
+    [
+     9.48,
+     10.12,
+     10.2
+    ]
+   ],
+   "description": "A very steady climb: after Selva the gradient barely leaves 8-10 %, climbing through 29 hairpins and larch forest onto open meadows below the Nuvolau and Ra Gusela towers to 2,236 m. It is a Giro favourite and a centrepiece of the Maratona dles Dolomites.",
+   "famous_for": "29 hairpins of steady 9-10 % in the heart of the Dolomites",
+   "sources": [
+    "https://www.cols-cyclisme.com/dolomites/italie/passo-giau-depuis-selva-di-cadore-c1609.htm",
+    "https://profils.cols-cyclisme.com/1609.gif",
+    "https://www.magicoveneto.it/dolomiti/bike/CicloTour_Giau.htm"
+   ],
+   "notes": "Read from the profile image; all 15 segment grades match the printed labels. Final partial 0.12 km folded into the last km."
+  },
+  {
+   "id": "tre-cime-misurina",
+   "name": "Tre Cime di Lavaredo (Rifugio Auronzo)",
+   "side": "Misurina",
+   "country": "Italy",
+   "region": "Veneto (Belluno, Dolomites)",
+   "length_km": 7.89,
+   "start_elevation_m": 1756,
+   "summit_elevation_m": 2349,
+   "elevation_gain_m": 593,
+   "total_ascent_m": 626,
+   "avg_grade_pct": 7.5,
+   "max_grade_pct": 13.8,
+   "max_grade_note": "steepest 500 m segment",
+   "hairpins": null,
+   "km_grades": [
+    3.7,
+    7.4,
+    -3.3,
+    5.1,
+    10.8,
+    13.6,
+    11.6,
+    11.6
+   ],
+   "last_km_length_km": 0.89,
+   "gain_check": {
+    "sum_of_km_grades_m": 592,
+    "elevation_gain_m": 593,
+    "diff_pct": 0.17,
+    "independent_references": []
+   },
+   "source_segments": [
+    [
+     0.0,
+     0.5,
+     2.2
+    ],
+    [
+     0.5,
+     1.0,
+     5.2
+    ],
+    [
+     1.0,
+     1.5,
+     11.8
+    ],
+    [
+     1.5,
+     2.0,
+     3.0
+    ],
+    [
+     2.0,
+     2.5,
+     -2.6
+    ],
+    [
+     2.5,
+     3.0,
+     -4.0
+    ],
+    [
+     3.0,
+     3.5,
+     2.4
+    ],
+    [
+     3.5,
+     4.0,
+     7.8
+    ],
+    [
+     4.0,
+     4.5,
+     11.4
+    ],
+    [
+     4.5,
+     5.0,
+     10.2
+    ],
+    [
+     5.0,
+     5.5,
+     13.4
+    ],
+    [
+     5.5,
+     6.0,
+     13.8
+    ],
+    [
+     6.0,
+     6.5,
+     11.4
+    ],
+    [
+     6.5,
+     7.0,
+     11.8
+    ],
+    [
+     7.0,
+     7.5,
+     12.4
+    ],
+    [
+     7.5,
+     7.89,
+     10.6
+    ]
+   ],
+   "description": "From Lake Misurina the road rolls past Lago d'Antorno and the toll gate, dips slightly, then the last 4 km climb at 11-13 % straight up to Rifugio Auronzo at the foot of the three famous rock towers. The Giro has finished here several times, often in snow.",
+   "famous_for": "Giro summit finish below the Three Peaks; brutal last 4 km",
+   "sources": [
+    "https://www.cols-cyclisme.com/dolomites/italie/tre-cime-di-lavaredo-depuis-misurina-c1356.htm",
+    "https://profils.cols-cyclisme.com/1356.gif"
+   ],
+   "notes": "Read from the profile image (elevations every 500 m). Includes a 33 m descent between km 2 and km 3, so elevation_gain_m is net (start to top); total_ascent_m counts all climbing. If you prefer the Lago d'Antorno start, drop the first 1.5 km (start at 1,852 m)."
+  },
+  {
+   "id": "angliru-la-vega",
+   "name": "Alto de l'Angliru",
+   "side": "La Vega (Riosa)",
+   "country": "Spain",
+   "region": "Asturias",
+   "length_km": 12.55,
+   "start_elevation_m": 322,
+   "summit_elevation_m": 1570,
+   "elevation_gain_m": 1248,
+   "total_ascent_m": 1248,
+   "avg_grade_pct": 9.9,
+   "max_grade_pct": 23.0,
+   "max_grade_note": "cols-cyclisme header; the Cueña les Cabres ramp ~3 km from the top is usually quoted at 23.5 % (cyclingstage)",
+   "hairpins": null,
+   "km_grades": [
+    4.6,
+    7.3,
+    8.7,
+    8.3,
+    7.1,
+    1.8,
+    13.7,
+    12.2,
+    11.3,
+    13.8,
+    17.5,
+    13.1,
+    9.9
+   ],
+   "last_km_length_km": 0.55,
+   "gain_check": {
+    "sum_of_km_grades_m": 1248,
+    "elevation_gain_m": 1248,
+    "diff_pct": 0.0,
+    "independent_references": [
+     {
+      "source": "cyclingstage (Vuelta 2017)",
+      "length_km": 12.5,
+      "avg_pct": 9.8,
+      "max_pct": 23.5
+     }
+    ]
+   },
+   "source_segments": [
+    [
+     0,
+     1,
+     4.6
+    ],
+    [
+     1,
+     2,
+     7.3
+    ],
+    [
+     2,
+     3,
+     8.7
+    ],
+    [
+     3,
+     4,
+     8.3
+    ],
+    [
+     4,
+     5,
+     7.1
+    ],
+    [
+     5,
+     6,
+     1.8
+    ],
+    [
+     6,
+     7,
+     13.7
+    ],
+    [
+     7,
+     8,
+     12.2
+    ],
+    [
+     8,
+     9,
+     11.3
+    ],
+    [
+     9,
+     10,
+     13.8
+    ],
+    [
+     10,
+     11,
+     17.5
+    ],
+    [
+     11,
+     12,
+     13.1
+    ],
+    [
+     12,
+     12.55,
+     9.9
+    ]
+   ],
+   "description": "The first 6 km from Riosa are a normal mountain road, then after a short flat the last 6.5 km never drop below 11 % and peak on the Cueña les Cabres ramp, on a narrow road with mist and cows. Since its Vuelta debut in 1999 it has been the race's most feared summit finish.",
+   "famous_for": "The Vuelta's most feared summit; Cueña les Cabres 23.5 %",
+   "sources": [
+    "https://www.cols-cyclisme.com/monts-cantabriques/espagne/alto-de-l-angliru-depuis-la-vega-c189.htm",
+    "https://profils.cols-cyclisme.com/189.gif",
+    "https://cyclingstage.com/vuelta-2017-route/stage-20-spain-route-2017"
+   ],
+   "notes": "Read from the profile image (one elevation per km); all grades match the printed labels."
+  },
+  {
+   "id": "sa-calobra",
+   "name": "Sa Calobra (Coll dels Reis)",
+   "side": "Port de Sa Calobra",
+   "country": "Spain",
+   "region": "Mallorca (Balearic Islands)",
+   "length_km": 9.39,
+   "start_elevation_m": 62,
+   "summit_elevation_m": 731,
+   "elevation_gain_m": 669,
+   "total_ascent_m": 669,
+   "avg_grade_pct": 7.1,
+   "max_grade_pct": 11.7,
+   "max_grade_note": "cols-cyclisme header (steepest segment, last 400 m)",
+   "hairpins": null,
+   "km_grades": [
+    5.2,
+    4.6,
+    9.3,
+    8.7,
+    7.0,
+    4.6,
+    8.4,
+    7.3,
+    7.1,
+    12.0
+   ],
+   "last_km_length_km": 0.39,
+   "gain_check": {
+    "sum_of_km_grades_m": 669,
+    "elevation_gain_m": 669,
+    "diff_pct": 0.0,
+    "independent_references": []
+   },
+   "source_segments": [
+    [
+     0,
+     1,
+     5.2
+    ],
+    [
+     1,
+     2,
+     4.6
+    ],
+    [
+     2,
+     3,
+     9.3
+    ],
+    [
+     3,
+     4,
+     8.7
+    ],
+    [
+     4,
+     5,
+     7.0
+    ],
+    [
+     5,
+     6,
+     4.6
+    ],
+    [
+     6,
+     7,
+     8.4
+    ],
+    [
+     7,
+     8,
+     7.3
+    ],
+    [
+     8,
+     9,
+     7.1
+    ],
+    [
+     9,
+     9.39,
+     12.0
+    ]
+   ],
+   "description": "A dead-end road built in the 1930s that snakes up from the tiny port through limestone cliffs, including the 270-degree 'knot' where the road loops under itself, to the Coll dels Reis. It is a classic winter and spring training test for pro teams and amateurs based on Mallorca.",
+   "famous_for": "Corkscrew hairpins and the knot-tie loop; pro training test on Mallorca",
+   "sources": [
+    "https://www.cols-cyclisme.com/sierra-de-tramontana/espagne/coll-dels-reis-depuis-sa-calobra-c2137.htm",
+    "https://profils.cols-cyclisme.com/2137.gif"
+   ],
+   "notes": "Read from the profile image (one elevation per km); all grades match the printed labels. Hairpin count not verified in a source, left null."
+  },
+  {
+   "id": "izoard-guillestre",
+   "name": "Col d'Izoard",
+   "side": "Guillestre (via the Combe du Queyras)",
+   "country": "France",
+   "region": "Hautes-Alpes (Provence-Alpes-Côte d'Azur)",
+   "length_km": 15.89,
+   "start_elevation_m": 1266,
+   "summit_elevation_m": 2361,
+   "elevation_gain_m": 1095,
+   "total_ascent_m": 1118,
+   "avg_grade_pct": 6.9,
+   "max_grade_pct": 12.0,
+   "max_grade_note": "cols-cyclisme published max (short ramp after the Casse Déserte dip)",
+   "hairpins": null,
+   "km_grades": [
+    6.1,
+    6.2,
+    3.6,
+    6.9,
+    2.9,
+    7.8,
+    9.1,
+    5.5,
+    9.0,
+    8.6,
+    8.7,
+    8.4,
+    8.0,
+    3.3,
+    9.3,
+    6.9
+   ],
+   "last_km_length_km": 0.89,
+   "gain_check": {
+    "sum_of_km_grades_m": 1095,
+    "elevation_gain_m": 1095,
+    "diff_pct": 0.0,
+    "independent_references": []
+   },
+   "source_segments": [
+    [
+     0,
+     1.09,
+     6.1
+    ],
+    [
+     1.09,
+     1.59,
+     3.0
+    ],
+    [
+     1.59,
+     2,
+     10.2
+    ],
+    [
+     2,
+     2.29,
+     4.1
+    ],
+    [
+     2.29,
+     2.59,
+     1.0
+    ],
+    [
+     2.59,
+     3,
+     5.1
+    ],
+    [
+     3,
+     4.5,
+     6.9
+    ],
+    [
+     4.5,
+     5,
+     -1.0
+    ],
+    [
+     5,
+     5.29,
+     7.2
+    ],
+    [
+     5.29,
+     6.39,
+     8.0
+    ],
+    [
+     6.39,
+     7.1,
+     9.9
+    ],
+    [
+     7.1,
+     7.29,
+     1.6
+    ],
+    [
+     7.29,
+     8,
+     5.9
+    ],
+    [
+     8,
+     8.29,
+     8.3
+    ],
+    [
+     8.29,
+     9,
+     9.3
+    ],
+    [
+     9,
+     9.7,
+     8.6
+    ],
+    [
+     9.7,
+     10.7,
+     8.7
+    ],
+    [
+     10.7,
+     11.7,
+     8.6
+    ],
+    [
+     11.7,
+     13.3,
+     8.0
+    ],
+    [
+     13.3,
+     13.59,
+     -6.2
+    ],
+    [
+     13.59,
+     13.8,
+     1.0
+    ],
+    [
+     13.8,
+     14.09,
+     12.4
+    ],
+    [
+     14.09,
+     15.09,
+     9.0
+    ],
+    [
+     15.09,
+     15.89,
+     6.6
+    ]
+   ],
+   "description": "After the Guil gorge the climb proper turns off towards Arvieux and Brunissard, steepens through larch forest, then dips into the Casse Déserte, a lunar landscape of scree and rock pinnacles, before the last ramp to 2,361 m. It is a Tour legend where Coppi and Bobet are honoured with a memorial, and the 2017 Tour finished on top.",
+   "famous_for": "The Casse Déserte moonscape; Coppi and Bobet memorial",
+   "sources": [
+    "https://www.cols-cyclisme.com/queyras/france/col-de-l-izoard-depuis-gorges-du-guil-d902-d947-c46.htm",
+    "https://profils.cols-cyclisme.com/46.svg"
+   ],
+   "notes": "Starts at the D902/D947 junction in the Guil gorge (1,266 m), i.e. the climb proper; the ~16 km approach from Guillestre itself up the Combe du Queyras is a long false flat not included. Contains a short 18 m descent at km 13.3 (Casse Déserte), so total_ascent_m > elevation_gain_m."
+  },
+  {
+   "id": "planche-des-belles-filles",
+   "name": "La Planche des Belles Filles",
+   "side": "Plancher-les-Mines",
+   "country": "France",
+   "region": "Haute-Saône (Bourgogne-Franche-Comté)",
+   "length_km": 5.5,
+   "start_elevation_m": 532,
+   "summit_elevation_m": 985,
+   "elevation_gain_m": 453,
+   "total_ascent_m": 453,
+   "avg_grade_pct": 8.2,
+   "max_grade_pct": 13.6,
+   "max_grade_note": "steepest 250 m segment in the paved profile (km 0.75-1.0); cols-cyclisme header lists 22 %, which refers to the gravel \"Super Planche\" extension above the station",
+   "hairpins": null,
+   "km_grades": [
+    9.4,
+    6.7,
+    9.4,
+    9.5,
+    8.3,
+    4.0
+   ],
+   "last_km_length_km": 0.5,
+   "gain_check": {
+    "sum_of_km_grades_m": 453,
+    "elevation_gain_m": 453,
+    "diff_pct": 0.0,
+    "independent_references": []
+   },
+   "source_segments": [
+    [
+     0,
+     0.5,
+     7.6
+    ],
+    [
+     0.5,
+     0.75,
+     8.8
+    ],
+    [
+     0.75,
+     1,
+     13.6
+    ],
+    [
+     1,
+     1.25,
+     11.6
+    ],
+    [
+     1.25,
+     1.5,
+     7.2
+    ],
+    [
+     1.5,
+     1.75,
+     6.0
+    ],
+    [
+     1.75,
+     2,
+     2.0
+    ],
+    [
+     2,
+     2.25,
+     9.6
+    ],
+    [
+     2.25,
+     2.5,
+     9.2
+    ],
+    [
+     2.5,
+     2.75,
+     8.8
+    ],
+    [
+     2.75,
+     3,
+     10.0
+    ],
+    [
+     3,
+     3.25,
+     11.2
+    ],
+    [
+     3.25,
+     3.5,
+     8.8
+    ],
+    [
+     3.5,
+     3.75,
+     8.0
+    ],
+    [
+     3.75,
+     4,
+     10.0
+    ],
+    [
+     4,
+     4.25,
+     9.2
+    ],
+    [
+     4.25,
+     4.5,
+     8.4
+    ],
+    [
+     4.5,
+     4.75,
+     9.6
+    ],
+    [
+     4.75,
+     5,
+     6.0
+    ],
+    [
+     5,
+     5.25,
+     0.4
+    ],
+    [
+     5.25,
+     5.5,
+     7.6
+    ]
+   ],
+   "description": "A short, steep Vosges climb out of Plancher-les-Mines through pine forest to the ski station, averaging over 8 % with a final kick at the top. It has been a Tour de France summit finish since 2012 and hosted the decisive 2020 time trial.",
+   "famous_for": "Short, steep Tour summit finish in the Vosges (since 2012)",
+   "sources": [
+    "https://www.cols-cyclisme.com/vosges/france/station-de-la-planche-des-belles-filles-depuis-plancher-les-mines-c1126.htm",
+    "https://profils.cols-cyclisme.com/1126.svg"
+   ],
+   "notes": "SVG ends at the station (985 m) after 5.5 km; the page header (1,148 m, 22 %) includes the newer gravel extension that is not in the profile data."
+  },
+  {
+   "id": "vrsic-kranjska-gora",
+   "name": "Vršič",
+   "side": "Kranjska Gora",
+   "country": "Slovenia",
+   "region": "Upper Carniola (Julian Alps, Triglav National Park)",
+   "length_km": 9.24,
+   "start_elevation_m": 850,
+   "summit_elevation_m": 1611,
+   "elevation_gain_m": 761,
+   "total_ascent_m": 761,
+   "avg_grade_pct": 8.2,
+   "max_grade_pct": 12.8,
+   "max_grade_note": "steepest profile segment",
+   "hairpins": 24,
+   "km_grades": [
+    7.4,
+    5.2,
+    6.3,
+    8.5,
+    8.7,
+    7.5,
+    9.2,
+    9.9,
+    11.9,
+    6.3
+   ],
+   "last_km_length_km": 0.24,
+   "gain_check": {
+    "sum_of_km_grades_m": 761,
+    "elevation_gain_m": 761,
+    "diff_pct": 0.0,
+    "independent_references": []
+   },
+   "source_segments": [
+    [
+     0.0,
+     0.25,
+     10.3
+    ],
+    [
+     0.25,
+     0.4,
+     3.4
+    ],
+    [
+     0.4,
+     0.55,
+     9.1
+    ],
+    [
+     0.55,
+     0.8,
+     8.6
+    ],
+    [
+     0.8,
+     1.22,
+     4.0
+    ],
+    [
+     1.22,
+     1.59,
+     1.9
+    ],
+    [
+     1.59,
+     1.78,
+     8.6
+    ],
+    [
+     1.78,
+     2.08,
+     9.2
+    ],
+    [
+     2.08,
+     2.8,
+     4.6
+    ],
+    [
+     2.8,
+     2.98,
+     12.3
+    ],
+    [
+     2.98,
+     3.25,
+     4.5
+    ],
+    [
+     3.25,
+     3.65,
+     12.8
+    ],
+    [
+     3.65,
+     3.74,
+     6.2
+    ],
+    [
+     3.74,
+     4.01,
+     6.7
+    ],
+    [
+     4.01,
+     4.39,
+     7.9
+    ],
+    [
+     4.39,
+     5.04,
+     9.3
+    ],
+    [
+     5.04,
+     5.28,
+     1.2
+    ],
+    [
+     5.28,
+     5.59,
+     11.0
+    ],
+    [
+     5.59,
+     5.99,
+     8.5
+    ],
+    [
+     5.99,
+     6.14,
+     2.6
+    ],
+    [
+     6.14,
+     6.84,
+     10.0
+    ],
+    [
+     6.84,
+     6.99,
+     11.6
+    ],
+    [
+     6.99,
+     7.37,
+     8.4
+    ],
+    [
+     7.37,
+     7.74,
+     10.1
+    ],
+    [
+     7.74,
+     8.09,
+     11.7
+    ],
+    [
+     8.09,
+     8.99,
+     12.0
+    ],
+    [
+     8.99,
+     9.24,
+     6.3
+    ]
+   ],
+   "description": "The ride starts on the way out of Kranjska Gora, about half a kilometre before Lake Jasna, and follows the road to the Pišnica bridge. From the bridge at 850 m Slovenia's highest road pass climbs past the Russian Chapel through 24 numbered hairpins, several of them cobbled, to 1,611 m under the walls of Prisojnik. The road was built during the First World War by Russian prisoners of war and is often called the Russian Road.",
+   "famous_for": "Highest pass in Slovenia; 24 numbered hairpins on the north side; the Russian Road",
+   "sources": [
+    "https://www.cols-cyclisme.com/alpes-juliennes/slovenie/passo-vrsic-depuis-kranjska-gora-c1122.htm",
+    "https://profils.cols-cyclisme.com/1122.gif",
+    "https://www.dangerousroads.org/eastern-europe/slovenia/619-vri-pass-slovenia.html",
+    "https://kraji.eu/slovenija/vrsic_cesta_ruska_cesta/eng"
+   ],
+   "notes": "Read from the profile image: segment boundaries measured from pixel positions, elevations from labels; one unlabelled break at ~km 3.24 derived from the printed 12.8 % grade. 25 of 27 printed grades checked within 0.6 %. Starts at the Velika Pišnica bridge (850 m), matching cols-cyclisme header (9.3 km, 761 m, 8.18 %)."
+  },
+  {
+   "id": "mangart-predel-junction",
+   "name": "Mangart Saddle road (Mangartsko sedlo)",
+   "side": "Junction with the Predel road above Log pod Mangartom",
+   "country": "Slovenia",
+   "region": "Goriška (Soča valley, Julian Alps)",
+   "length_km": 12.22,
+   "start_elevation_m": 1084,
+   "summit_elevation_m": 2084,
+   "elevation_gain_m": 1000,
+   "total_ascent_m": 1000,
+   "avg_grade_pct": 8.2,
+   "max_grade_pct": 9.7,
+   "max_grade_note": "steepest segment in this coarse (~0.9 km) profile; real short pitches are much steeper (climbfinder: steepest 100 m 18.8 %)",
+   "hairpins": null,
+   "km_grades": [
+    7.3,
+    8.2,
+    9.5,
+    8.9,
+    7.7,
+    6.9,
+    7.7,
+    8.7,
+    9.0,
+    8.8,
+    9.1,
+    7.1,
+    6.2
+   ],
+   "last_km_length_km": 0.22,
+   "gain_check": {
+    "sum_of_km_grades_m": 1003,
+    "elevation_gain_m": 1000,
+    "diff_pct": 0.3,
+    "independent_references": [
+     {
+      "source": "soca-valley.com",
+      "length_km": 12,
+      "gain_m": 980
+     },
+     {
+      "source": "climbfinder",
+      "length_km": 10.9,
+      "gain_m": 980,
+      "avg_pct": 9.0,
+      "max_pct": 18.8
+     }
+    ]
+   },
+   "source_segments": [
+    [
+     0.0,
+     0.79,
+     7.2
+    ],
+    [
+     0.79,
+     1.67,
+     7.7
+    ],
+    [
+     1.67,
+     2.54,
+     9.4
+    ],
+    [
+     2.54,
+     3.43,
+     9.6
+    ],
+    [
+     3.43,
+     4.31,
+     8.3
+    ],
+    [
+     4.31,
+     5.19,
+     7.4
+    ],
+    [
+     5.19,
+     6.07,
+     6.7
+    ],
+    [
+     6.07,
+     6.95,
+     7.7
+    ],
+    [
+     6.95,
+     7.82,
+     8.6
+    ],
+    [
+     7.82,
+     8.71,
+     9.2
+    ],
+    [
+     8.71,
+     9.59,
+     8.3
+    ],
+    [
+     9.59,
+     10.46,
+     9.4
+    ],
+    [
+     10.46,
+     11.35,
+     8.8
+    ],
+    [
+     11.35,
+     12.22,
+     6.2
+    ]
+   ],
+   "description": "The highest road in Slovenia leaves the Predel road at a bridge and climbs a narrow balcony road through five rock tunnels and across sheer cliffs to the saddle below Mangart (2,055 m) and a loop at the top. Views over the Julian Alps and into Italy make it one of the most spectacular climbs in the Alps.",
+   "famous_for": "Highest road in Slovenia; five rock tunnels; Julian Alps views",
+   "sources": [
+    "https://www.cols-cyclisme.com/alpes-juliennes/slovenie/mangart-depuis-log-pod-mangartom-c2491.htm",
+    "https://profils.cols-cyclisme.com/2491.gif",
+    "https://www.cols-cyclisme.com/alpes-juliennes/slovenie/passo-del-predil-depuis-log-pod-mangartom-c1961.htm",
+    "https://profils.cols-cyclisme.com/1961.gif",
+    "https://www.soca-valley.com/sl/iskanje-dogodivscin/narava/2021010713523320/",
+    "https://climbfinder.com/en/climbs/klanska-skrbina-predel-mangart"
+   ],
+   "notes": "Sliced from the cols-cyclisme Log pod Mangartom profile (21.1 km, 597 -> 2,084 m) at the \"bivio Mangart\" junction elevation (1,084 m, from the cols-cyclisme Predel profile), i.e. km 8.89 of the full profile. The source profile uses ~0.9 km segments, so the per-km values are smoothed; treat as approximate. Ends at the top of the summit loop (2,084 m), not the saddle sign (2,055 m)."
+  },
+  {
+   "id": "krvavec-cerklje",
+   "name": "Krvavec",
+   "side": "Cerklje na Gorenjskem",
+   "country": "Slovenia",
+   "region": "Upper Carniola (Kamnik-Savinja Alps)",
+   "length_km": 11.6,
+   "start_elevation_m": 461,
+   "summit_elevation_m": 1423,
+   "elevation_gain_m": 962,
+   "total_ascent_m": 968,
+   "avg_grade_pct": 8.3,
+   "max_grade_pct": 12.6,
+   "max_grade_note": "mycols published max",
+   "hairpins": null,
+   "km_grades": [
+    11.4,
+    9.6,
+    3.4,
+    7.0,
+    8.0,
+    7.7,
+    7.1,
+    9.3,
+    11.0,
+    8.2,
+    9.6,
+    6.4
+   ],
+   "last_km_length_km": 0.6,
+   "gain_check": {
+    "sum_of_km_grades_m": 961,
+    "elevation_gain_m": 962,
+    "diff_pct": 0.1,
+    "independent_references": [
+     {
+      "source": "RTV Slovenija (from Grad)",
+      "length_km": 11.7,
+      "gain_m": 950,
+      "avg_pct": 8.0
+     }
+    ]
+   },
+   "source_segments": [
+    [
+     0.0,
+     0.5,
+     11.2
+    ],
+    [
+     0.5,
+     1.0,
+     11.7
+    ],
+    [
+     1.0,
+     1.5,
+     11.6
+    ],
+    [
+     1.5,
+     2.0,
+     7.7
+    ],
+    [
+     2.0,
+     2.5,
+     8.1
+    ],
+    [
+     2.5,
+     3.0,
+     -1.2
+    ],
+    [
+     3.0,
+     3.5,
+     4.3
+    ],
+    [
+     3.5,
+     4.0,
+     9.8
+    ],
+    [
+     4.0,
+     4.5,
+     8.4
+    ],
+    [
+     4.5,
+     5.0,
+     7.6
+    ],
+    [
+     5.0,
+     5.5,
+     9.0
+    ],
+    [
+     5.5,
+     6.0,
+     6.4
+    ],
+    [
+     6.0,
+     6.5,
+     6.8
+    ],
+    [
+     6.5,
+     7.0,
+     7.4
+    ],
+    [
+     7.0,
+     7.5,
+     8.9
+    ],
+    [
+     7.5,
+     8.0,
+     9.7
+    ],
+    [
+     8.0,
+     8.5,
+     12.6
+    ],
+    [
+     8.5,
+     9.0,
+     9.5
+    ],
+    [
+     9.0,
+     9.5,
+     8.4
+    ],
+    [
+     9.5,
+     10.0,
+     8.0
+    ],
+    [
+     10.0,
+     10.5,
+     9.8
+    ],
+    [
+     10.5,
+     11.0,
+     9.4
+    ],
+    [
+     11.0,
+     11.5,
+     7.7
+    ],
+    [
+     11.5,
+     11.6,
+     0.0
+    ]
+   ],
+   "description": "The road to the Krvavec ski area climbs from the Cerklje plain at a steady 8-12 %, with a short dip around km 2.5-3 and a steep upper half, to a viewpoint over the Ljubljana basin and the Kamnik Alps. It is one of the hardest road climbs in Slovenia and has hosted Tour of Slovenia summit finishes (e.g. 2010 stage 3, Bled-Krvavec).",
+   "famous_for": "One of Slovenia's hardest road climbs; Tour of Slovenia finish",
+   "sources": [
+    "https://mycols.app/en/climb/krvavec",
+    "https://mycols.app/en/climb/profile/krvavec",
+    "https://rtvslo.si/news-in-english/climb-by-bike-to-krvavec-is-second-only-to-ascent-to-mangart/319916",
+    "https://www.bikemap.net/en/r/485075"
+   ],
+   "notes": "Derived from the myCols profile SVG (11.6 km, 461 -> 1,423 m, 8.8 %, max 12.6 %): elevations every 500 m from the drawn profile, scaled between the labelled start and finish heights; each 500 m grade matches the printed (rounded) label. The last ~0.1 km is flat. Not on cols-cyclisme/salite; the only per-segment source found."
+  },
+  {
+   "id": "grossglockner-fusch",
+   "name": "Großglockner High Alpine Road (Fuscher Törl)",
+   "side": "Fusch an der Großglocknerstraße",
+   "country": "Austria",
+   "region": "Salzburg (Hohe Tauern)",
+   "length_km": 19.59,
+   "start_elevation_m": 805,
+   "summit_elevation_m": 2394,
+   "elevation_gain_m": 1589,
+   "total_ascent_m": 1589,
+   "avg_grade_pct": 8.1,
+   "max_grade_pct": 11.9,
+   "max_grade_note": "steepest profile segment (below Edelweisswand)",
+   "hairpins": null,
+   "km_grades": [
+    2.1,
+    2.1,
+    3.9,
+    9.7,
+    6.5,
+    4.4,
+    4.4,
+    8.8,
+    9.9,
+    9.9,
+    9.9,
+    9.9,
+    10.0,
+    10.0,
+    10.7,
+    11.0,
+    11.1,
+    10.9,
+    8.6,
+    8.6
+   ],
+   "last_km_length_km": 0.59,
+   "gain_check": {
+    "sum_of_km_grades_m": 1589,
+    "elevation_gain_m": 1589,
+    "diff_pct": 0.0,
+    "independent_references": []
+   },
+   "source_segments": [
+    [
+     0,
+     2.76,
+     2.1
+    ],
+    [
+     2.76,
+     4.39,
+     9.7
+    ],
+    [
+     4.39,
+     7.19,
+     4.4
+    ],
+    [
+     7.19,
+     12.0,
+     9.9
+    ],
+    [
+     12.0,
+     14.3,
+     10.0
+    ],
+    [
+     14.3,
+     16.2,
+     11.0
+    ],
+    [
+     16.2,
+     16.89,
+     11.1
+    ],
+    [
+     16.89,
+     17.7,
+     11.8
+    ],
+    [
+     17.7,
+     19.59,
+     8.6
+    ]
+   ],
+   "description": "From Fusch the road climbs gently to the Ferleiten toll gate, then settles into 10-11 % for 12 km up the Hohe Tauern toll road past Piffkar and Hexenküche to the Fuscher Törl at 2,394 m, facing Austria's highest peaks. It is a regular feature of the Tour of Austria and of big amateur hill climbs.",
+   "famous_for": "Austria's great alpine toll road; 12 km at 10 %",
+   "sources": [
+    "https://www.cols-cyclisme.com/alpes-noriques/autriche/grossglockner-depuis-fusch-c813.htm",
+    "https://profils.cols-cyclisme.com/813.gif",
+    "https://www.cols-cyclisme.com/alpes-noriques/autriche/hochtor-depuis-pockhorn-c812.htm"
+   ],
+   "notes": "Sliced from the cols-cyclisme Fusch -> Edelweissspitze profile (21.4 km to 2,571 m) at Fuscher Törl (km 19.6, 2,394 m). The source uses long segments (up to 4.8 km at a single 9.9 %), so per-km values are smooth averages. Continuing to Hochtor (2,504 m) needs the Fuscher Lacke section, which this source does not cover from the north."
+  },
+  {
+   "id": "madeleine-la-chambre",
+   "name": "Col de la Madeleine",
+   "side": "La Chambre",
+   "country": "France",
+   "region": "Savoie (Auvergne-Rhône-Alpes)",
+   "length_km": 19.39,
+   "start_elevation_m": 495,
+   "summit_elevation_m": 2000,
+   "elevation_gain_m": 1505,
+   "total_ascent_m": 1505,
+   "avg_grade_pct": 7.8,
+   "max_grade_pct": 13.5,
+   "max_grade_note": "cols-cyclisme published max (short ramp near l'Epalud)",
+   "hairpins": null,
+   "km_grades": [
+    6.7,
+    6.5,
+    8.8,
+    9.4,
+    8.7,
+    7.5,
+    7.3,
+    9.1,
+    8.3,
+    7.0,
+    9.4,
+    5.7,
+    8.0,
+    8.2,
+    7.8,
+    7.1,
+    6.9,
+    7.1,
+    8.1,
+    7.4
+   ],
+   "last_km_length_km": 0.39,
+   "gain_check": {
+    "sum_of_km_grades_m": 1505,
+    "elevation_gain_m": 1505,
+    "diff_pct": 0.0,
+    "independent_references": []
+   },
+   "source_segments": [
+    [
+     0,
+     1,
+     6.7
+    ],
+    [
+     1,
+     1.5,
+     7.0
+    ],
+    [
+     1.5,
+     2,
+     6.0
+    ],
+    [
+     2,
+     3,
+     8.8
+    ],
+    [
+     3,
+     3.59,
+     9.7
+    ],
+    [
+     3.59,
+     4,
+     9.0
+    ],
+    [
+     4,
+     5,
+     8.7
+    ],
+    [
+     5,
+     6,
+     7.5
+    ],
+    [
+     6,
+     7,
+     7.3
+    ],
+    [
+     7,
+     8,
+     9.1
+    ],
+    [
+     8,
+     9,
+     8.3
+    ],
+    [
+     9,
+     9.49,
+     7.8
+    ],
+    [
+     9.49,
+     10,
+     6.3
+    ],
+    [
+     10,
+     10.59,
+     6.8
+    ],
+    [
+     10.59,
+     11,
+     13.2
+    ],
+    [
+     11,
+     12,
+     5.7
+    ],
+    [
+     12,
+     13,
+     8.0
+    ],
+    [
+     13,
+     14,
+     8.2
+    ],
+    [
+     14,
+     15,
+     7.8
+    ],
+    [
+     15,
+     16,
+     7.1
+    ],
+    [
+     16,
+     17,
+     6.9
+    ],
+    [
+     17,
+     18,
+     7.1
+    ],
+    [
+     18,
+     19,
+     8.1
+    ],
+    [
+     19,
+     19.39,
+     7.4
+    ]
+   ],
+   "description": "The southern side leaves the Maurienne valley at La Chambre and climbs through villages and pasture with few breaks, a long, steady effort of around 8 % to the 2,000 m pass between the Maurienne and the Tarentaise. It is a regular Tour de France HC climb.",
+   "famous_for": "Long, steady Tour HC climb between Maurienne and Tarentaise",
+   "sources": [
+    "https://www.cols-cyclisme.com/vanoise/france/col-de-la-madeleine-depuis-la-chambre-c50.htm",
+    "https://profils.cols-cyclisme.com/50.svg"
+   ],
+   "notes": "SVG distance axis gives 19.4 km vs 19.0 km in the page header (gain 1,505 vs 1,522 m); used the SVG geometry."
+  },
+  {
+   "id": "mur-de-huy",
+   "name": "Mur de Huy (Chemin des Chapelles)",
+   "side": "Huy",
+   "country": "Belgium",
+   "region": "Liège province (Wallonia)",
+   "length_km": 1.31,
+   "start_elevation_m": 76,
+   "summit_elevation_m": 204,
+   "elevation_gain_m": 128,
+   "total_ascent_m": 128,
+   "avg_grade_pct": 9.8,
+   "max_grade_pct": 17.0,
+   "max_grade_note": "cols-cyclisme published max; the hairpin at the chapels is widely quoted at about 26 %",
+   "hairpins": null,
+   "km_grades": [
+    9.3,
+    11.3
+   ],
+   "last_km_length_km": 0.31,
+   "gain_check": {
+    "sum_of_km_grades_m": 128,
+    "elevation_gain_m": 128,
+    "diff_pct": 0.0,
+    "independent_references": []
+   },
+   "source_segments": [
+    [
+     0,
+     0.1,
+     7.0
+    ],
+    [
+     0.1,
+     0.2,
+     1.0
+    ],
+    [
+     0.2,
+     0.3,
+     5.0
+    ],
+    [
+     0.3,
+     0.4,
+     6.0
+    ],
+    [
+     0.4,
+     0.5,
+     10.0
+    ],
+    [
+     0.5,
+     0.61,
+     10.0
+    ],
+    [
+     0.61,
+     0.71,
+     11.0
+    ],
+    [
+     0.71,
+     0.81,
+     10.0
+    ],
+    [
+     0.81,
+     0.91,
+     17.0
+    ],
+    [
+     0.91,
+     1,
+     16.7
+    ],
+    [
+     1,
+     1.11,
+     12.7
+    ],
+    [
+     1.11,
+     1.21,
+     15.0
+    ],
+    [
+     1.21,
+     1.31,
+     6.0
+    ]
+   ],
+   "description": "A short, savage wall that leaves the town of Huy and climbs the Chemin des Chapelles past small roadside chapels, steepening in the middle before easing slightly at the line. It has been the finish of La Flèche Wallonne since 1983.",
+   "famous_for": "Finish of La Flèche Wallonne",
+   "sources": [
+    "https://www.cols-cyclisme.com/region-wallonne/belgique/mur-de-huy-depuis-huy-c454.htm",
+    "https://profils.cols-cyclisme.com/454.svg"
+   ],
+   "notes": "Only 1.3 km, so per-km averages hide the steep middle: use source_segments (~100 m resolution) for a realistic ramp."
+  },
+  {
+   "id": "covadonga-cangas",
+   "name": "Lagos de Covadonga",
+   "side": "Soto de Cangas (near Cangas de Onís)",
+   "country": "Spain",
+   "region": "Asturias (Picos de Europa)",
+   "length_km": 16,
+   "start_elevation_m": 78,
+   "summit_elevation_m": 1092,
+   "elevation_gain_m": 1014,
+   "total_ascent_m": 1045,
+   "avg_grade_pct": 6.3,
+   "max_grade_pct": 12.5,
+   "max_grade_note": "steepest profile segment (La Huesera, km 11-12)",
+   "hairpins": null,
+   "km_grades": [
+    1.4,
+    1.0,
+    1.5,
+    1.7,
+    2.4,
+    7.4,
+    10.8,
+    10.6,
+    8.6,
+    8.3,
+    10.0,
+    12.5,
+    7.2,
+    7.9,
+    0.1,
+    10.0
+   ],
+   "last_km_length_km": 1.0,
+   "gain_check": {
+    "sum_of_km_grades_m": 1014,
+    "elevation_gain_m": 1014,
+    "diff_pct": 0.0,
+    "independent_references": []
+   },
+   "source_segments": [
+    [
+     0,
+     1,
+     1.4
+    ],
+    [
+     1,
+     2,
+     1.0
+    ],
+    [
+     2,
+     3,
+     1.5
+    ],
+    [
+     3,
+     4,
+     1.7
+    ],
+    [
+     4,
+     5,
+     2.4
+    ],
+    [
+     5,
+     5.5,
+     8.4
+    ],
+    [
+     5.5,
+     6,
+     6.4
+    ],
+    [
+     6,
+     7,
+     10.8
+    ],
+    [
+     7,
+     8,
+     10.6
+    ],
+    [
+     8,
+     9,
+     8.6
+    ],
+    [
+     9,
+     10,
+     8.3
+    ],
+    [
+     10,
+     11,
+     10.0
+    ],
+    [
+     11,
+     12,
+     12.5
+    ],
+    [
+     12,
+     13,
+     7.2
+    ],
+    [
+     13,
+     14,
+     7.9
+    ],
+    [
+     14,
+     14.5,
+     6.4
+    ],
+    [
+     14.5,
+     15,
+     -6.2
+    ],
+    [
+     15,
+     16,
+     10.0
+    ]
+   ],
+   "description": "After 5 km of valley road past the basilica of Covadonga, the climb rears up into the Picos de Europa, with the steep La Huesera section and the Mirador de la Reina, a short descent near the top and a final ramp to the glacial lakes Enol and Ercina. It has been the Vuelta's signature summit finish since 1983.",
+   "famous_for": "The Vuelta's signature summit finish (since 1983)",
+   "sources": [
+    "https://www.cols-cyclisme.com/monts-cantabriques/espagne/lagos-de-covadonga-depuis-soto-de-cangas-c479.htm",
+    "https://profils.cols-cyclisme.com/479.gif"
+   ],
+   "notes": "Profile image starts at \"inizio salita\" (78 m) and runs 16 km to 1,092 m; the cols-cyclisme page header lists 14.2 km / 1,056 m to 1,134 m (a different measurement), so the header and profile disagree. Km 14-15 averages 0.1 % but contains a 0.5 km rise at 6.4 % then a 0.5 km descent at 6.2 % (see source_segments). The climb proper starts at ~km 5."
+  },
+  {
+   "id": "puy-de-dome",
+   "name": "Puy de Dôme",
+   "side": "Panoramique des Dômes toll road (lower station)",
+   "country": "France",
+   "region": "Puy-de-Dôme (Auvergne-Rhône-Alpes)",
+   "length_km": 4,
+   "start_elevation_m": 934,
+   "summit_elevation_m": 1412,
+   "elevation_gain_m": 478,
+   "total_ascent_m": 478,
+   "avg_grade_pct": 11.9,
+   "max_grade_pct": 17.0,
+   "max_grade_note": "cols-cyclisme published max",
+   "hairpins": null,
+   "km_grades": [
+    11.8,
+    11.2,
+    11.8,
+    13.0
+   ],
+   "last_km_length_km": 1.0,
+   "gain_check": {
+    "sum_of_km_grades_m": 478,
+    "elevation_gain_m": 478,
+    "diff_pct": 0.0,
+    "independent_references": []
+   },
+   "source_segments": [
+    [
+     0,
+     0.2,
+     12.0
+    ],
+    [
+     0.2,
+     0.4,
+     12.0
+    ],
+    [
+     0.4,
+     0.6,
+     11.0
+    ],
+    [
+     0.6,
+     0.8,
+     12.0
+    ],
+    [
+     0.8,
+     1,
+     12.0
+    ],
+    [
+     1,
+     1.2,
+     11.0
+    ],
+    [
+     1.2,
+     1.4,
+     11.0
+    ],
+    [
+     1.4,
+     1.6,
+     12.0
+    ],
+    [
+     1.6,
+     1.8,
+     11.0
+    ],
+    [
+     1.8,
+     2,
+     11.0
+    ],
+    [
+     2,
+     2.2,
+     11.0
+    ],
+    [
+     2.2,
+     2.4,
+     12.0
+    ],
+    [
+     2.4,
+     2.6,
+     12.0
+    ],
+    [
+     2.6,
+     2.8,
+     12.0
+    ],
+    [
+     2.8,
+     3,
+     12.0
+    ],
+    [
+     3,
+     3.2,
+     13.0
+    ],
+    [
+     3.2,
+     3.4,
+     12.0
+    ],
+    [
+     3.4,
+     3.6,
+     12.0
+    ],
+    [
+     3.6,
+     3.8,
+     13.0
+    ],
+    [
+     3.8,
+     4,
+     15.0
+    ]
+   ],
+   "description": "The final road spirals around the extinct volcano at a near-constant 12 %, with views over the Chaîne des Puys, to the summit at about 1,412 m. Normally closed to bikes and cars (a rack railway runs alongside), it is famous for the 1964 Tour shoulder-to-shoulder duel between Poulidor and Anquetil and returned to the Tour in 2023.",
+   "famous_for": "Poulidor vs Anquetil 1964; volcano road reopened for the 2023 Tour",
+   "sources": [
+    "https://www.cols-cyclisme.com/chaine-des-puys-monts-dore/france/puy-de-dome-depuis-panoramique-des-domes-c71.htm",
+    "https://profils.cols-cyclisme.com/71.svg"
+   ],
+   "notes": "Covers only the 4 km race road from the toll barrier (934 m) to the top station (~1,412 m): 4 km at ~12 %. Race approach roads below the barrier are not included."
+  }
+ ],
+ "stages": [
+  {
+   "id": "stage-mortirolo-ponte-di-legno",
+   "name": "Val Camonica stage over Mortirolo (Mazzo side) to Ponte di Legno",
+   "inspired_by": "Giro d'Italia 2019 stage 16 (Lovere - Ponte di Legno, after the Gavia was removed for snow)",
+   "total_km": 194,
+   "start_elevation_m": null,
+   "finish_type": "hill",
+   "finish_note": "After the Mortirolo descent to Monno the last ~15 km drag up the valley at 3-4 % into Ponte di Legno; flat finish in town.",
+   "key_points": [
+    {
+     "km": null,
+     "type": "climb",
+     "climb_ref": {
+      "name": "Passo della Presolana"
+     },
+     "category": null,
+     "note": "first climb after the start from Lovere; km not published in sources found"
+    },
+    {
+     "km": null,
+     "type": "climb",
+     "climb_ref": {
+      "name": "Croce di Salven"
+     },
+     "category": null,
+     "note": "km not published in sources found"
+    },
+    {
+     "km": 97,
+     "approx": true,
+     "type": "climb",
+     "climb_ref": {
+      "name": "Cevo",
+      "length_km": 10.6,
+      "avg_grade_pct": 5.9
+     },
+     "category": null,
+     "note": "\"crested halfway through the race\" (cyclingstage)"
+    },
+    {
+     "km": null,
+     "type": "climb",
+     "climb_ref": {
+      "name": "Aprica (via Santicolo)",
+      "length_km": 13.9,
+      "avg_grade_pct": 3.4
+     },
+     "category": null,
+     "note": "between Edolo and Tirano; km not published"
+    },
+    {
+     "km": 167,
+     "type": "climb",
+     "climb_ref": "mortirolo-mazzo",
+     "category": null,
+     "note": "summit with 27 km to go (inrng); Cycling Weekly says 30 km"
+    },
+    {
+     "km": 185.9,
+     "type": "sprint",
+     "note": "second intermediate sprint (cyclingstage)"
+    }
+   ],
+   "sources": [
+    "https://archivio.giroditalia.it/eng/stage/stage-16-2019/",
+    "https://www.cyclingstage.com/giro-2019-route/stage-16-italy-2019",
+    "https://inrng.com/2019/05/giro-stage-16-preview-ponte-di-legno/",
+    "https://www.cyclingstage.com/giro-2019-stage-16/stage-16-italy-contender-2019",
+    "https://www.cyclingweekly.com/news/racing/giro-ditalia/guilio-ciccone-suffers-victory-primoz-roglic-simon-yates-lose-stage-16-giro-ditalia-2019-425203"
+   ],
+   "notes": "Least complete template: only the Mortirolo summit, Cevo (approx.) and the late sprint have published km positions. The planned 226 km route included the Gavia (from Ponte di Legno) before the Mortirolo. Mortirolo race category not confirmed in sources found, left null."
+  },
+  {
+   "id": "stage-alpe-dhuez-galibier",
+   "name": "Short alpine stage over Télégraphe and Galibier to Alpe d'Huez",
+   "inspired_by": "Tour de France 2011 stage 19 (Modane Valfréjus - Alpe d'Huez, 109.5 km)",
+   "total_km": 109.5,
+   "start_elevation_m": null,
+   "finish_type": "summit",
+   "key_points": [
+    {
+     "km": 26.5,
+     "type": "climb",
+     "climb_ref": {
+      "name": "Col du Télégraphe (from Saint-Michel-de-Maurienne)",
+      "length_km": 11.78,
+      "avg_grade_pct": 7.2,
+      "start_elevation_m": 720,
+      "summit_elevation_m": 1566,
+      "km_grades": [
+       6.1,
+       8.3,
+       8.9,
+       8.1,
+       7.2,
+       7.6,
+       7.0,
+       6.1,
+       6.2,
+       6.4,
+       6.6,
+       7.8
+      ],
+      "last_km_length_km": 0.78,
+      "source": "cols-cyclisme c37 SVG, km 0-11.78"
+     },
+     "category": "1",
+     "race_figures": {
+      "length_km": 11.9,
+      "avg_grade_pct": 7.1
+     }
+    },
+    {
+     "km": 48.5,
+     "type": "climb",
+     "climb_ref": "galibier-valloire",
+     "category": "HC",
+     "race_figures": {
+      "length_km": 16.7,
+      "avg_grade_pct": 6.8
+     },
+     "note": "race measured from a later point in Valloire than the climb record"
+    },
+    {
+     "km": 94.5,
+     "type": "sprint",
+     "note": "intermediate sprint in Le Bourg-d'Oisans"
+    },
+    {
+     "km": 109.5,
+     "type": "climb",
+     "climb_ref": "alpe-dhuez-bourg-doisans",
+     "category": "HC",
+     "race_figures": {
+      "length_km": 12.4,
+      "avg_grade_pct": 7.9
+     },
+     "note": "summit finish"
+    }
+   ],
+   "sources": [
+    "https://fr.wikipedia.org/wiki/19e_étape_du_Tour_de_France_2011",
+    "https://en.wikipedia.org/wiki/2011_Tour_de_France,_Stage_12_to_Stage_21"
+   ],
+   "notes": "Between Galibier (km 48.5) and Bourg-d'Oisans the route descends the Lautaret and the Romanche valley (~45 km mostly downhill). Start elevation of Modane not taken from a roadbook, left null."
+  },
+  {
+   "id": "stage-ventoux-bedoin",
+   "name": "Long Rhône valley stage to the summit of Mont Ventoux",
+   "inspired_by": "Tour de France 2013 stage 15 (Givors - Mont Ventoux, 242.5 km)",
+   "total_km": 242.5,
+   "start_elevation_m": null,
+   "finish_type": "summit",
+   "key_points": [
+    {
+     "km": 20.5,
+     "type": "climb",
+     "climb_ref": {
+      "name": "Côte d'Eyzin-Pinet"
+     },
+     "category": "4"
+    },
+    {
+     "km": 26.5,
+     "type": "climb",
+     "climb_ref": {
+      "name": "Côte de Primarette"
+     },
+     "category": "4"
+    },
+    {
+     "km": 44.5,
+     "type": "climb",
+     "climb_ref": {
+      "name": "Côte de Lens-Lestang"
+     },
+     "category": "4"
+    },
+    {
+     "km": 143,
+     "type": "climb",
+     "climb_ref": {
+      "name": "Côte de Bourdeaux"
+     },
+     "category": "3"
+    },
+    {
+     "km": 208,
+     "type": "sprint",
+     "note": "intermediate sprint in Malaucène"
+    },
+    {
+     "km": 242.5,
+     "type": "climb",
+     "climb_ref": "ventoux-bedoin",
+     "category": "HC",
+     "note": "summit finish via Bédoin"
+    }
+   ],
+   "sources": [
+    "https://fr.wikipedia.org/wiki/15e_étape_du_Tour_de_France_2013"
+   ],
+   "notes": "Lengths/gradients of the four small côtes are not published on the source page. Longest stage of the 2013 Tour (fr.wikipedia gives 242 km in text, 242.5 km at the Ventoux line)."
+  },
+  {
+   "id": "stage-tourmalet-pau",
+   "name": "Pyrenean stage from Pau over Marie-Blanque and Soulor to the Tourmalet summit",
+   "inspired_by": "Tour de France 2010 stage 17 (Pau - Col du Tourmalet, 174 km)",
+   "total_km": 174,
+   "start_elevation_m": null,
+   "finish_type": "summit",
+   "key_points": [
+    {
+     "km": 13.5,
+     "type": "climb",
+     "climb_ref": {
+      "name": "Côte de Renoir",
+      "length_km": 2.2,
+      "avg_grade_pct": 6.0
+     },
+     "category": "4"
+    },
+    {
+     "km": 33,
+     "type": "sprint",
+     "note": "intermediate sprint at Bidos"
+    },
+    {
+     "km": 56.5,
+     "type": "climb",
+     "climb_ref": {
+      "name": "Col de Marie-Blanque",
+      "length_km": 9.3,
+      "avg_grade_pct": 7.6
+     },
+     "category": "1"
+    },
+    {
+     "km": 87.5,
+     "type": "feed",
+     "note": "feed zone"
+    },
+    {
+     "km": 117.5,
+     "type": "climb",
+     "climb_ref": {
+      "name": "Col du Soulor",
+      "length_km": 11.9,
+      "avg_grade_pct": 7.8
+     },
+     "category": "1"
+    },
+    {
+     "km": 141.5,
+     "type": "sprint",
+     "note": "intermediate sprint at Adast"
+    },
+    {
+     "km": 174,
+     "type": "climb",
+     "climb_ref": "tourmalet-luz",
+     "category": "HC",
+     "race_figures": {
+      "length_km": 18.6,
+      "avg_grade_pct": 7.5
+     },
+     "note": "summit finish from Luz-Saint-Sauveur"
+    }
+   ],
+   "sources": [
+    "https://fr.wikipedia.org/wiki/17e_étape_du_Tour_de_France_2010"
+   ],
+   "notes": "Between the Soulor (km 117.5) and Luz the route descends towards Argelès-Gazost and rolls up the Gave de Pau valley."
+  },
+  {
+   "id": "stage-angliru-asturias",
+   "name": "Short Asturian mountain stage to the Alto de l'Angliru",
+   "inspired_by": "Vuelta a España 2017 stage 20 (Corvera de Asturias - Alto de l'Angliru, 117.5 km)",
+   "total_km": 117.5,
+   "start_elevation_m": null,
+   "finish_type": "summit",
+   "key_points": [
+    {
+     "km": null,
+     "type": "climb",
+     "climb_ref": {
+      "name": "Alto La Reigada",
+      "length_km": 12.7
+     },
+     "category": null,
+     "note": "early climb right after the start (cyclingstage route page); km not published"
+    },
+    {
+     "km": 79.5,
+     "type": "climb",
+     "climb_ref": {
+      "name": "Alto de la Cobertoria",
+      "length_km": 8.1,
+      "avg_grade_pct": 8.6
+     },
+     "category": "1",
+     "note": "crested with 38 km left"
+    },
+    {
+     "km": 89.5,
+     "type": "sprint",
+     "note": "intermediate sprint"
+    },
+    {
+     "km": 96.4,
+     "type": "climb",
+     "climb_ref": {
+      "name": "Alto del Cordal",
+      "length_km": 5.7,
+      "avg_grade_pct": 8.6
+     },
+     "category": "1",
+     "note": "crested with 21.1 km left; steepest 12 % one km before the top"
+    },
+    {
+     "km": 117.5,
+     "type": "climb",
+     "climb_ref": "angliru-la-vega",
+     "category": "HC",
+     "note": "summit finish"
+    }
+   ],
+   "sources": [
+    "https://cyclingstage.com/vuelta-2017-route/stage-20-spain-route-2017",
+    "https://cyclingstage.com/vuelta-2017-favourites/stage-20-contenders-spain-2017",
+    "https://www.eurosport.com/cycling/vuelta-a-espana/2017/live-corvera-alto-de-l-angliru_mtc914313/live-commentary.shtml?page=2"
+   ],
+   "notes": "Cobertoria and Cordal categories: Eurosport commentary says two category-1 climbs precede the Angliru; Angliru category is the standard \"especial\" (HC). Contador won here in his last race."
+  },
+  {
+   "id": "stage-liege-classic-finale",
+   "name": "Ardennes hilly classic with La Redoute and Roche-aux-Faucons finale",
+   "inspired_by": "Liège-Bastogne-Liège 2023 (258.5 km)",
+   "total_km": 258.5,
+   "start_elevation_m": null,
+   "finish_type": "sprint",
+   "finish_note": "Flat run-in to Liège after the last côte (13.3 km to go); usually decided by a small group or solo attack.",
+   "key_points": [
+    {
+     "km": 69.7,
+     "type": "climb",
+     "climb_ref": {
+      "name": "Côte de la Roche-en-Ardenne",
+      "length_km": 2.9,
+      "avg_grade_pct": 5.6
+     },
+     "category": "côte"
+    },
+    {
+     "km": 123.5,
+     "type": "climb",
+     "climb_ref": {
+      "name": "Côte de Saint-Roch",
+      "length_km": 1.0,
+      "avg_grade_pct": 11.2
+     },
+     "category": "côte"
+    },
+    {
+     "km": 164.8,
+     "type": "climb",
+     "climb_ref": {
+      "name": "Côte de Mont-le-Soie",
+      "length_km": 4.0,
+      "avg_grade_pct": 6.1
+     },
+     "category": "côte"
+    },
+    {
+     "km": 173.5,
+     "type": "climb",
+     "climb_ref": {
+      "name": "Côte de Wanne",
+      "length_km": 2.8,
+      "avg_grade_pct": 7.4
+     },
+     "category": "côte"
+    },
+    {
+     "km": 180,
+     "type": "climb",
+     "climb_ref": {
+      "name": "Côte de Stockeu",
+      "length_km": 1.0,
+      "avg_grade_pct": 12.5
+     },
+     "category": "côte"
+    },
+    {
+     "km": 184.2,
+     "type": "climb",
+     "climb_ref": {
+      "name": "Côte de la Haute-Levée",
+      "length_km": 3.6,
+      "avg_grade_pct": 5.6
+     },
+     "category": "côte"
+    },
+    {
+     "km": 198.5,
+     "type": "climb",
+     "climb_ref": {
+      "name": "Col du Rosier",
+      "length_km": 4.4,
+      "avg_grade_pct": 5.9
+     },
+     "category": "côte"
+    },
+    {
+     "km": 211.8,
+     "type": "climb",
+     "climb_ref": {
+      "name": "Côte de Desnié",
+      "length_km": 1.6,
+      "avg_grade_pct": 8.1
+     },
+     "category": "côte"
+    },
+    {
+     "km": 224.5,
+     "type": "climb",
+     "climb_ref": {
+      "name": "Côte de La Redoute (from Remouchamps)",
+      "length_km": 1.72,
+      "avg_grade_pct": 9.4,
+      "start_elevation_m": 131,
+      "summit_elevation_m": 292,
+      "km_grades": [
+       8.1,
+       11.1
+      ],
+      "last_km_length_km": 0.72,
+      "source": "cols-cyclisme c433 SVG",
+      "race_figures": {
+       "length_km": 2.0,
+       "avg_grade_pct": 8.9
+      }
+     },
+     "category": "côte"
+    },
+    {
+     "km": 235.2,
+     "type": "climb",
+     "climb_ref": {
+      "name": "Côte des Forges",
+      "length_km": 1.3,
+      "avg_grade_pct": 7.8
+     },
+     "category": "côte"
+    },
+    {
+     "km": 245.2,
+     "type": "climb",
+     "climb_ref": {
+      "name": "Côte de la Roche-aux-Faucons (from Hony)",
+      "length_km": 1.31,
+      "avg_grade_pct": 10.9,
+      "start_elevation_m": 83,
+      "summit_elevation_m": 226,
+      "km_grades": [
+       11.1,
+       10.3
+      ],
+      "last_km_length_km": 0.31,
+      "source": "cols-cyclisme c2234 SVG",
+      "race_figures": {
+       "length_km": 1.3,
+       "avg_grade_pct": 11.0
+      }
+     },
+     "category": "côte"
+    }
+   ],
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Liège-Bastogne-Liège_2023",
+    "https://www.cols-cyclisme.com/region-wallonne/belgique/cote-de-la-redoute-depuis-remouchamps-c433.htm",
+    "https://www.cols-cyclisme.com/region-wallonne/belgique/cote-de-la-roche-aux-faucons-depuis-hony-esneux-c2234.htm"
+   ],
+   "notes": "Côte km values are the race listing positions (km-from-finish = 258.5 - km). fr.wikipedia gives 258.1 km in the infobox and 258.5 km in the text. For La Redoute and Roche-aux-Faucons, km_grades come from cols-cyclisme (1.7 km at 9.5 % and 1.3 km at 11 %); race figures differ slightly."
+  }
+ ]
+}

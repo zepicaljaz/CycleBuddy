@@ -1,0 +1,30 @@
+# Dependencies and build output. Reinstall with npm install; rebuild with npm run build.
+node_modules/
+dist/
+.vite/
+coverage/
+*.tsbuildinfo
+
+# Secrets and this computer's database. .env.example is the blank template and stays in git.
+.env
+.env.*
+!.env.example
+.localdb/
+
+# Elevation tiles downloaded while building a real road, and screen recordings.
+data/dem-cache/
+videos/
+*.mov
+*.mp4
+*.webm
+*.mkv
+
+# Private keys
+*.pem
+*.key
+*.p12
+
+# This computer only
+.DS_Store
+.vercel
+npm-debug.log*

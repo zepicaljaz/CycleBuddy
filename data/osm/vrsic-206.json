@@ -1,0 +1,3810 @@
+{
+  "version": 0.6,
+  "generator": "Overpass API 0.7.62.4 2390de5a",
+  "osm3s": {
+    "timestamp_osm_base": "2026-11-15T23:15:09Z",
+    "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."
+  },
+  "elements": [
+
+{
+  "type": "way",
+  "id": 24540990,
+  "bounds": {
+    "minlat": 46.4879654,
+    "minlon": 13.7894965,
+    "maxlat": 46.4881890,
+    "maxlon": 13.7896855
+  },
+  "geometry": [
+    { "lat": 46.4879654, "lon": 13.7894965 },
+    { "lat": 46.4880355, "lon": 13.7895352 },
+    { "lat": 46.4881292, "lon": 13.7896013 },
+    { "lat": 46.4881591, "lon": 13.7896434 },
+    { "lat": 46.4881890, "lon": 13.7896855 }
+  ],
+  "tags": {
+    "cycleway:left": "no",
+    "cycleway:right": "track",
+    "highway": "secondary",
+    "lane_markings": "no",
+    "lit": "yes",
+    "maxspeed": "50",
+    "noname": "yes",
+    "oneway": "yes",
+    "ref": "206",
+    "sidewalk": "right",
+    "smoothness": "excellent",
+    "source": "survey",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 26397768,
+  "bounds": {
+    "minlat": 46.4666509,
+    "minlon": 13.7820688,
+    "maxlat": 46.4667723,
+    "maxlon": 13.7823345
+  },
+  "geometry": [
+    { "lat": 46.4667723, "lon": 13.7823345 },
+    { "lat": 46.4666811, "lon": 13.7821422 },
+    { "lat": 46.4666509, "lon": 13.7820688 }
+  ],
+  "tags": {
+    "highway": "secondary",
+    "lanes": "2",
+    "maxspeed": "40",
+    "maxspeed:advisory": "50",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Vršiška cesta",
+    "name:de": "Russische Straße",
+    "name:en": "Vršiška cesta",
+    "name:sl": "Ruska cesta",
+    "ref": "206",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 36736447,
+  "bounds": {
+    "minlat": 46.4753008,
+    "minlon": 13.7805444,
+    "maxlat": 46.4754616,
+    "maxlon": 13.7813398
+  },
+  "geometry": [
+    { "lat": 46.4754616, "lon": 13.7805444 },
+    { "lat": 46.4754102, "lon": 13.7806582 },
+    { "lat": 46.4753602, "lon": 13.7807848 },
+    { "lat": 46.4753231, "lon": 13.7809091 },
+    { "lat": 46.4753055, "lon": 13.7810563 },
+    { "lat": 46.4753008, "lon": 13.7811087 },
+    { "lat": 46.4753022, "lon": 13.7811973 },
+    { "lat": 46.4753120, "lon": 13.7813398 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "cycleway:both": "no",
+    "highway": "secondary",
+    "lanes": "2",
+    "layer": "1",
+    "lit": "yes",
+    "maxspeed": "50",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Vršiška cesta",
+    "ref": "206",
+    "sidewalk": "both",
+    "sidewalk:lit": "yes",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 39226359,
+  "bounds": {
+    "minlat": 46.4756208,
+    "minlon": 13.7800177,
+    "maxlat": 46.4802204,
+    "maxlon": 13.7810076
+  },
+  "geometry": [
+    { "lat": 46.4802204, "lon": 13.7810076 },
+    { "lat": 46.4801313, "lon": 13.7809525 },
+    { "lat": 46.4799373, "lon": 13.7808490 },
+    { "lat": 46.4796532, "lon": 13.7807187 },
+    { "lat": 46.4796217, "lon": 13.7807084 },
+    { "lat": 46.4794400, "lon": 13.7806467 },
+    { "lat": 46.4793308, "lon": 13.7806132 },
+    { "lat": 46.4785534, "lon": 13.7803472 },
+    { "lat": 46.4783625, "lon": 13.7802989 },
+    { "lat": 46.4781885, "lon": 13.7802622 },
+    { "lat": 46.4780341, "lon": 13.7802444 },
+    { "lat": 46.4775520, "lon": 13.7801834 },
+    { "lat": 46.4773517, "lon": 13.7801572 },
+    { "lat": 46.4769558, "lon": 13.7800537 },
+    { "lat": 46.4767337, "lon": 13.7800177 },
+    { "lat": 46.4765004, "lon": 13.7800244 },
+    { "lat": 46.4760211, "lon": 13.7801474 },
+    { "lat": 46.4758758, "lon": 13.7802042 },
+    { "lat": 46.4756879, "lon": 13.7803007 },
+    { "lat": 46.4756208, "lon": 13.7803558 }
+  ],
+  "tags": {
+    "cycleway:both": "no",
+    "highway": "secondary",
+    "lanes": "2",
+    "lit": "yes",
+    "maxspeed": "70",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Vršiška cesta",
+    "ref": "206",
+    "sidewalk": "right",
+    "sidewalk:lit": "yes",
+    "smoothness": "excellent",
+    "source": "survey",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 312515375,
+  "bounds": {
+    "minlat": 46.4753251,
+    "minlon": 13.7814561,
+    "maxlat": 46.4754041,
+    "maxlon": 13.7819196
+  },
+  "geometry": [
+    { "lat": 46.4753251, "lon": 13.7814561 },
+    { "lat": 46.4753552, "lon": 13.7816328 },
+    { "lat": 46.4754041, "lon": 13.7819196 }
+  ],
+  "tags": {
+    "cycleway:both": "no",
+    "highway": "secondary",
+    "lanes": "2",
+    "lit": "yes",
+    "maxspeed": "50",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Vršiška cesta",
+    "ref": "206",
+    "sidewalk": "both",
+    "sidewalk:lit": "yes",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 312518181,
+  "bounds": {
+    "minlat": 46.4667723,
+    "minlon": 13.7823345,
+    "maxlat": 46.4670475,
+    "maxlon": 13.7828568
+  },
+  "geometry": [
+    { "lat": 46.4670475, "lon": 13.7828568 },
+    { "lat": 46.4669985, "lon": 13.7828027 },
+    { "lat": 46.4669334, "lon": 13.7827072 },
+    { "lat": 46.4668522, "lon": 13.7825426 },
+    { "lat": 46.4667723, "lon": 13.7823345 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "highway": "secondary",
+    "lanes": "2",
+    "layer": "1",
+    "maxspeed": "50",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Eriški most",
+    "ref": "206",
+    "shoulder": "no",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 425366689,
+  "bounds": {
+    "minlat": 46.4331118,
+    "minlon": 13.7433478,
+    "maxlat": 46.4347793,
+    "maxlon": 13.7437123
+  },
+  "geometry": [
+    { "lat": 46.4347793, "lon": 13.7437123 },
+    { "lat": 46.4346680, "lon": 13.7436312 },
+    { "lat": 46.4345089, "lon": 13.7435422 },
+    { "lat": 46.4342788, "lon": 13.7434380 },
+    { "lat": 46.4340991, "lon": 13.7433882 },
+    { "lat": 46.4339825, "lon": 13.7433746 },
+    { "lat": 46.4338643, "lon": 13.7433754 },
+    { "lat": 46.4336724, "lon": 13.7434191 },
+    { "lat": 46.4335299, "lon": 13.7434494 },
+    { "lat": 46.4334683, "lon": 13.7434543 },
+    { "lat": 46.4333736, "lon": 13.7434618 },
+    { "lat": 46.4332928, "lon": 13.7434393 },
+    { "lat": 46.4331118, "lon": 13.7433478 }
+  ],
+  "tags": {
+    "highway": "secondary",
+    "lane_markings": "no",
+    "maxspeed": "90",
+    "name": "Vršiška cesta (Ruska cesta)",
+    "ref": "206",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 425740801,
+  "bounds": {
+    "minlat": 46.4318611,
+    "minlon": 13.7433354,
+    "maxlat": 46.4331118,
+    "maxlon": 13.7446213
+  },
+  "geometry": [
+    { "lat": 46.4331118, "lon": 13.7433478 },
+    { "lat": 46.4330696, "lon": 13.7433354 },
+    { "lat": 46.4330134, "lon": 13.7433373 },
+    { "lat": 46.4329518, "lon": 13.7433598 },
+    { "lat": 46.4328236, "lon": 13.7434507 },
+    { "lat": 46.4326739, "lon": 13.7435902 },
+    { "lat": 46.4323373, "lon": 13.7440913 },
+    { "lat": 46.4320173, "lon": 13.7444824 },
+    { "lat": 46.4318611, "lon": 13.7446213 }
+  ],
+  "tags": {
+    "highway": "secondary",
+    "incline": "-14%",
+    "lanes": "2",
+    "maxspeed": "90",
+    "maxspeed:advisory": "40",
+    "name": "Trenta",
+    "ref": "206",
+    "sidewalk": "no",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 438887424,
+  "bounds": {
+    "minlat": 46.4854717,
+    "minlon": 13.7898199,
+    "maxlat": 46.4859537,
+    "maxlon": 13.7898772
+  },
+  "geometry": [
+    { "lat": 46.4859537, "lon": 13.7898199 },
+    { "lat": 46.4857307, "lon": 13.7898666 },
+    { "lat": 46.4854717, "lon": 13.7898772 }
+  ],
+  "tags": {
+    "cycleway:both": "no",
+    "highway": "secondary",
+    "lanes:backward": "2",
+    "lanes:forward": "1",
+    "lit": "yes",
+    "maxspeed": "50",
+    "name": "Vršiška cesta",
+    "ref": "206",
+    "sidewalk": "right",
+    "smoothness": "excellent",
+    "source": "survey",
+    "surface": "asphalt",
+    "turn:lanes:backward": "left|through"
+  }
+},
+{
+  "type": "way",
+  "id": 445245123,
+  "bounds": {
+    "minlat": 46.4389250,
+    "minlon": 13.7539811,
+    "maxlat": 46.4399516,
+    "maxlon": 13.7587358
+  },
+  "geometry": [
+    { "lat": 46.4389632, "lon": 13.7587358 },
+    { "lat": 46.4390329, "lon": 13.7586824 },
+    { "lat": 46.4392254, "lon": 13.7585623 },
+    { "lat": 46.4394948, "lon": 13.7584929 },
+    { "lat": 46.4395652, "lon": 13.7584748 },
+    { "lat": 46.4396207, "lon": 13.7584441 },
+    { "lat": 46.4396812, "lon": 13.7583927 },
+    { "lat": 46.4397364, "lon": 13.7583187 },
+    { "lat": 46.4397810, "lon": 13.7582376 },
+    { "lat": 46.4398184, "lon": 13.7581391 },
+    { "lat": 46.4398672, "lon": 13.7579852 },
+    { "lat": 46.4399138, "lon": 13.7578484 },
+    { "lat": 46.4399516, "lon": 13.7576537 },
+    { "lat": 46.4399502, "lon": 13.7574890 },
+    { "lat": 46.4399094, "lon": 13.7571901 },
+    { "lat": 46.4398863, "lon": 13.7570911 },
+    { "lat": 46.4398609, "lon": 13.7570116 },
+    { "lat": 46.4398263, "lon": 13.7569487 },
+    { "lat": 46.4397197, "lon": 13.7568313 },
+    { "lat": 46.4395760, "lon": 13.7566842 },
+    { "lat": 46.4394964, "lon": 13.7565672 },
+    { "lat": 46.4394388, "lon": 13.7564626 },
+    { "lat": 46.4393749, "lon": 13.7563363 },
+    { "lat": 46.4393308, "lon": 13.7562492 },
+    { "lat": 46.4392946, "lon": 13.7561776 },
+    { "lat": 46.4390360, "lon": 13.7556110 },
+    { "lat": 46.4389883, "lon": 13.7554718 },
+    { "lat": 46.4389615, "lon": 13.7553479 },
+    { "lat": 46.4389431, "lon": 13.7552082 },
+    { "lat": 46.4389250, "lon": 13.7548600 },
+    { "lat": 46.4389298, "lon": 13.7547545 },
+    { "lat": 46.4389622, "lon": 13.7546275 },
+    { "lat": 46.4391296, "lon": 13.7543947 },
+    { "lat": 46.4391829, "lon": 13.7542945 },
+    { "lat": 46.4392514, "lon": 13.7539811 }
+  ],
+  "tags": {
+    "highway": "secondary",
+    "incline": "14%",
+    "lane_markings": "no",
+    "maxlength": "12.5",
+    "maxspeed": "90",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Ruska cesta",
+    "name:de": "Russische Straße",
+    "name:en": "Russian Street",
+    "name:sl": "Ruska cesta",
+    "ref": "206",
+    "sidewalk": "no",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 445245128,
+  "bounds": {
+    "minlat": 46.4433030,
+    "minlon": 13.7649493,
+    "maxlat": 46.4434838,
+    "maxlon": 13.7653887
+  },
+  "geometry": [
+    { "lat": 46.4434838, "lon": 13.7653887 },
+    { "lat": 46.4433030, "lon": 13.7649493 }
+  ],
+  "tags": {
+    "highway": "secondary",
+    "incline": "14%",
+    "lane_markings": "no",
+    "maxlength": "12.5",
+    "maxspeed": "90",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Ruska cesta",
+    "name:de": "Russische Straße",
+    "name:en": "Russian Street",
+    "name:sl": "Ruska cesta",
+    "ref": "206",
+    "sidewalk": "no",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 445245130,
+  "bounds": {
+    "minlat": 46.4434838,
+    "minlon": 13.7653887,
+    "maxlat": 46.4444643,
+    "maxlon": 13.7691730
+  },
+  "geometry": [
+    { "lat": 46.4444643, "lon": 13.7691730 },
+    { "lat": 46.4444073, "lon": 13.7690061 },
+    { "lat": 46.4443567, "lon": 13.7688631 },
+    { "lat": 46.4442510, "lon": 13.7686006 },
+    { "lat": 46.4439665, "lon": 13.7678494 },
+    { "lat": 46.4435809, "lon": 13.7668232 },
+    { "lat": 46.4435480, "lon": 13.7666835 },
+    { "lat": 46.4435392, "lon": 13.7665219 },
+    { "lat": 46.4435501, "lon": 13.7663131 },
+    { "lat": 46.4435685, "lon": 13.7660576 },
+    { "lat": 46.4435755, "lon": 13.7658766 },
+    { "lat": 46.4435644, "lon": 13.7657214 },
+    { "lat": 46.4435306, "lon": 13.7655494 },
+    { "lat": 46.4434838, "lon": 13.7653887 }
+  ],
+  "tags": {
+    "highway": "secondary",
+    "incline": "14%",
+    "lane_markings": "no",
+    "maxlength": "12.5",
+    "maxspeed": "90",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Vršiška cesta",
+    "name:de": "Russische Straße",
+    "name:en": "Vršiška cesta",
+    "name:sl": "Ruska cesta",
+    "ref": "206",
+    "sidewalk": "no",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 445245131,
+  "bounds": {
+    "minlat": 46.4426009,
+    "minlon": 13.7699595,
+    "maxlat": 46.4427304,
+    "maxlon": 13.7701149
+  },
+  "geometry": [
+    { "lat": 46.4427304, "lon": 13.7700798 },
+    { "lat": 46.4426885, "lon": 13.7701149 },
+    { "lat": 46.4426561, "lon": 13.7701111 },
+    { "lat": 46.4426243, "lon": 13.7700919 },
+    { "lat": 46.4426072, "lon": 13.7700577 },
+    { "lat": 46.4426009, "lon": 13.7700137 },
+    { "lat": 46.4426118, "lon": 13.7699595 }
+  ],
+  "tags": {
+    "highway": "secondary",
+    "incline": "14%",
+    "maxlength": "12.5",
+    "maxspeed": "90",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Vršiška cesta",
+    "name:de": "Russische Straße",
+    "name:en": "Vršiška cesta",
+    "name:sl": "Ruska cesta",
+    "ref": "206",
+    "sidewalk": "no",
+    "surface": "sett"
+  }
+},
+{
+  "type": "way",
+  "id": 445245969,
+  "bounds": {
+    "minlat": 46.4447441,
+    "minlon": 13.7747626,
+    "maxlat": 46.4619529,
+    "maxlon": 13.7804431
+  },
+  "geometry": [
+    { "lat": 46.4619529, "lon": 13.7803522 },
+    { "lat": 46.4617590, "lon": 13.7802312 },
+    { "lat": 46.4613320, "lon": 13.7799693 },
+    { "lat": 46.4612502, "lon": 13.7799207 },
+    { "lat": 46.4611930, "lon": 13.7799084 },
+    { "lat": 46.4611209, "lon": 13.7799089 },
+    { "lat": 46.4609995, "lon": 13.7799769 },
+    { "lat": 46.4608867, "lon": 13.7800643 },
+    { "lat": 46.4607906, "lon": 13.7801246 },
+    { "lat": 46.4605005, "lon": 13.7802108 },
+    { "lat": 46.4602811, "lon": 13.7802907 },
+    { "lat": 46.4601306, "lon": 13.7802963 },
+    { "lat": 46.4600270, "lon": 13.7802610 },
+    { "lat": 46.4598335, "lon": 13.7801795 },
+    { "lat": 46.4595634, "lon": 13.7800533 },
+    { "lat": 46.4592770, "lon": 13.7799226 },
+    { "lat": 46.4591511, "lon": 13.7798876 },
+    { "lat": 46.4590458, "lon": 13.7798816 },
+    { "lat": 46.4587571, "lon": 13.7799399 },
+    { "lat": 46.4585756, "lon": 13.7800013 },
+    { "lat": 46.4584960, "lon": 13.7800423 },
+    { "lat": 46.4583916, "lon": 13.7801395 },
+    { "lat": 46.4582968, "lon": 13.7802466 },
+    { "lat": 46.4582417, "lon": 13.7802820 },
+    { "lat": 46.4581686, "lon": 13.7803119 },
+    { "lat": 46.4578398, "lon": 13.7803643 },
+    { "lat": 46.4575631, "lon": 13.7803800 },
+    { "lat": 46.4570725, "lon": 13.7804215 },
+    { "lat": 46.4568819, "lon": 13.7804431 },
+    { "lat": 46.4567914, "lon": 13.7804333 },
+    { "lat": 46.4566960, "lon": 13.7804021 },
+    { "lat": 46.4566038, "lon": 13.7803335 },
+    { "lat": 46.4565047, "lon": 13.7802165 },
+    { "lat": 46.4564551, "lon": 13.7801539 },
+    { "lat": 46.4563756, "lon": 13.7801087 },
+    { "lat": 46.4562334, "lon": 13.7800989 },
+    { "lat": 46.4560227, "lon": 13.7800849 },
+    { "lat": 46.4558947, "lon": 13.7800910 },
+    { "lat": 46.4558116, "lon": 13.7801024 },
+    { "lat": 46.4556739, "lon": 13.7800652 },
+    { "lat": 46.4555449, "lon": 13.7800088 },
+    { "lat": 46.4554110, "lon": 13.7799491 },
+    { "lat": 46.4551739, "lon": 13.7798918 },
+    { "lat": 46.4548936, "lon": 13.7798569 },
+    { "lat": 46.4543546, "lon": 13.7798847 },
+    { "lat": 46.4541066, "lon": 13.7798858 },
+    { "lat": 46.4540495, "lon": 13.7798432 },
+    { "lat": 46.4539813, "lon": 13.7797521 },
+    { "lat": 46.4539626, "lon": 13.7796961 },
+    { "lat": 46.4538971, "lon": 13.7793806 },
+    { "lat": 46.4538609, "lon": 13.7792645 },
+    { "lat": 46.4537844, "lon": 13.7791463 },
+    { "lat": 46.4536725, "lon": 13.7790161 },
+    { "lat": 46.4536191, "lon": 13.7789769 },
+    { "lat": 46.4532974, "lon": 13.7787807 },
+    { "lat": 46.4530476, "lon": 13.7784541 },
+    { "lat": 46.4529944, "lon": 13.7784122 },
+    { "lat": 46.4529240, "lon": 13.7784015 },
+    { "lat": 46.4528716, "lon": 13.7784208 },
+    { "lat": 46.4528277, "lon": 13.7784848 },
+    { "lat": 46.4528066, "lon": 13.7785421 },
+    { "lat": 46.4527974, "lon": 13.7786025 },
+    { "lat": 46.4527922, "lon": 13.7786550 },
+    { "lat": 46.4527635, "lon": 13.7787722 },
+    { "lat": 46.4527285, "lon": 13.7788070 },
+    { "lat": 46.4526911, "lon": 13.7788251 },
+    { "lat": 46.4526574, "lon": 13.7788247 },
+    { "lat": 46.4525731, "lon": 13.7787932 },
+    { "lat": 46.4522547, "lon": 13.7785601 },
+    { "lat": 46.4520179, "lon": 13.7784272 },
+    { "lat": 46.4519124, "lon": 13.7783724 },
+    { "lat": 46.4514738, "lon": 13.7781190 },
+    { "lat": 46.4510595, "lon": 13.7779221 },
+    { "lat": 46.4507591, "lon": 13.7777383 },
+    { "lat": 46.4506394, "lon": 13.7776243 },
+    { "lat": 46.4505363, "lon": 13.7774505 },
+    { "lat": 46.4504675, "lon": 13.7773431 },
+    { "lat": 46.4503673, "lon": 13.7772771 },
+    { "lat": 46.4501391, "lon": 13.7772942 },
+    { "lat": 46.4500395, "lon": 13.7772788 },
+    { "lat": 46.4497719, "lon": 13.7771625 },
+    { "lat": 46.4494778, "lon": 13.7769560 },
+    { "lat": 46.4488722, "lon": 13.7766008 },
+    { "lat": 46.4485775, "lon": 13.7764002 },
+    { "lat": 46.4483222, "lon": 13.7761993 },
+    { "lat": 46.4482534, "lon": 13.7761241 },
+    { "lat": 46.4481887, "lon": 13.7760016 },
+    { "lat": 46.4481027, "lon": 13.7758045 },
+    { "lat": 46.4480214, "lon": 13.7756817 },
+    { "lat": 46.4479564, "lon": 13.7756325 },
+    { "lat": 46.4478929, "lon": 13.7756032 },
+    { "lat": 46.4478030, "lon": 13.7755973 },
+    { "lat": 46.4477017, "lon": 13.7756349 },
+    { "lat": 46.4475595, "lon": 13.7757141 },
+    { "lat": 46.4474611, "lon": 13.7757283 },
+    { "lat": 46.4470923, "lon": 13.7756372 },
+    { "lat": 46.4467913, "lon": 13.7755960 },
+    { "lat": 46.4465931, "lon": 13.7756034 },
+    { "lat": 46.4464392, "lon": 13.7756188 },
+    { "lat": 46.4462360, "lon": 13.7756172 },
+    { "lat": 46.4461775, "lon": 13.7756124 },
+    { "lat": 46.4460952, "lon": 13.7755914 },
+    { "lat": 46.4459326, "lon": 13.7754760 },
+    { "lat": 46.4457978, "lon": 13.7753980 },
+    { "lat": 46.4456477, "lon": 13.7753434 },
+    { "lat": 46.4452461, "lon": 13.7751898 },
+    { "lat": 46.4451344, "lon": 13.7751269 },
+    { "lat": 46.4450136, "lon": 13.7750376 },
+    { "lat": 46.4448752, "lon": 13.7748955 },
+    { "lat": 46.4447441, "lon": 13.7747626 }
+  ],
+  "tags": {
+    "highway": "secondary",
+    "incline": "14%",
+    "lanes": "2",
+    "maxlength": "12.5",
+    "maxspeed": "90",
+    "maxspeed:advisory": "50",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Vršiška cesta",
+    "name:de": "Russische Straße",
+    "name:en": "Vršiška cesta",
+    "name:sl": "Ruska cesta",
+    "ref": "206",
+    "shoulder": "no",
+    "sidewalk": "no",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 445246290,
+  "bounds": {
+    "minlat": 46.4671122,
+    "minlon": 13.7825467,
+    "maxlat": 46.4701857,
+    "maxlon": 13.7847780
+  },
+  "geometry": [
+    { "lat": 46.4701857, "lon": 13.7847780 },
+    { "lat": 46.4701656, "lon": 13.7847731 },
+    { "lat": 46.4699624, "lon": 13.7847183 },
+    { "lat": 46.4698586, "lon": 13.7846891 },
+    { "lat": 46.4697131, "lon": 13.7846289 },
+    { "lat": 46.4696635, "lon": 13.7845946 },
+    { "lat": 46.4696105, "lon": 13.7845581 },
+    { "lat": 46.4694958, "lon": 13.7844585 },
+    { "lat": 46.4692419, "lon": 13.7840997 },
+    { "lat": 46.4691258, "lon": 13.7838994 },
+    { "lat": 46.4690879, "lon": 13.7838342 },
+    { "lat": 46.4689783, "lon": 13.7836082 },
+    { "lat": 46.4689378, "lon": 13.7834814 },
+    { "lat": 46.4689280, "lon": 13.7834509 },
+    { "lat": 46.4689152, "lon": 13.7834107 },
+    { "lat": 46.4688398, "lon": 13.7831287 },
+    { "lat": 46.4687807, "lon": 13.7829710 },
+    { "lat": 46.4686824, "lon": 13.7828045 },
+    { "lat": 46.4685794, "lon": 13.7826856 },
+    { "lat": 46.4685116, "lon": 13.7826240 },
+    { "lat": 46.4684337, "lon": 13.7825709 },
+    { "lat": 46.4683376, "lon": 13.7825488 },
+    { "lat": 46.4682454, "lon": 13.7825467 },
+    { "lat": 46.4680805, "lon": 13.7825689 },
+    { "lat": 46.4679499, "lon": 13.7826250 },
+    { "lat": 46.4678546, "lon": 13.7826765 },
+    { "lat": 46.4675935, "lon": 13.7828779 },
+    { "lat": 46.4675084, "lon": 13.7829297 },
+    { "lat": 46.4674178, "lon": 13.7829525 },
+    { "lat": 46.4673060, "lon": 13.7829607 },
+    { "lat": 46.4671701, "lon": 13.7829279 },
+    { "lat": 46.4671122, "lon": 13.7829101 }
+  ],
+  "tags": {
+    "highway": "secondary",
+    "lanes": "2",
+    "maxspeed": "50",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Vršiška cesta",
+    "ref": "206",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 445247648,
+  "bounds": {
+    "minlat": 46.4350819,
+    "minlon": 13.7439861,
+    "maxlat": 46.4387358,
+    "maxlon": 13.7466779
+  },
+  "geometry": [
+    { "lat": 46.4387358, "lon": 13.7466779 },
+    { "lat": 46.4386676, "lon": 13.7466762 },
+    { "lat": 46.4385221, "lon": 13.7466614 },
+    { "lat": 46.4384328, "lon": 13.7466370 },
+    { "lat": 46.4383054, "lon": 13.7465710 },
+    { "lat": 46.4378547, "lon": 13.7463000 },
+    { "lat": 46.4375985, "lon": 13.7461489 },
+    { "lat": 46.4374560, "lon": 13.7460644 },
+    { "lat": 46.4373269, "lon": 13.7459594 },
+    { "lat": 46.4369951, "lon": 13.7456215 },
+    { "lat": 46.4367122, "lon": 13.7454063 },
+    { "lat": 46.4365175, "lon": 13.7452500 },
+    { "lat": 46.4364390, "lon": 13.7451869 },
+    { "lat": 46.4361928, "lon": 13.7449498 },
+    { "lat": 46.4358916, "lon": 13.7447080 },
+    { "lat": 46.4356568, "lon": 13.7445120 },
+    { "lat": 46.4355204, "lon": 13.7444068 },
+    { "lat": 46.4353922, "lon": 13.7443064 },
+    { "lat": 46.4352414, "lon": 13.7441613 },
+    { "lat": 46.4350819, "lon": 13.7439861 }
+  ],
+  "tags": {
+    "highway": "secondary",
+    "incline": "14%",
+    "lane_markings": "no",
+    "maxlength": "12.5",
+    "maxspeed": "90",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Ruska cesta",
+    "name:de": "Russische Straße",
+    "name:en": "Russian Street",
+    "name:sl": "Ruska cesta",
+    "ref": "206",
+    "sidewalk": "no",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 445247649,
+  "bounds": {
+    "minlat": 46.4395709,
+    "minlon": 13.7490209,
+    "maxlat": 46.4405446,
+    "maxlon": 13.7507229
+  },
+  "geometry": [
+    { "lat": 46.4405446, "lon": 13.7507229 },
+    { "lat": 46.4403226, "lon": 13.7503301 },
+    { "lat": 46.4401749, "lon": 13.7501127 },
+    { "lat": 46.4399372, "lon": 13.7498034 },
+    { "lat": 46.4399021, "lon": 13.7497580 },
+    { "lat": 46.4398022, "lon": 13.7496391 },
+    { "lat": 46.4396684, "lon": 13.7494171 },
+    { "lat": 46.4396231, "lon": 13.7493134 },
+    { "lat": 46.4395836, "lon": 13.7491394 },
+    { "lat": 46.4395709, "lon": 13.7490674 },
+    { "lat": 46.4395771, "lon": 13.7490209 }
+  ],
+  "tags": {
+    "highway": "secondary",
+    "incline": "14%",
+    "lane_markings": "no",
+    "maxlength": "12.5",
+    "maxspeed": "90",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Ruska cesta",
+    "name:de": "Russische Straße",
+    "name:en": "Russian Street",
+    "name:sl": "Ruska cesta",
+    "ref": "206",
+    "sidewalk": "no",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 445247920,
+  "bounds": {
+    "minlat": 46.4708468,
+    "minlon": 13.7822582,
+    "maxlat": 46.4757847,
+    "maxlon": 13.7852300
+  },
+  "geometry": [
+    { "lat": 46.4754700, "lon": 13.7822582 },
+    { "lat": 46.4755133, "lon": 13.7824707 },
+    { "lat": 46.4755482, "lon": 13.7826015 },
+    { "lat": 46.4756522, "lon": 13.7828744 },
+    { "lat": 46.4757250, "lon": 13.7830586 },
+    { "lat": 46.4757431, "lon": 13.7831045 },
+    { "lat": 46.4757725, "lon": 13.7832265 },
+    { "lat": 46.4757847, "lon": 13.7833246 },
+    { "lat": 46.4757829, "lon": 13.7834127 },
+    { "lat": 46.4757682, "lon": 13.7835492 },
+    { "lat": 46.4757192, "lon": 13.7837288 },
+    { "lat": 46.4756660, "lon": 13.7838642 },
+    { "lat": 46.4755903, "lon": 13.7839829 },
+    { "lat": 46.4754446, "lon": 13.7841523 },
+    { "lat": 46.4753952, "lon": 13.7841997 },
+    { "lat": 46.4753632, "lon": 13.7842307 },
+    { "lat": 46.4752094, "lon": 13.7843800 },
+    { "lat": 46.4751061, "lon": 13.7845022 },
+    { "lat": 46.4749422, "lon": 13.7846851 },
+    { "lat": 46.4748308, "lon": 13.7848007 },
+    { "lat": 46.4747110, "lon": 13.7848779 },
+    { "lat": 46.4746240, "lon": 13.7849009 },
+    { "lat": 46.4744743, "lon": 13.7849151 },
+    { "lat": 46.4743495, "lon": 13.7849269 },
+    { "lat": 46.4742066, "lon": 13.7849696 },
+    { "lat": 46.4740932, "lon": 13.7850174 },
+    { "lat": 46.4740285, "lon": 13.7850604 },
+    { "lat": 46.4739416, "lon": 13.7851180 },
+    { "lat": 46.4738489, "lon": 13.7851797 },
+    { "lat": 46.4737433, "lon": 13.7852161 },
+    { "lat": 46.4736878, "lon": 13.7852300 },
+    { "lat": 46.4736047, "lon": 13.7852212 },
+    { "lat": 46.4734852, "lon": 13.7851620 },
+    { "lat": 46.4734297, "lon": 13.7851268 },
+    { "lat": 46.4733232, "lon": 13.7850313 },
+    { "lat": 46.4731742, "lon": 13.7849181 },
+    { "lat": 46.4730027, "lon": 13.7848313 },
+    { "lat": 46.4728728, "lon": 13.7848074 },
+    { "lat": 46.4727368, "lon": 13.7848011 },
+    { "lat": 46.4726407, "lon": 13.7848124 },
+    { "lat": 46.4725099, "lon": 13.7848564 },
+    { "lat": 46.4723185, "lon": 13.7849382 },
+    { "lat": 46.4721617, "lon": 13.7849734 },
+    { "lat": 46.4720543, "lon": 13.7849923 },
+    { "lat": 46.4719044, "lon": 13.7850048 },
+    { "lat": 46.4714956, "lon": 13.7850187 },
+    { "lat": 46.4712505, "lon": 13.7850174 },
+    { "lat": 46.4710747, "lon": 13.7849872 },
+    { "lat": 46.4708468, "lon": 13.7849448 }
+  ],
+  "tags": {
+    "cycleway:both": "no",
+    "highway": "secondary",
+    "lanes": "2",
+    "lit": "yes",
+    "maxspeed": "50",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Vršiška cesta",
+    "ref": "206",
+    "sidewalk": "right",
+    "sidewalk:lit": "yes",
+    "sidewalk:right:surface": "asphalt",
+    "smoothness": "good",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 445248167,
+  "bounds": {
+    "minlat": 46.4811209,
+    "minlon": 13.7817534,
+    "maxlat": 46.4816595,
+    "maxlon": 13.7823793
+  },
+  "geometry": [
+    { "lat": 46.4816595, "lon": 13.7823793 },
+    { "lat": 46.4814414, "lon": 13.7821135 },
+    { "lat": 46.4811209, "lon": 13.7817534 }
+  ],
+  "tags": {
+    "cycleway:both": "no",
+    "highway": "secondary",
+    "lanes:backward": "2",
+    "lanes:forward": "1",
+    "lit": "yes",
+    "maxspeed": "50",
+    "name": "Vršiška cesta",
+    "ref": "206",
+    "sidewalk": "no",
+    "smoothness": "excellent",
+    "source": "survey",
+    "surface": "asphalt",
+    "turn:lanes:backward": "left|through"
+  }
+},
+{
+  "type": "way",
+  "id": 520839070,
+  "bounds": {
+    "minlat": 46.4670475,
+    "minlon": 13.7828568,
+    "maxlat": 46.4671122,
+    "maxlon": 13.7829101
+  },
+  "geometry": [
+    { "lat": 46.4671122, "lon": 13.7829101 },
+    { "lat": 46.4670475, "lon": 13.7828568 }
+  ],
+  "tags": {
+    "highway": "secondary",
+    "lanes": "2",
+    "maxspeed": "50",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Vršiška cesta",
+    "ref": "206",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 531640023,
+  "bounds": {
+    "minlat": 46.4753120,
+    "minlon": 13.7813398,
+    "maxlat": 46.4753251,
+    "maxlon": 13.7814561
+  },
+  "geometry": [
+    { "lat": 46.4753120, "lon": 13.7813398 },
+    { "lat": 46.4753251, "lon": 13.7814561 }
+  ],
+  "tags": {
+    "cycleway:both": "no",
+    "highway": "secondary",
+    "lanes": "2",
+    "lit": "yes",
+    "maxspeed": "50",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Vršiška cesta",
+    "ref": "206",
+    "sidewalk": "both",
+    "sidewalk:lit": "yes",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 533737404,
+  "bounds": {
+    "minlat": 46.4705706,
+    "minlon": 13.7848715,
+    "maxlat": 46.4708468,
+    "maxlon": 13.7849448
+  },
+  "geometry": [
+    { "lat": 46.4708468, "lon": 13.7849448 },
+    { "lat": 46.4705706, "lon": 13.7848715 }
+  ],
+  "tags": {
+    "cycleway:both": "no",
+    "highway": "secondary",
+    "lanes": "2",
+    "lit": "yes",
+    "maxspeed": "50",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Vršiška cesta",
+    "ref": "206",
+    "sidewalk": "right",
+    "sidewalk:right:surface": "asphalt",
+    "smoothness": "good",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 533737405,
+  "bounds": {
+    "minlat": 46.4866481,
+    "minlon": 13.7895262,
+    "maxlat": 46.4871924,
+    "maxlon": 13.7896442
+  },
+  "geometry": [
+    { "lat": 46.4871924, "lon": 13.7895262 },
+    { "lat": 46.4871009, "lon": 13.7895483 },
+    { "lat": 46.4866481, "lon": 13.7896442 }
+  ],
+  "tags": {
+    "cycleway:both": "lane",
+    "cycleway:both:lane": "exclusive",
+    "highway": "secondary",
+    "lanes:backward": "2",
+    "lanes:forward": "1",
+    "lit": "yes",
+    "maxspeed": "50",
+    "name": "Vršiška cesta",
+    "ref": "206",
+    "sidewalk": "both",
+    "sidewalk:both:surface": "asphalt",
+    "smoothness": "excellent",
+    "source": "survey",
+    "surface": "asphalt",
+    "turn:lanes:backward": "left|right"
+  }
+},
+{
+  "type": "way",
+  "id": 539062992,
+  "bounds": {
+    "minlat": 46.4431598,
+    "minlon": 13.7700133,
+    "maxlat": 46.4450255,
+    "maxlon": 13.7745340
+  },
+  "geometry": [
+    { "lat": 46.4450255, "lon": 13.7745340 },
+    { "lat": 46.4448777, "lon": 13.7745002 },
+    { "lat": 46.4447841, "lon": 13.7744489 },
+    { "lat": 46.4446769, "lon": 13.7743614 },
+    { "lat": 46.4442930, "lon": 13.7740473 },
+    { "lat": 46.4442192, "lon": 13.7739772 },
+    { "lat": 46.4441920, "lon": 13.7739317 },
+    { "lat": 46.4441706, "lon": 13.7738811 },
+    { "lat": 46.4441525, "lon": 13.7738131 },
+    { "lat": 46.4441402, "lon": 13.7737418 },
+    { "lat": 46.4441416, "lon": 13.7736563 },
+    { "lat": 46.4441565, "lon": 13.7735390 },
+    { "lat": 46.4441842, "lon": 13.7734267 },
+    { "lat": 46.4442366, "lon": 13.7732802 },
+    { "lat": 46.4442735, "lon": 13.7731370 },
+    { "lat": 46.4442806, "lon": 13.7730424 },
+    { "lat": 46.4442651, "lon": 13.7729335 },
+    { "lat": 46.4442344, "lon": 13.7728451 },
+    { "lat": 46.4441868, "lon": 13.7727669 },
+    { "lat": 46.4441328, "lon": 13.7727145 },
+    { "lat": 46.4440818, "lon": 13.7726866 },
+    { "lat": 46.4440160, "lon": 13.7726713 },
+    { "lat": 46.4439350, "lon": 13.7726831 },
+    { "lat": 46.4438568, "lon": 13.7727008 },
+    { "lat": 46.4438051, "lon": 13.7726881 },
+    { "lat": 46.4437558, "lon": 13.7726602 },
+    { "lat": 46.4436813, "lon": 13.7725694 },
+    { "lat": 46.4435839, "lon": 13.7724481 },
+    { "lat": 46.4435069, "lon": 13.7723945 },
+    { "lat": 46.4434246, "lon": 13.7723669 },
+    { "lat": 46.4433070, "lon": 13.7723616 },
+    { "lat": 46.4432350, "lon": 13.7723294 },
+    { "lat": 46.4431915, "lon": 13.7722558 },
+    { "lat": 46.4431670, "lon": 13.7721769 },
+    { "lat": 46.4431598, "lon": 13.7720694 },
+    { "lat": 46.4431725, "lon": 13.7719347 },
+    { "lat": 46.4431980, "lon": 13.7718187 },
+    { "lat": 46.4432528, "lon": 13.7715739 },
+    { "lat": 46.4432791, "lon": 13.7714822 },
+    { "lat": 46.4432984, "lon": 13.7713408 },
+    { "lat": 46.4433059, "lon": 13.7711761 },
+    { "lat": 46.4433055, "lon": 13.7708147 },
+    { "lat": 46.4432969, "lon": 13.7701833 },
+    { "lat": 46.4432951, "lon": 13.7700133 }
+  ],
+  "tags": {
+    "highway": "secondary",
+    "incline": "14%",
+    "maxlength": "12.5",
+    "maxspeed": "90",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Vršiška cesta",
+    "name:de": "Russische Straße",
+    "name:en": "Vršiška cesta",
+    "name:sl": "Ruska cesta",
+    "ref": "206",
+    "sidewalk": "no",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 539062999,
+  "bounds": {
+    "minlat": 46.4393670,
+    "minlon": 13.7530820,
+    "maxlat": 46.4413335,
+    "maxlon": 13.7536627
+  },
+  "geometry": [
+    { "lat": 46.4393670, "lon": 13.7531719 },
+    { "lat": 46.4394003, "lon": 13.7531146 },
+    { "lat": 46.4394569, "lon": 13.7530820 },
+    { "lat": 46.4395168, "lon": 13.7530824 },
+    { "lat": 46.4395974, "lon": 13.7531032 },
+    { "lat": 46.4398213, "lon": 13.7532021 },
+    { "lat": 46.4400004, "lon": 13.7533050 },
+    { "lat": 46.4401283, "lon": 13.7534306 },
+    { "lat": 46.4402944, "lon": 13.7535850 },
+    { "lat": 46.4403848, "lon": 13.7536566 },
+    { "lat": 46.4404773, "lon": 13.7536627 },
+    { "lat": 46.4405448, "lon": 13.7536473 },
+    { "lat": 46.4406947, "lon": 13.7535831 },
+    { "lat": 46.4408402, "lon": 13.7534938 },
+    { "lat": 46.4410177, "lon": 13.7533574 },
+    { "lat": 46.4411424, "lon": 13.7533206 },
+    { "lat": 46.4412476, "lon": 13.7533308 },
+    { "lat": 46.4413335, "lon": 13.7533367 }
+  ],
+  "tags": {
+    "highway": "secondary",
+    "incline": "14%",
+    "lane_markings": "no",
+    "maxlength": "12.5",
+    "maxspeed": "90",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Ruska cesta",
+    "name:de": "Russische Straße",
+    "name:en": "Russian Street",
+    "name:sl": "Ruska cesta",
+    "oneway": "no",
+    "ref": "206",
+    "sidewalk": "no",
+    "smoothness": "good",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 575700844,
+  "bounds": {
+    "minlat": 46.4295300,
+    "minlon": 13.7445384,
+    "maxlat": 46.4311100,
+    "maxlon": 13.7452675
+  },
+  "geometry": [
+    { "lat": 46.4311100, "lon": 13.7446057 },
+    { "lat": 46.4310808, "lon": 13.7445651 },
+    { "lat": 46.4310314, "lon": 13.7445420 },
+    { "lat": 46.4309509, "lon": 13.7445384 },
+    { "lat": 46.4308536, "lon": 13.7445616 },
+    { "lat": 46.4306325, "lon": 13.7446510 },
+    { "lat": 46.4305034, "lon": 13.7447032 },
+    { "lat": 46.4302454, "lon": 13.7449123 },
+    { "lat": 46.4300636, "lon": 13.7451780 },
+    { "lat": 46.4299834, "lon": 13.7452356 },
+    { "lat": 46.4298796, "lon": 13.7452675 },
+    { "lat": 46.4297392, "lon": 13.7452651 },
+    { "lat": 46.4296345, "lon": 13.7452416 },
+    { "lat": 46.4295300, "lon": 13.7451830 }
+  ],
+  "tags": {
+    "highway": "secondary",
+    "incline": "-14%",
+    "lane_markings": "no",
+    "maxspeed": "90",
+    "maxspeed:advisory": "40",
+    "name": "Trenta",
+    "ref": "206",
+    "sidewalk": "no",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 575700845,
+  "bounds": {
+    "minlat": 46.4308322,
+    "minlon": 13.7446057,
+    "maxlat": 46.4318611,
+    "maxlon": 13.7451487
+  },
+  "geometry": [
+    { "lat": 46.4318611, "lon": 13.7446213 },
+    { "lat": 46.4317363, "lon": 13.7446634 },
+    { "lat": 46.4315628, "lon": 13.7446976 },
+    { "lat": 46.4313230, "lon": 13.7448239 },
+    { "lat": 46.4311756, "lon": 13.7449665 },
+    { "lat": 46.4310711, "lon": 13.7450518 },
+    { "lat": 46.4309710, "lon": 13.7451336 },
+    { "lat": 46.4309131, "lon": 13.7451487 },
+    { "lat": 46.4308658, "lon": 13.7451299 },
+    { "lat": 46.4308344, "lon": 13.7450793 },
+    { "lat": 46.4308322, "lon": 13.7450136 },
+    { "lat": 46.4308518, "lon": 13.7449395 },
+    { "lat": 46.4308802, "lon": 13.7449009 },
+    { "lat": 46.4309133, "lon": 13.7448558 },
+    { "lat": 46.4310755, "lon": 13.7447561 },
+    { "lat": 46.4311099, "lon": 13.7447140 },
+    { "lat": 46.4311190, "lon": 13.7446558 },
+    { "lat": 46.4311100, "lon": 13.7446057 }
+  ],
+  "tags": {
+    "highway": "secondary",
+    "incline": "-14%",
+    "lanes": "2",
+    "maxspeed": "90",
+    "maxspeed:advisory": "40",
+    "name": "Trenta",
+    "ref": "206",
+    "sidewalk": "no",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 575700846,
+  "bounds": {
+    "minlat": 46.4347793,
+    "minlon": 13.7437123,
+    "maxlat": 46.4350819,
+    "maxlon": 13.7439861
+  },
+  "geometry": [
+    { "lat": 46.4350819, "lon": 13.7439861 },
+    { "lat": 46.4349459, "lon": 13.7438568 },
+    { "lat": 46.4348548, "lon": 13.7437719 },
+    { "lat": 46.4347793, "lon": 13.7437123 }
+  ],
+  "tags": {
+    "highway": "secondary",
+    "lane_markings": "no",
+    "maxlength": "12.5",
+    "maxspeed": "90",
+    "name": "Ruska cesta",
+    "name:de": "Russische Straße",
+    "name:en": "Russian Street",
+    "name:sl": "Ruska cesta",
+    "ref": "206",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 612178764,
+  "bounds": {
+    "minlat": 46.4654308,
+    "minlon": 13.7815384,
+    "maxlat": 46.4663321,
+    "maxlon": 13.7818162
+  },
+  "geometry": [
+    { "lat": 46.4663321, "lon": 13.7818162 },
+    { "lat": 46.4661866, "lon": 13.7818086 },
+    { "lat": 46.4660819, "lon": 13.7817821 },
+    { "lat": 46.4656661, "lon": 13.7816021 },
+    { "lat": 46.4655957, "lon": 13.7815859 },
+    { "lat": 46.4655570, "lon": 13.7815714 },
+    { "lat": 46.4654308, "lon": 13.7815384 }
+  ],
+  "tags": {
+    "highway": "secondary",
+    "maxspeed": "90",
+    "maxspeed:advisory": "50",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Vršiška cesta",
+    "name:de": "Russische Straße",
+    "name:en": "Vršiška cesta",
+    "name:sl": "Ruska cesta",
+    "ref": "206",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 617868439,
+  "bounds": {
+    "minlat": 46.4806262,
+    "minlon": 13.7812910,
+    "maxlat": 46.4810127,
+    "maxlon": 13.7816462
+  },
+  "geometry": [
+    { "lat": 46.4810127, "lon": 13.7816462 },
+    { "lat": 46.4808885, "lon": 13.7815233 },
+    { "lat": 46.4807406, "lon": 13.7813837 },
+    { "lat": 46.4806262, "lon": 13.7812910 }
+  ],
+  "tags": {
+    "cycleway:both": "no",
+    "highway": "secondary",
+    "lanes": "2",
+    "lit": "yes",
+    "maxspeed": "50",
+    "name": "Vršiška cesta",
+    "ref": "206",
+    "sidewalk": "both",
+    "smoothness": "excellent",
+    "source": "survey",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 617868443,
+  "bounds": {
+    "minlat": 46.4871924,
+    "minlon": 13.7895013,
+    "maxlat": 46.4874661,
+    "maxlon": 13.7895262
+  },
+  "geometry": [
+    { "lat": 46.4874661, "lon": 13.7895013 },
+    { "lat": 46.4871924, "lon": 13.7895262 }
+  ],
+  "tags": {
+    "cycleway:both": "lane",
+    "cycleway:both:lane": "exclusive",
+    "highway": "secondary",
+    "lanes:backward": "1",
+    "lanes:forward": "2",
+    "lit": "yes",
+    "maxspeed": "50",
+    "name": "Vršiška cesta",
+    "ref": "206",
+    "sidewalk": "left",
+    "sidewalk:left:surface": "asphalt",
+    "smoothness": "excellent",
+    "source": "survey",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 617868450,
+  "bounds": {
+    "minlat": 46.4859537,
+    "minlon": 13.7896442,
+    "maxlat": 46.4866481,
+    "maxlon": 13.7898199
+  },
+  "geometry": [
+    { "lat": 46.4866481, "lon": 13.7896442 },
+    { "lat": 46.4860713, "lon": 13.7897950 },
+    { "lat": 46.4859537, "lon": 13.7898199 }
+  ],
+  "tags": {
+    "cycleway:both": "no",
+    "highway": "secondary",
+    "lanes": "2",
+    "lit": "yes",
+    "maxspeed": "50",
+    "name": "Vršiška cesta",
+    "ref": "206",
+    "sidewalk": "both",
+    "sidewalk:both:surface": "asphalt",
+    "smoothness": "excellent",
+    "source": "survey",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 617868452,
+  "bounds": {
+    "minlat": 46.4835422,
+    "minlon": 13.7867487,
+    "maxlat": 46.4851641,
+    "maxlon": 13.7897441
+  },
+  "geometry": [
+    { "lat": 46.4851641, "lon": 13.7897441 },
+    { "lat": 46.4849791, "lon": 13.7895491 },
+    { "lat": 46.4846373, "lon": 13.7890776 },
+    { "lat": 46.4845114, "lon": 13.7888850 },
+    { "lat": 46.4842666, "lon": 13.7884704 },
+    { "lat": 46.4841520, "lon": 13.7882500 },
+    { "lat": 46.4839741, "lon": 13.7879077 },
+    { "lat": 46.4837181, "lon": 13.7872827 },
+    { "lat": 46.4835882, "lon": 13.7868874 },
+    { "lat": 46.4835481, "lon": 13.7867653 },
+    { "lat": 46.4835422, "lon": 13.7867487 }
+  ],
+  "tags": {
+    "cycleway:both": "no",
+    "highway": "secondary",
+    "lanes": "2",
+    "lit": "yes",
+    "maxspeed": "50",
+    "name": "Vršiška cesta",
+    "ref": "206",
+    "sidewalk:left": "no",
+    "sidewalk:right": "separate",
+    "smoothness": "excellent",
+    "source": "survey",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 617868453,
+  "bounds": {
+    "minlat": 46.4874661,
+    "minlon": 13.7894919,
+    "maxlat": 46.4879654,
+    "maxlon": 13.7895013
+  },
+  "geometry": [
+    { "lat": 46.4879654, "lon": 13.7894965 },
+    { "lat": 46.4877765, "lon": 13.7894919 },
+    { "lat": 46.4875955, "lon": 13.7894927 },
+    { "lat": 46.4874661, "lon": 13.7895013 }
+  ],
+  "tags": {
+    "cycleway:both": "lane",
+    "cycleway:both:lane": "exclusive",
+    "highway": "secondary",
+    "lanes": "2",
+    "lit": "yes",
+    "maxspeed": "50",
+    "name": "Vršiška cesta",
+    "ref": "206",
+    "sidewalk": "left",
+    "sidewalk:left:surface": "asphalt",
+    "smoothness": "excellent",
+    "source": "survey",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 624409209,
+  "bounds": {
+    "minlat": 46.4421613,
+    "minlon": 13.7684721,
+    "maxlat": 46.4424161,
+    "maxlon": 13.7688186
+  },
+  "geometry": [
+    { "lat": 46.4423713, "lon": 13.7688186 },
+    { "lat": 46.4422260, "lon": 13.7686959 },
+    { "lat": 46.4421788, "lon": 13.7686461 },
+    { "lat": 46.4421613, "lon": 13.7685864 },
+    { "lat": 46.4421687, "lon": 13.7685322 },
+    { "lat": 46.4421965, "lon": 13.7684883 },
+    { "lat": 46.4422361, "lon": 13.7684721 },
+    { "lat": 46.4422717, "lon": 13.7684859 },
+    { "lat": 46.4423103, "lon": 13.7685189 },
+    { "lat": 46.4424161, "lon": 13.7686003 }
+  ],
+  "tags": {
+    "highway": "secondary",
+    "incline": "14%",
+    "lane_markings": "no",
+    "maxlength": "12.5",
+    "maxspeed": "90",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Vršiška cesta",
+    "name:de": "Russische Straße",
+    "name:en": "Vršiška cesta",
+    "name:sl": "Ruska cesta",
+    "ref": "206",
+    "sidewalk": "left",
+    "surface": "sett"
+  }
+},
+{
+  "type": "way",
+  "id": 624409210,
+  "bounds": {
+    "minlat": 46.4426798,
+    "minlon": 13.7690789,
+    "maxlat": 46.4431910,
+    "maxlon": 13.7695233
+  },
+  "geometry": [
+    { "lat": 46.4430993, "lon": 13.7693883 },
+    { "lat": 46.4431617, "lon": 13.7692658 },
+    { "lat": 46.4431870, "lon": 13.7692027 },
+    { "lat": 46.4431910, "lon": 13.7691426 },
+    { "lat": 46.4431734, "lon": 13.7690991 },
+    { "lat": 46.4431449, "lon": 13.7690789 },
+    { "lat": 46.4431083, "lon": 13.7690825 },
+    { "lat": 46.4430694, "lon": 13.7691145 },
+    { "lat": 46.4430000, "lon": 13.7692347 },
+    { "lat": 46.4428884, "lon": 13.7694198 },
+    { "lat": 46.4428536, "lon": 13.7694766 },
+    { "lat": 46.4428238, "lon": 13.7695100 },
+    { "lat": 46.4427885, "lon": 13.7695233 },
+    { "lat": 46.4427374, "lon": 13.7695124 },
+    { "lat": 46.4426798, "lon": 13.7694389 }
+  ],
+  "tags": {
+    "highway": "secondary",
+    "incline": "14%",
+    "maxlength": "12.5",
+    "maxspeed": "90",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Vršiška cesta",
+    "name:de": "Russische Straße",
+    "name:en": "Vršiška cesta",
+    "name:sl": "Ruska cesta",
+    "ref": "206",
+    "sidewalk": "no",
+    "surface": "sett"
+  }
+},
+{
+  "type": "way",
+  "id": 704414675,
+  "bounds": {
+    "minlat": 46.4387358,
+    "minlon": 13.7466779,
+    "maxlat": 46.4389536,
+    "maxlon": 13.7469462
+  },
+  "geometry": [
+    { "lat": 46.4387524, "lon": 13.7469462 },
+    { "lat": 46.4388379, "lon": 13.7469363 },
+    { "lat": 46.4388807, "lon": 13.7469300 },
+    { "lat": 46.4389148, "lon": 13.7469137 },
+    { "lat": 46.4389409, "lon": 13.7468778 },
+    { "lat": 46.4389536, "lon": 13.7468242 },
+    { "lat": 46.4389456, "lon": 13.7467699 },
+    { "lat": 46.4389235, "lon": 13.7467258 },
+    { "lat": 46.4388915, "lon": 13.7466974 },
+    { "lat": 46.4388424, "lon": 13.7466825 },
+    { "lat": 46.4387358, "lon": 13.7466779 }
+  ],
+  "tags": {
+    "highway": "secondary",
+    "incline": "14%",
+    "maxlength": "12.5",
+    "maxspeed": "90",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Ruska cesta",
+    "name:de": "Russische Straße",
+    "name:en": "Russian Street",
+    "name:sl": "Ruska cesta",
+    "ref": "206",
+    "sidewalk": "no",
+    "surface": "sett"
+  }
+},
+{
+  "type": "way",
+  "id": 704414676,
+  "bounds": {
+    "minlat": 46.4379613,
+    "minlon": 13.7469462,
+    "maxlat": 46.4387524,
+    "maxlon": 13.7473763
+  },
+  "geometry": [
+    { "lat": 46.4379613, "lon": 13.7473763 },
+    { "lat": 46.4380600, "lon": 13.7472710 },
+    { "lat": 46.4382229, "lon": 13.7471403 },
+    { "lat": 46.4383578, "lon": 13.7470599 },
+    { "lat": 46.4384883, "lon": 13.7470003 },
+    { "lat": 46.4385729, "lon": 13.7469769 },
+    { "lat": 46.4386600, "lon": 13.7469618 },
+    { "lat": 46.4387524, "lon": 13.7469462 }
+  ],
+  "tags": {
+    "highway": "secondary",
+    "incline": "14%",
+    "maxlength": "12.5",
+    "maxspeed": "90",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Ruska cesta",
+    "name:de": "Russische Straße",
+    "name:en": "Russian Street",
+    "name:sl": "Ruska cesta",
+    "ref": "206",
+    "sidewalk": "no",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 704414677,
+  "bounds": {
+    "minlat": 46.4379027,
+    "minlon": 13.7477178,
+    "maxlat": 46.4380886,
+    "maxlon": 13.7478066
+  },
+  "geometry": [
+    { "lat": 46.4380886, "lon": 13.7477178 },
+    { "lat": 46.4379027, "lon": 13.7478066 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "foot": "yes",
+    "highway": "secondary",
+    "incline": "14%",
+    "lane_markings": "no",
+    "layer": "1",
+    "maxlength": "12.5",
+    "maxspeed": "90",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Ruska cesta",
+    "name:de": "Russische Straße",
+    "name:en": "Russian Street",
+    "name:sl": "Ruska cesta",
+    "ref": "206",
+    "sidewalk": "no",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 704414678,
+  "bounds": {
+    "minlat": 46.4377992,
+    "minlon": 13.7473763,
+    "maxlat": 46.4379613,
+    "maxlon": 13.7476237
+  },
+  "geometry": [
+    { "lat": 46.4377992, "lon": 13.7476237 },
+    { "lat": 46.4379613, "lon": 13.7473763 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "foot": "yes",
+    "highway": "secondary",
+    "incline": "14%",
+    "lane_markings": "no",
+    "layer": "1",
+    "maxlength": "12.5",
+    "maxspeed": "90",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Ruska cesta",
+    "name:de": "Russische Straße",
+    "name:en": "Russian Street",
+    "name:sl": "Ruska cesta",
+    "ref": "206",
+    "sidewalk": "no",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 704414679,
+  "bounds": {
+    "minlat": 46.4377355,
+    "minlon": 13.7476237,
+    "maxlat": 46.4379027,
+    "maxlon": 13.7478582
+  },
+  "geometry": [
+    { "lat": 46.4379027, "lon": 13.7478066 },
+    { "lat": 46.4378270, "lon": 13.7478562 },
+    { "lat": 46.4377920, "lon": 13.7478582 },
+    { "lat": 46.4377632, "lon": 13.7478417 },
+    { "lat": 46.4377407, "lon": 13.7478056 },
+    { "lat": 46.4377355, "lon": 13.7477511 },
+    { "lat": 46.4377465, "lon": 13.7477078 },
+    { "lat": 46.4377992, "lon": 13.7476237 }
+  ],
+  "tags": {
+    "highway": "secondary",
+    "incline": "14%",
+    "maxlength": "12.5",
+    "maxspeed": "90",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Ruska cesta",
+    "name:de": "Russische Straße",
+    "name:en": "Russian Street",
+    "name:sl": "Ruska cesta",
+    "ref": "206",
+    "sidewalk": "no",
+    "surface": "sett"
+  }
+},
+{
+  "type": "way",
+  "id": 704414680,
+  "bounds": {
+    "minlat": 46.4380886,
+    "minlon": 13.7476490,
+    "maxlat": 46.4397681,
+    "maxlon": 13.7483191
+  },
+  "geometry": [
+    { "lat": 46.4397681, "lon": 13.7483181 },
+    { "lat": 46.4396720, "lon": 13.7483191 },
+    { "lat": 46.4395339, "lon": 13.7483030 },
+    { "lat": 46.4393188, "lon": 13.7482496 },
+    { "lat": 46.4391360, "lon": 13.7481666 },
+    { "lat": 46.4389812, "lon": 13.7480680 },
+    { "lat": 46.4389440, "lon": 13.7480363 },
+    { "lat": 46.4388561, "lon": 13.7479571 },
+    { "lat": 46.4386525, "lon": 13.7477696 },
+    { "lat": 46.4385499, "lon": 13.7477067 },
+    { "lat": 46.4384562, "lon": 13.7476627 },
+    { "lat": 46.4383712, "lon": 13.7476490 },
+    { "lat": 46.4382925, "lon": 13.7476602 },
+    { "lat": 46.4381700, "lon": 13.7476848 },
+    { "lat": 46.4380886, "lon": 13.7477178 }
+  ],
+  "tags": {
+    "highway": "secondary",
+    "incline": "14%",
+    "lane_markings": "yes",
+    "maxlength": "12.5",
+    "maxspeed": "90",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Ruska cesta",
+    "name:de": "Russische Straße",
+    "name:en": "Russian Street",
+    "name:sl": "Ruska cesta",
+    "ref": "206",
+    "sidewalk": "no",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 704414683,
+  "bounds": {
+    "minlat": 46.4397681,
+    "minlon": 13.7483147,
+    "maxlat": 46.4400153,
+    "maxlon": 13.7487784
+  },
+  "geometry": [
+    { "lat": 46.4398763, "lon": 13.7487784 },
+    { "lat": 46.4399357, "lon": 13.7487094 },
+    { "lat": 46.4399735, "lon": 13.7486670 },
+    { "lat": 46.4399946, "lon": 13.7486206 },
+    { "lat": 46.4400108, "lon": 13.7485574 },
+    { "lat": 46.4400153, "lon": 13.7484770 },
+    { "lat": 46.4400004, "lon": 13.7484118 },
+    { "lat": 46.4399749, "lon": 13.7483607 },
+    { "lat": 46.4399379, "lon": 13.7483291 },
+    { "lat": 46.4398864, "lon": 13.7483147 },
+    { "lat": 46.4397681, "lon": 13.7483181 }
+  ],
+  "tags": {
+    "highway": "secondary",
+    "incline": "14%",
+    "lane_markings": "no",
+    "maxlength": "12.5",
+    "maxspeed": "90",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Ruska cesta",
+    "name:de": "Russische Straße",
+    "name:en": "Russian Street",
+    "name:sl": "Ruska cesta",
+    "ref": "206",
+    "sidewalk": "no",
+    "surface": "sett"
+  }
+},
+{
+  "type": "way",
+  "id": 704414684,
+  "bounds": {
+    "minlat": 46.4395771,
+    "minlon": 13.7487784,
+    "maxlat": 46.4398763,
+    "maxlon": 13.7490209
+  },
+  "geometry": [
+    { "lat": 46.4395771, "lon": 13.7490209 },
+    { "lat": 46.4396024, "lon": 13.7489868 },
+    { "lat": 46.4396893, "lon": 13.7489187 },
+    { "lat": 46.4398763, "lon": 13.7487784 }
+  ],
+  "tags": {
+    "highway": "secondary",
+    "incline": "14%",
+    "maxlength": "12.5",
+    "maxspeed": "90",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Ruska cesta",
+    "name:de": "Russische Straße",
+    "name:en": "Russian Street",
+    "name:sl": "Ruska cesta",
+    "ref": "206",
+    "sidewalk": "no",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 704414685,
+  "bounds": {
+    "minlat": 46.4403809,
+    "minlon": 13.7507229,
+    "maxlat": 46.4406006,
+    "maxlon": 13.7511315
+  },
+  "geometry": [
+    { "lat": 46.4403809, "lon": 13.7511315 },
+    { "lat": 46.4405009, "lon": 13.7510856 },
+    { "lat": 46.4405436, "lon": 13.7510524 },
+    { "lat": 46.4405812, "lon": 13.7510068 },
+    { "lat": 46.4406006, "lon": 13.7509435 },
+    { "lat": 46.4405978, "lon": 13.7508777 },
+    { "lat": 46.4405791, "lon": 13.7507980 },
+    { "lat": 46.4405446, "lon": 13.7507229 }
+  ],
+  "tags": {
+    "highway": "secondary",
+    "incline": "14%",
+    "maxlength": "12.5",
+    "maxspeed": "90",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Ruska cesta",
+    "name:de": "Russische Straße",
+    "name:en": "Russian Street",
+    "name:sl": "Ruska cesta",
+    "oneway": "no",
+    "ref": "206",
+    "sidewalk": "no",
+    "smoothness": "good",
+    "surface": "sett"
+  }
+},
+{
+  "type": "way",
+  "id": 704414686,
+  "bounds": {
+    "minlat": 46.4395430,
+    "minlon": 13.7510463,
+    "maxlat": 46.4403809,
+    "maxlon": 13.7511533
+  },
+  "geometry": [
+    { "lat": 46.4395430, "lon": 13.7511395 },
+    { "lat": 46.4396532, "lon": 13.7511533 },
+    { "lat": 46.4397738, "lon": 13.7510917 },
+    { "lat": 46.4398431, "lon": 13.7510563 },
+    { "lat": 46.4398698, "lon": 13.7510510 },
+    { "lat": 46.4399930, "lon": 13.7510463 },
+    { "lat": 46.4401106, "lon": 13.7510899 },
+    { "lat": 46.4402426, "lon": 13.7511512 },
+    { "lat": 46.4403469, "lon": 13.7511411 },
+    { "lat": 46.4403809, "lon": 13.7511315 }
+  ],
+  "tags": {
+    "highway": "secondary",
+    "incline": "14%",
+    "maxlength": "12.5",
+    "maxspeed": "90",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Ruska cesta",
+    "name:de": "Russische Straße",
+    "name:en": "Russian Street",
+    "name:sl": "Ruska cesta",
+    "oneway": "no",
+    "ref": "206",
+    "sidewalk": "no",
+    "smoothness": "good",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 704414687,
+  "bounds": {
+    "minlat": 46.4393343,
+    "minlon": 13.7510897,
+    "maxlat": 46.4395430,
+    "maxlon": 13.7513466
+  },
+  "geometry": [
+    { "lat": 46.4394873, "lon": 13.7513466 },
+    { "lat": 46.4394084, "lon": 13.7513207 },
+    { "lat": 46.4393586, "lon": 13.7512804 },
+    { "lat": 46.4393384, "lon": 13.7512332 },
+    { "lat": 46.4393343, "lon": 13.7511778 },
+    { "lat": 46.4393491, "lon": 13.7511298 },
+    { "lat": 46.4393769, "lon": 13.7510958 },
+    { "lat": 46.4394105, "lon": 13.7510897 },
+    { "lat": 46.4395430, "lon": 13.7511395 }
+  ],
+  "tags": {
+    "highway": "secondary",
+    "incline": "14%",
+    "lane_markings": "no",
+    "maxlength": "12.5",
+    "maxspeed": "90",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Ruska cesta",
+    "name:de": "Russische Straße",
+    "name:en": "Russian Street",
+    "name:sl": "Ruska cesta",
+    "oneway": "no",
+    "ref": "206",
+    "sidewalk": "no",
+    "smoothness": "good",
+    "surface": "sett"
+  }
+},
+{
+  "type": "way",
+  "id": 704414688,
+  "bounds": {
+    "minlat": 46.4394873,
+    "minlon": 13.7513466,
+    "maxlat": 46.4398663,
+    "maxlon": 13.7513712
+  },
+  "geometry": [
+    { "lat": 46.4398663, "lon": 13.7513712 },
+    { "lat": 46.4394873, "lon": 13.7513466 }
+  ],
+  "tags": {
+    "highway": "secondary",
+    "incline": "14%",
+    "lane_markings": "no",
+    "maxlength": "12.5",
+    "maxspeed": "90",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Ruska cesta",
+    "name:de": "Russische Straße",
+    "name:en": "Russian Street",
+    "name:sl": "Ruska cesta",
+    "oneway": "no",
+    "ref": "206",
+    "sidewalk": "no",
+    "smoothness": "good",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 704414689,
+  "bounds": {
+    "minlat": 46.4398275,
+    "minlon": 13.7513712,
+    "maxlat": 46.4400465,
+    "maxlon": 13.7516424
+  },
+  "geometry": [
+    { "lat": 46.4398275, "lon": 13.7516424 },
+    { "lat": 46.4399801, "lon": 13.7516247 },
+    { "lat": 46.4400162, "lon": 13.7516004 },
+    { "lat": 46.4400392, "lon": 13.7515594 },
+    { "lat": 46.4400465, "lon": 13.7515227 },
+    { "lat": 46.4400446, "lon": 13.7514840 },
+    { "lat": 46.4400323, "lon": 13.7514498 },
+    { "lat": 46.4399976, "lon": 13.7514086 },
+    { "lat": 46.4399420, "lon": 13.7513819 },
+    { "lat": 46.4398663, "lon": 13.7513712 }
+  ],
+  "tags": {
+    "highway": "secondary",
+    "incline": "14%",
+    "lane_markings": "no",
+    "maxlength": "12.5",
+    "maxspeed": "90",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Ruska cesta",
+    "name:de": "Russische Straße",
+    "name:en": "Russian Street",
+    "name:sl": "Ruska cesta",
+    "oneway": "no",
+    "ref": "206",
+    "sidewalk": "no",
+    "smoothness": "good",
+    "surface": "sett"
+  }
+},
+{
+  "type": "way",
+  "id": 704414690,
+  "bounds": {
+    "minlat": 46.4394250,
+    "minlon": 13.7516424,
+    "maxlat": 46.4398275,
+    "maxlon": 13.7517935
+  },
+  "geometry": [
+    { "lat": 46.4394250, "lon": 13.7517009 },
+    { "lat": 46.4395152, "lon": 13.7517665 },
+    { "lat": 46.4395897, "lon": 13.7517935 },
+    { "lat": 46.4396589, "lon": 13.7517626 },
+    { "lat": 46.4397604, "lon": 13.7516690 },
+    { "lat": 46.4398275, "lon": 13.7516424 }
+  ],
+  "tags": {
+    "highway": "secondary",
+    "incline": "14%",
+    "lane_markings": "no",
+    "maxlength": "12.5",
+    "maxspeed": "90",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Ruska cesta",
+    "name:de": "Russische Straße",
+    "name:en": "Russian Street",
+    "name:sl": "Ruska cesta",
+    "oneway": "no",
+    "ref": "206",
+    "sidewalk": "no",
+    "smoothness": "good",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 704414691,
+  "bounds": {
+    "minlat": 46.4391415,
+    "minlon": 13.7515315,
+    "maxlat": 46.4394250,
+    "maxlon": 13.7518231
+  },
+  "geometry": [
+    { "lat": 46.4393434, "lon": 13.7518231 },
+    { "lat": 46.4391992, "lon": 13.7517460 },
+    { "lat": 46.4391568, "lon": 13.7517036 },
+    { "lat": 46.4391415, "lon": 13.7516530 },
+    { "lat": 46.4391434, "lon": 13.7515997 },
+    { "lat": 46.4391591, "lon": 13.7515604 },
+    { "lat": 46.4391798, "lon": 13.7515417 },
+    { "lat": 46.4392067, "lon": 13.7515315 },
+    { "lat": 46.4392447, "lon": 13.7515446 },
+    { "lat": 46.4393160, "lon": 13.7515995 },
+    { "lat": 46.4394250, "lon": 13.7517009 }
+  ],
+  "tags": {
+    "highway": "secondary",
+    "incline": "14%",
+    "lane_markings": "no",
+    "maxlength": "12.5",
+    "maxspeed": "90",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Ruska cesta",
+    "name:de": "Russische Straße",
+    "name:en": "Russian Street",
+    "name:sl": "Ruska cesta",
+    "oneway": "no",
+    "ref": "206",
+    "sidewalk": "no",
+    "smoothness": "good",
+    "surface": "sett"
+  }
+},
+{
+  "type": "way",
+  "id": 704414692,
+  "bounds": {
+    "minlat": 46.4393434,
+    "minlon": 13.7518231,
+    "maxlat": 46.4411566,
+    "maxlon": 13.7532663
+  },
+  "geometry": [
+    { "lat": 46.4411566, "lon": 13.7531381 },
+    { "lat": 46.4409381, "lon": 13.7531796 },
+    { "lat": 46.4405877, "lon": 13.7532663 },
+    { "lat": 46.4405072, "lon": 13.7532623 },
+    { "lat": 46.4404336, "lon": 13.7532243 },
+    { "lat": 46.4402756, "lon": 13.7530342 },
+    { "lat": 46.4398753, "lon": 13.7524840 },
+    { "lat": 46.4395284, "lon": 13.7519559 },
+    { "lat": 46.4393434, "lon": 13.7518231 }
+  ],
+  "tags": {
+    "highway": "secondary",
+    "incline": "14%",
+    "lane_markings": "no",
+    "maxlength": "12.5",
+    "maxspeed": "90",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Ruska cesta",
+    "name:de": "Russische Straße",
+    "name:en": "Russian Street",
+    "name:sl": "Ruska cesta",
+    "oneway": "no",
+    "ref": "206",
+    "sidewalk": "no",
+    "smoothness": "good",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 704414694,
+  "bounds": {
+    "minlat": 46.4411566,
+    "minlon": 13.7531230,
+    "maxlat": 46.4414152,
+    "maxlon": 13.7533367
+  },
+  "geometry": [
+    { "lat": 46.4413335, "lon": 13.7533367 },
+    { "lat": 46.4413774, "lon": 13.7533241 },
+    { "lat": 46.4414077, "lon": 13.7532832 },
+    { "lat": 46.4414152, "lon": 13.7532212 },
+    { "lat": 46.4413995, "lon": 13.7531693 },
+    { "lat": 46.4413715, "lon": 13.7531355 },
+    { "lat": 46.4413242, "lon": 13.7531230 },
+    { "lat": 46.4411566, "lon": 13.7531381 }
+  ],
+  "tags": {
+    "highway": "secondary",
+    "incline": "14%",
+    "lane_markings": "no",
+    "maxlength": "12.5",
+    "maxspeed": "90",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Ruska cesta",
+    "name:de": "Russische Straße",
+    "name:en": "Russian Street",
+    "name:sl": "Ruska cesta",
+    "oneway": "no",
+    "ref": "206",
+    "sidewalk": "no",
+    "smoothness": "good",
+    "surface": "sett"
+  }
+},
+{
+  "type": "way",
+  "id": 704414696,
+  "bounds": {
+    "minlat": 46.4388397,
+    "minlon": 13.7587358,
+    "maxlat": 46.4389632,
+    "maxlon": 13.7590295
+  },
+  "geometry": [
+    { "lat": 46.4389266, "lon": 13.7590295 },
+    { "lat": 46.4388852, "lon": 13.7590223 },
+    { "lat": 46.4388557, "lon": 13.7589916 },
+    { "lat": 46.4388397, "lon": 13.7589458 },
+    { "lat": 46.4388433, "lon": 13.7588901 },
+    { "lat": 46.4388654, "lon": 13.7588375 },
+    { "lat": 46.4389063, "lon": 13.7587867 },
+    { "lat": 46.4389632, "lon": 13.7587358 }
+  ],
+  "tags": {
+    "highway": "secondary",
+    "incline": "14%",
+    "lane_markings": "no",
+    "maxlength": "12.5",
+    "maxspeed": "90",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Ruska cesta",
+    "name:de": "Russische Straße",
+    "name:en": "Russian Street",
+    "name:sl": "Ruska cesta",
+    "ref": "206",
+    "sidewalk": "no",
+    "surface": "sett",
+    "width": "3.5"
+  }
+},
+{
+  "type": "way",
+  "id": 704414697,
+  "bounds": {
+    "minlat": 46.4389266,
+    "minlon": 13.7589694,
+    "maxlat": 46.4401825,
+    "maxlon": 13.7594924
+  },
+  "geometry": [
+    { "lat": 46.4401825, "lon": 13.7594800 },
+    { "lat": 46.4401147, "lon": 13.7594924 },
+    { "lat": 46.4400453, "lon": 13.7594847 },
+    { "lat": 46.4399469, "lon": 13.7594295 },
+    { "lat": 46.4398156, "lon": 13.7593294 },
+    { "lat": 46.4395827, "lon": 13.7591328 },
+    { "lat": 46.4394030, "lon": 13.7590076 },
+    { "lat": 46.4393407, "lon": 13.7589815 },
+    { "lat": 46.4392853, "lon": 13.7589694 },
+    { "lat": 46.4389266, "lon": 13.7590295 }
+  ],
+  "tags": {
+    "highway": "secondary",
+    "incline": "14%",
+    "lane_markings": "no",
+    "maxlength": "12.5",
+    "maxspeed": "90",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Ruska cesta",
+    "name:de": "Russische Straße",
+    "name:en": "Russian Street",
+    "name:sl": "Ruska cesta",
+    "ref": "206",
+    "sidewalk": "no",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 704414698,
+  "bounds": {
+    "minlat": 46.4401825,
+    "minlon": 13.7594351,
+    "maxlat": 46.4404130,
+    "maxlon": 13.7596901
+  },
+  "geometry": [
+    { "lat": 46.4402765, "lon": 13.7596901 },
+    { "lat": 46.4403431, "lon": 13.7596728 },
+    { "lat": 46.4403728, "lon": 13.7596482 },
+    { "lat": 46.4403977, "lon": 13.7596151 },
+    { "lat": 46.4404096, "lon": 13.7595796 },
+    { "lat": 46.4404130, "lon": 13.7595283 },
+    { "lat": 46.4403971, "lon": 13.7594791 },
+    { "lat": 46.4403690, "lon": 13.7594480 },
+    { "lat": 46.4403367, "lon": 13.7594351 },
+    { "lat": 46.4403043, "lon": 13.7594365 },
+    { "lat": 46.4402661, "lon": 13.7594459 },
+    { "lat": 46.4401825, "lon": 13.7594800 }
+  ],
+  "tags": {
+    "highway": "secondary",
+    "incline": "14%",
+    "lane_markings": "no",
+    "maxlength": "12.5",
+    "maxspeed": "90",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Ruska cesta",
+    "name:de": "Russische Straße",
+    "name:en": "Russian Street",
+    "name:sl": "Ruska cesta",
+    "ref": "206",
+    "sidewalk": "no",
+    "surface": "sett"
+  }
+},
+{
+  "type": "way",
+  "id": 704414699,
+  "bounds": {
+    "minlat": 46.4392469,
+    "minlon": 13.7596901,
+    "maxlat": 46.4402765,
+    "maxlon": 13.7597591
+  },
+  "geometry": [
+    { "lat": 46.4392469, "lon": 13.7597591 },
+    { "lat": 46.4400728, "lon": 13.7597112 },
+    { "lat": 46.4402765, "lon": 13.7596901 }
+  ],
+  "tags": {
+    "highway": "secondary",
+    "incline": "14%",
+    "lane_markings": "no",
+    "maxlength": "12.5",
+    "maxspeed": "90",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Ruska cesta",
+    "name:de": "Russische Straße",
+    "name:en": "Russian Street",
+    "name:sl": "Ruska cesta",
+    "ref": "206",
+    "sidewalk": "no",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 704414700,
+  "bounds": {
+    "minlat": 46.4389473,
+    "minlon": 13.7597591,
+    "maxlat": 46.4392469,
+    "maxlon": 13.7600050
+  },
+  "geometry": [
+    { "lat": 46.4391933, "lon": 13.7599978 },
+    { "lat": 46.4390441, "lon": 13.7600050 },
+    { "lat": 46.4390012, "lon": 13.7599940 },
+    { "lat": 46.4389655, "lon": 13.7599556 },
+    { "lat": 46.4389473, "lon": 13.7598955 },
+    { "lat": 46.4389533, "lon": 13.7598398 },
+    { "lat": 46.4389825, "lon": 13.7597908 },
+    { "lat": 46.4390421, "lon": 13.7597608 },
+    { "lat": 46.4392469, "lon": 13.7597591 }
+  ],
+  "tags": {
+    "highway": "secondary",
+    "incline": "14%",
+    "lane_markings": "no",
+    "maxlength": "12.5",
+    "maxspeed": "90",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Ruska cesta",
+    "name:de": "Russische Straße",
+    "name:en": "Russian Street",
+    "name:sl": "Ruska cesta",
+    "ref": "206",
+    "sidewalk": "no",
+    "surface": "sett"
+  }
+},
+{
+  "type": "way",
+  "id": 704414701,
+  "bounds": {
+    "minlat": 46.4391933,
+    "minlon": 13.7599670,
+    "maxlat": 46.4403668,
+    "maxlon": 13.7600331
+  },
+  "geometry": [
+    { "lat": 46.4403668, "lon": 13.7599673 },
+    { "lat": 46.4402344, "lon": 13.7600137 },
+    { "lat": 46.4401520, "lon": 13.7600331 },
+    { "lat": 46.4398464, "lon": 13.7599953 },
+    { "lat": 46.4394932, "lon": 13.7599670 },
+    { "lat": 46.4391933, "lon": 13.7599978 }
+  ],
+  "tags": {
+    "highway": "secondary",
+    "incline": "14%",
+    "lane_markings": "no",
+    "maxlength": "12.5",
+    "maxspeed": "90",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Ruska cesta",
+    "name:de": "Russische Straße",
+    "name:en": "Russian Street",
+    "name:sl": "Ruska cesta",
+    "ref": "206",
+    "sidewalk": "no",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 704414702,
+  "bounds": {
+    "minlat": 46.4403575,
+    "minlon": 13.7599625,
+    "maxlat": 46.4404736,
+    "maxlon": 13.7601712
+  },
+  "geometry": [
+    { "lat": 46.4403575, "lon": 13.7601712 },
+    { "lat": 46.4403955, "lon": 13.7601623 },
+    { "lat": 46.4404315, "lon": 13.7601441 },
+    { "lat": 46.4404612, "lon": 13.7601094 },
+    { "lat": 46.4404736, "lon": 13.7600604 },
+    { "lat": 46.4404656, "lon": 13.7600090 },
+    { "lat": 46.4404423, "lon": 13.7599758 },
+    { "lat": 46.4404077, "lon": 13.7599625 },
+    { "lat": 46.4403668, "lon": 13.7599673 }
+  ],
+  "tags": {
+    "highway": "secondary",
+    "incline": "14%",
+    "lane_markings": "no",
+    "maxlength": "12.5",
+    "maxspeed": "90",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Ruska cesta",
+    "name:de": "Russische Straße",
+    "name:en": "Russian Street",
+    "name:sl": "Ruska cesta",
+    "ref": "206",
+    "sidewalk": "no",
+    "surface": "sett"
+  }
+},
+{
+  "type": "way",
+  "id": 704414703,
+  "bounds": {
+    "minlat": 46.4389927,
+    "minlon": 13.7601712,
+    "maxlat": 46.4403575,
+    "maxlon": 13.7604028
+  },
+  "geometry": [
+    { "lat": 46.4389927, "lon": 13.7604028 },
+    { "lat": 46.4391079, "lon": 13.7603645 },
+    { "lat": 46.4392222, "lon": 13.7603132 },
+    { "lat": 46.4393053, "lon": 13.7602555 },
+    { "lat": 46.4393877, "lon": 13.7602227 },
+    { "lat": 46.4395735, "lon": 13.7601967 },
+    { "lat": 46.4403575, "lon": 13.7601712 }
+  ],
+  "tags": {
+    "highway": "secondary",
+    "incline": "14%",
+    "lane_markings": "no",
+    "maxlength": "12.5",
+    "maxspeed": "90",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Ruska cesta",
+    "name:de": "Russische Straße",
+    "name:en": "Russian Street",
+    "name:sl": "Ruska cesta",
+    "oneway": "no",
+    "ref": "206",
+    "sidewalk": "no",
+    "smoothness": "good",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 704414704,
+  "bounds": {
+    "minlat": 46.4388407,
+    "minlon": 13.7604028,
+    "maxlat": 46.4389927,
+    "maxlon": 13.7606695
+  },
+  "geometry": [
+    { "lat": 46.4388942, "lon": 13.7606695 },
+    { "lat": 46.4388679, "lon": 13.7606286 },
+    { "lat": 46.4388474, "lon": 13.7605810 },
+    { "lat": 46.4388407, "lon": 13.7605339 },
+    { "lat": 46.4388417, "lon": 13.7604913 },
+    { "lat": 46.4388673, "lon": 13.7604506 },
+    { "lat": 46.4388967, "lon": 13.7604350 },
+    { "lat": 46.4389927, "lon": 13.7604028 }
+  ],
+  "tags": {
+    "highway": "secondary",
+    "incline": "14%",
+    "lane_markings": "no",
+    "maxlength": "12.5",
+    "maxspeed": "90",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Ruska cesta",
+    "name:de": "Russische Straße",
+    "name:en": "Russian Street",
+    "name:sl": "Ruska cesta",
+    "ref": "206",
+    "sidewalk": "no",
+    "smoothness": "intermediate",
+    "surface": "sett"
+  }
+},
+{
+  "type": "way",
+  "id": 704414705,
+  "bounds": {
+    "minlat": 46.4388942,
+    "minlon": 13.7606695,
+    "maxlat": 46.4393704,
+    "maxlon": 13.7611085
+  },
+  "geometry": [
+    { "lat": 46.4393704, "lon": 13.7611085 },
+    { "lat": 46.4390192, "lon": 13.7607756 },
+    { "lat": 46.4388942, "lon": 13.7606695 }
+  ],
+  "tags": {
+    "highway": "secondary",
+    "incline": "14%",
+    "lane_markings": "no",
+    "maxlength": "12.5",
+    "maxspeed": "90",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Ruska cesta",
+    "name:de": "Russische Straße",
+    "name:en": "Russian Street",
+    "name:sl": "Ruska cesta",
+    "ref": "206",
+    "sidewalk": "no",
+    "smoothness": "good",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 704414706,
+  "bounds": {
+    "minlat": 46.4392229,
+    "minlon": 13.7611085,
+    "maxlat": 46.4394490,
+    "maxlon": 13.7613762
+  },
+  "geometry": [
+    { "lat": 46.4392229, "lon": 13.7612799 },
+    { "lat": 46.4392975, "lon": 13.7613527 },
+    { "lat": 46.4393340, "lon": 13.7613716 },
+    { "lat": 46.4393614, "lon": 13.7613762 },
+    { "lat": 46.4393927, "lon": 13.7613686 },
+    { "lat": 46.4394196, "lon": 13.7613452 },
+    { "lat": 46.4394408, "lon": 13.7613073 },
+    { "lat": 46.4394490, "lon": 13.7612567 },
+    { "lat": 46.4394438, "lon": 13.7612058 },
+    { "lat": 46.4394223, "lon": 13.7611625 },
+    { "lat": 46.4393704, "lon": 13.7611085 }
+  ],
+  "tags": {
+    "highway": "secondary",
+    "incline": "14%",
+    "lane_markings": "no",
+    "maxlength": "12.5",
+    "maxspeed": "90",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Ruska cesta",
+    "name:de": "Russische Straße",
+    "name:en": "Russian Street",
+    "name:sl": "Ruska cesta",
+    "ref": "206",
+    "sidewalk": "no",
+    "surface": "sett"
+  }
+},
+{
+  "type": "way",
+  "id": 704414707,
+  "bounds": {
+    "minlat": 46.4380498,
+    "minlon": 13.7607026,
+    "maxlat": 46.4392229,
+    "maxlon": 13.7614467
+  },
+  "geometry": [
+    { "lat": 46.4380498, "lon": 13.7614467 },
+    { "lat": 46.4380707, "lon": 13.7612756 },
+    { "lat": 46.4381318, "lon": 13.7610250 },
+    { "lat": 46.4381956, "lon": 13.7608253 },
+    { "lat": 46.4382375, "lon": 13.7607298 },
+    { "lat": 46.4382707, "lon": 13.7607029 },
+    { "lat": 46.4383186, "lon": 13.7607026 },
+    { "lat": 46.4383722, "lon": 13.7607482 },
+    { "lat": 46.4384850, "lon": 13.7609121 },
+    { "lat": 46.4385454, "lon": 13.7609895 },
+    { "lat": 46.4386009, "lon": 13.7610217 },
+    { "lat": 46.4388302, "lon": 13.7610686 },
+    { "lat": 46.4389603, "lon": 13.7610958 },
+    { "lat": 46.4390558, "lon": 13.7611407 },
+    { "lat": 46.4391624, "lon": 13.7612122 },
+    { "lat": 46.4392229, "lon": 13.7612799 }
+  ],
+  "tags": {
+    "highway": "secondary",
+    "incline": "14%",
+    "lane_markings": "no",
+    "maxlength": "12.5",
+    "maxspeed": "90",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Ruska cesta",
+    "name:de": "Russische Straße",
+    "name:en": "Russian Street",
+    "name:sl": "Ruska cesta",
+    "ref": "206",
+    "sidewalk": "no",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 704414708,
+  "bounds": {
+    "minlat": 46.4380498,
+    "minlon": 13.7614467,
+    "maxlat": 46.4386617,
+    "maxlon": 13.7618237
+  },
+  "geometry": [
+    { "lat": 46.4386617, "lon": 13.7618237 },
+    { "lat": 46.4386374, "lon": 13.7616569 },
+    { "lat": 46.4385921, "lon": 13.7615548 },
+    { "lat": 46.4385378, "lon": 13.7615048 },
+    { "lat": 46.4384593, "lon": 13.7614999 },
+    { "lat": 46.4383896, "lon": 13.7615205 },
+    { "lat": 46.4382371, "lon": 13.7616296 },
+    { "lat": 46.4381991, "lon": 13.7616512 },
+    { "lat": 46.4381443, "lon": 13.7616581 },
+    { "lat": 46.4381066, "lon": 13.7616369 },
+    { "lat": 46.4380684, "lon": 13.7615923 },
+    { "lat": 46.4380525, "lon": 13.7615171 },
+    { "lat": 46.4380498, "lon": 13.7614467 }
+  ],
+  "tags": {
+    "highway": "secondary",
+    "incline": "14%",
+    "lane_markings": "no",
+    "maxlength": "12.5",
+    "maxspeed": "90",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Ruska cesta",
+    "name:de": "Russische Straße",
+    "name:en": "Russian Street",
+    "name:sl": "Ruska cesta",
+    "ref": "206",
+    "sidewalk": "no",
+    "surface": "sett"
+  }
+},
+{
+  "type": "way",
+  "id": 704414709,
+  "bounds": {
+    "minlat": 46.4403759,
+    "minlon": 13.7624665,
+    "maxlat": 46.4427997,
+    "maxlon": 13.7641228
+  },
+  "geometry": [
+    { "lat": 46.4427997, "lon": 13.7641228 },
+    { "lat": 46.4425892, "lon": 13.7640042 },
+    { "lat": 46.4422627, "lon": 13.7638212 },
+    { "lat": 46.4419694, "lon": 13.7635883 },
+    { "lat": 46.4408687, "lon": 13.7626449 },
+    { "lat": 46.4407783, "lon": 13.7625795 },
+    { "lat": 46.4405903, "lon": 13.7625064 },
+    { "lat": 46.4403759, "lon": 13.7624665 }
+  ],
+  "tags": {
+    "highway": "secondary",
+    "incline": "14%",
+    "lane_markings": "no",
+    "maxlength": "12.5",
+    "maxspeed": "90",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Ruska cesta",
+    "name:de": "Russische Straße",
+    "name:en": "Russian Street",
+    "name:sl": "Ruska cesta",
+    "ref": "206",
+    "sidewalk": "no",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 704414712,
+  "bounds": {
+    "minlat": 46.4439195,
+    "minlon": 13.7691730,
+    "maxlat": 46.4444844,
+    "maxlon": 13.7697631
+  },
+  "geometry": [
+    { "lat": 46.4439195, "lon": 13.7693500 },
+    { "lat": 46.4439366, "lon": 13.7694932 },
+    { "lat": 46.4439664, "lon": 13.7695986 },
+    { "lat": 46.4440010, "lon": 13.7696441 },
+    { "lat": 46.4440904, "lon": 13.7697326 },
+    { "lat": 46.4441488, "lon": 13.7697563 },
+    { "lat": 46.4441991, "lon": 13.7697631 },
+    { "lat": 46.4442749, "lon": 13.7697551 },
+    { "lat": 46.4443325, "lon": 13.7697213 },
+    { "lat": 46.4444168, "lon": 13.7696206 },
+    { "lat": 46.4444597, "lon": 13.7695300 },
+    { "lat": 46.4444816, "lon": 13.7694126 },
+    { "lat": 46.4444844, "lon": 13.7692846 },
+    { "lat": 46.4444643, "lon": 13.7691730 }
+  ],
+  "tags": {
+    "highway": "secondary",
+    "incline": "14%",
+    "lane_markings": "no",
+    "maxlength": "12.5",
+    "maxspeed": "90",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Vršiška cesta",
+    "name:de": "Russische Straße",
+    "name:en": "Vršiška cesta",
+    "name:sl": "Ruska cesta",
+    "ref": "206",
+    "sidewalk": "no",
+    "surface": "sett"
+  }
+},
+{
+  "type": "way",
+  "id": 704414713,
+  "bounds": {
+    "minlat": 46.4424161,
+    "minlon": 13.7679891,
+    "maxlat": 46.4439195,
+    "maxlon": 13.7693500
+  },
+  "geometry": [
+    { "lat": 46.4424161, "lon": 13.7686003 },
+    { "lat": 46.4425361, "lon": 13.7687215 },
+    { "lat": 46.4426145, "lon": 13.7687664 },
+    { "lat": 46.4426906, "lon": 13.7687779 },
+    { "lat": 46.4427667, "lon": 13.7687759 },
+    { "lat": 46.4428483, "lon": 13.7687482 },
+    { "lat": 46.4429409, "lon": 13.7686620 },
+    { "lat": 46.4429870, "lon": 13.7686061 },
+    { "lat": 46.4430392, "lon": 13.7685281 },
+    { "lat": 46.4431986, "lon": 13.7681733 },
+    { "lat": 46.4432397, "lon": 13.7680953 },
+    { "lat": 46.4432959, "lon": 13.7680270 },
+    { "lat": 46.4433714, "lon": 13.7679891 },
+    { "lat": 46.4434363, "lon": 13.7679921 },
+    { "lat": 46.4435047, "lon": 13.7680335 },
+    { "lat": 46.4435924, "lon": 13.7681750 },
+    { "lat": 46.4437422, "lon": 13.7684993 },
+    { "lat": 46.4438163, "lon": 13.7687023 },
+    { "lat": 46.4438510, "lon": 13.7688255 },
+    { "lat": 46.4438837, "lon": 13.7689799 },
+    { "lat": 46.4438914, "lon": 13.7690230 },
+    { "lat": 46.4439056, "lon": 13.7691606 },
+    { "lat": 46.4439195, "lon": 13.7693500 }
+  ],
+  "tags": {
+    "highway": "secondary",
+    "incline": "14%",
+    "lane_markings": "no",
+    "maxlength": "12.5",
+    "maxspeed": "90",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Vršiška cesta",
+    "name:de": "Russische Straße",
+    "name:en": "Vršiška cesta",
+    "name:sl": "Ruska cesta",
+    "ref": "206",
+    "sidewalk": "no",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 704414715,
+  "bounds": {
+    "minlat": 46.4423713,
+    "minlon": 13.7688186,
+    "maxlat": 46.4426798,
+    "maxlon": 13.7694389
+  },
+  "geometry": [
+    { "lat": 46.4426798, "lon": 13.7694389 },
+    { "lat": 46.4425357, "lon": 13.7691452 },
+    { "lat": 46.4424346, "lon": 13.7689114 },
+    { "lat": 46.4423713, "lon": 13.7688186 }
+  ],
+  "tags": {
+    "highway": "secondary",
+    "incline": "14%",
+    "maxlength": "12.5",
+    "maxspeed": "90",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Vršiška cesta",
+    "name:de": "Russische Straße",
+    "name:en": "Vršiška cesta",
+    "name:sl": "Ruska cesta",
+    "ref": "206",
+    "sidewalk": "no",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 704414716,
+  "bounds": {
+    "minlat": 46.4426118,
+    "minlon": 13.7693883,
+    "maxlat": 46.4430993,
+    "maxlon": 13.7699595
+  },
+  "geometry": [
+    { "lat": 46.4426118, "lon": 13.7699595 },
+    { "lat": 46.4426543, "lon": 13.7699069 },
+    { "lat": 46.4427406, "lon": 13.7698331 },
+    { "lat": 46.4428671, "lon": 13.7697128 },
+    { "lat": 46.4429610, "lon": 13.7695927 },
+    { "lat": 46.4430993, "lon": 13.7693883 }
+  ],
+  "tags": {
+    "highway": "secondary",
+    "incline": "14%",
+    "maxlength": "12.5",
+    "maxspeed": "90",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Vršiška cesta",
+    "name:de": "Russische Straße",
+    "name:en": "Vršiška cesta",
+    "name:sl": "Ruska cesta",
+    "ref": "206",
+    "sidewalk": "no",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 704414717,
+  "bounds": {
+    "minlat": 46.4427304,
+    "minlon": 13.7697844,
+    "maxlat": 46.4430251,
+    "maxlon": 13.7700798
+  },
+  "geometry": [
+    { "lat": 46.4430251, "lon": 13.7697844 },
+    { "lat": 46.4428813, "lon": 13.7699123 },
+    { "lat": 46.4427304, "lon": 13.7700798 }
+  ],
+  "tags": {
+    "highway": "secondary",
+    "incline": "14%",
+    "maxlength": "12.5",
+    "maxspeed": "90",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Vršiška cesta",
+    "name:de": "Russische Straße",
+    "name:en": "Vršiška cesta",
+    "name:sl": "Ruska cesta",
+    "ref": "206",
+    "sidewalk": "no",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 704414718,
+  "bounds": {
+    "minlat": 46.4430251,
+    "minlon": 13.7697408,
+    "maxlat": 46.4432951,
+    "maxlon": 13.7700133
+  },
+  "geometry": [
+    { "lat": 46.4432951, "lon": 13.7700133 },
+    { "lat": 46.4432861, "lon": 13.7699420 },
+    { "lat": 46.4432734, "lon": 13.7698752 },
+    { "lat": 46.4432399, "lon": 13.7698095 },
+    { "lat": 46.4431994, "lon": 13.7697666 },
+    { "lat": 46.4431523, "lon": 13.7697408 },
+    { "lat": 46.4430947, "lon": 13.7697461 },
+    { "lat": 46.4430251, "lon": 13.7697844 }
+  ],
+  "tags": {
+    "highway": "secondary",
+    "incline": "14%",
+    "maxlength": "12.5",
+    "maxspeed": "90",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Vršiška cesta",
+    "name:de": "Russische Straße",
+    "name:en": "Vršiška cesta",
+    "name:sl": "Ruska cesta",
+    "ref": "206",
+    "sidewalk": "no",
+    "surface": "sett"
+  }
+},
+{
+  "type": "way",
+  "id": 704414720,
+  "bounds": {
+    "minlat": 46.4450052,
+    "minlon": 13.7745340,
+    "maxlat": 46.4451413,
+    "maxlon": 13.7747512
+  },
+  "geometry": [
+    { "lat": 46.4450052, "lon": 13.7747272 },
+    { "lat": 46.4450369, "lon": 13.7747442 },
+    { "lat": 46.4450609, "lon": 13.7747512 },
+    { "lat": 46.4450851, "lon": 13.7747507 },
+    { "lat": 46.4451087, "lon": 13.7747423 },
+    { "lat": 46.4451302, "lon": 13.7747181 },
+    { "lat": 46.4451413, "lon": 13.7746830 },
+    { "lat": 46.4451400, "lon": 13.7746431 },
+    { "lat": 46.4451271, "lon": 13.7746053 },
+    { "lat": 46.4451083, "lon": 13.7745739 },
+    { "lat": 46.4450811, "lon": 13.7745549 },
+    { "lat": 46.4450255, "lon": 13.7745340 }
+  ],
+  "tags": {
+    "highway": "secondary",
+    "incline": "14%",
+    "maxlength": "12.5",
+    "maxspeed": "90",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Vršiška cesta",
+    "name:de": "Russische Straße",
+    "name:en": "Vršiška cesta",
+    "name:sl": "Ruska cesta",
+    "ref": "206",
+    "sidewalk": "no",
+    "surface": "sett"
+  }
+},
+{
+  "type": "way",
+  "id": 704414721,
+  "bounds": {
+    "minlat": 46.4443827,
+    "minlon": 13.7743231,
+    "maxlat": 46.4450052,
+    "maxlon": 13.7747272
+  },
+  "geometry": [
+    { "lat": 46.4443827, "lon": 13.7743231 },
+    { "lat": 46.4445753, "lon": 13.7744497 },
+    { "lat": 46.4447461, "lon": 13.7745740 },
+    { "lat": 46.4450052, "lon": 13.7747272 }
+  ],
+  "tags": {
+    "highway": "secondary",
+    "incline": "14%",
+    "maxlength": "12.5",
+    "maxspeed": "90",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Vršiška cesta",
+    "name:de": "Russische Straße",
+    "name:en": "Vršiška cesta",
+    "name:sl": "Ruska cesta",
+    "ref": "206",
+    "sidewalk": "no",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 704414722,
+  "bounds": {
+    "minlat": 46.4442484,
+    "minlon": 13.7742899,
+    "maxlat": 46.4444316,
+    "maxlon": 13.7745195
+  },
+  "geometry": [
+    { "lat": 46.4444316, "lon": 13.7745195 },
+    { "lat": 46.4443489, "lon": 13.7744790 },
+    { "lat": 46.4442873, "lon": 13.7744441 },
+    { "lat": 46.4442660, "lon": 13.7744216 },
+    { "lat": 46.4442539, "lon": 13.7743939 },
+    { "lat": 46.4442484, "lon": 13.7743605 },
+    { "lat": 46.4442516, "lon": 13.7743298 },
+    { "lat": 46.4442669, "lon": 13.7743045 },
+    { "lat": 46.4442924, "lon": 13.7742899 },
+    { "lat": 46.4443267, "lon": 13.7742941 },
+    { "lat": 46.4443827, "lon": 13.7743231 }
+  ],
+  "tags": {
+    "highway": "secondary",
+    "incline": "14%",
+    "maxlength": "12.5",
+    "maxspeed": "90",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Vršiška cesta",
+    "name:de": "Russische Straße",
+    "name:en": "Vršiška cesta",
+    "name:sl": "Ruska cesta",
+    "ref": "206",
+    "sidewalk": "no",
+    "surface": "sett"
+  }
+},
+{
+  "type": "way",
+  "id": 704414723,
+  "bounds": {
+    "minlat": 46.4444316,
+    "minlon": 13.7745195,
+    "maxlat": 46.4447441,
+    "maxlon": 13.7747626
+  },
+  "geometry": [
+    { "lat": 46.4447441, "lon": 13.7747626 },
+    { "lat": 46.4446291, "lon": 13.7746513 },
+    { "lat": 46.4445234, "lon": 13.7745740 },
+    { "lat": 46.4444316, "lon": 13.7745195 }
+  ],
+  "tags": {
+    "highway": "secondary",
+    "incline": "14%",
+    "maxlength": "12.5",
+    "maxspeed": "90",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Vršiška cesta",
+    "name:de": "Russische Straße",
+    "name:en": "Vršiška cesta",
+    "name:sl": "Ruska cesta",
+    "ref": "206",
+    "sidewalk": "no",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 704414725,
+  "bounds": {
+    "minlat": 46.4619494,
+    "minlon": 13.7803522,
+    "maxlat": 46.4620946,
+    "maxlon": 13.7809620
+  },
+  "geometry": [
+    { "lat": 46.4619494, "lon": 13.7809620 },
+    { "lat": 46.4620545, "lon": 13.7808587 },
+    { "lat": 46.4620900, "lon": 13.7807687 },
+    { "lat": 46.4620946, "lon": 13.7806637 },
+    { "lat": 46.4620944, "lon": 13.7805746 },
+    { "lat": 46.4620752, "lon": 13.7805081 },
+    { "lat": 46.4620430, "lon": 13.7804412 },
+    { "lat": 46.4619529, "lon": 13.7803522 }
+  ],
+  "tags": {
+    "highway": "secondary",
+    "incline": "14%",
+    "lane_markings": "no",
+    "maxlength": "12.5",
+    "maxspeed": "90",
+    "maxspeed:advisory": "50",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Vršiška cesta",
+    "name:de": "Russische Straße",
+    "name:en": "Vršiška cesta",
+    "name:sl": "Ruska cesta",
+    "ref": "206",
+    "sidewalk": "no",
+    "surface": "sett"
+  }
+},
+{
+  "type": "way",
+  "id": 704414726,
+  "bounds": {
+    "minlat": 46.4612734,
+    "minlon": 13.7809620,
+    "maxlat": 46.4619494,
+    "maxlon": 13.7813739
+  },
+  "geometry": [
+    { "lat": 46.4612734, "lon": 13.7813739 },
+    { "lat": 46.4613646, "lon": 13.7812652 },
+    { "lat": 46.4619494, "lon": 13.7809620 }
+  ],
+  "tags": {
+    "highway": "secondary",
+    "incline": "14%",
+    "lanes": "2",
+    "maxlength": "12.5",
+    "maxspeed": "90",
+    "maxspeed:advisory": "50",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Vršiška cesta",
+    "name:de": "Russische Straße",
+    "name:en": "Vršiška cesta",
+    "name:sl": "Ruska cesta",
+    "ref": "206",
+    "sidewalk": "no",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 704414727,
+  "bounds": {
+    "minlat": 46.4612232,
+    "minlon": 13.7813739,
+    "maxlat": 46.4614885,
+    "maxlon": 13.7818146
+  },
+  "geometry": [
+    { "lat": 46.4614885, "lon": 13.7818146 },
+    { "lat": 46.4613898, "lon": 13.7817945 },
+    { "lat": 46.4613068, "lon": 13.7817557 },
+    { "lat": 46.4612451, "lon": 13.7816607 },
+    { "lat": 46.4612232, "lon": 13.7815643 },
+    { "lat": 46.4612375, "lon": 13.7814517 },
+    { "lat": 46.4612734, "lon": 13.7813739 }
+  ],
+  "tags": {
+    "highway": "secondary",
+    "incline": "14%",
+    "lanes": "2",
+    "maxlength": "12.5",
+    "maxspeed": "90",
+    "maxspeed:advisory": "50",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Vršiška cesta",
+    "name:de": "Russische Straße",
+    "name:en": "Vršiška cesta",
+    "name:sl": "Ruska cesta",
+    "ref": "206",
+    "sidewalk": "no",
+    "surface": "sett"
+  }
+},
+{
+  "type": "way",
+  "id": 704414728,
+  "bounds": {
+    "minlat": 46.4614885,
+    "minlon": 13.7815188,
+    "maxlat": 46.4654308,
+    "maxlon": 13.7822071
+  },
+  "geometry": [
+    { "lat": 46.4654308, "lon": 13.7815384 },
+    { "lat": 46.4652715, "lon": 13.7815215 },
+    { "lat": 46.4650700, "lon": 13.7815188 },
+    { "lat": 46.4649353, "lon": 13.7815443 },
+    { "lat": 46.4648727, "lon": 13.7815562 },
+    { "lat": 46.4647889, "lon": 13.7815779 },
+    { "lat": 46.4646793, "lon": 13.7816422 },
+    { "lat": 46.4645556, "lon": 13.7817702 },
+    { "lat": 46.4644210, "lon": 13.7819018 },
+    { "lat": 46.4642980, "lon": 13.7820082 },
+    { "lat": 46.4642366, "lon": 13.7820313 },
+    { "lat": 46.4641109, "lon": 13.7820533 },
+    { "lat": 46.4639243, "lon": 13.7820734 },
+    { "lat": 46.4637992, "lon": 13.7821073 },
+    { "lat": 46.4636895, "lon": 13.7821552 },
+    { "lat": 46.4635967, "lon": 13.7822041 },
+    { "lat": 46.4635100, "lon": 13.7822071 },
+    { "lat": 46.4633233, "lon": 13.7821544 },
+    { "lat": 46.4628546, "lon": 13.7820160 },
+    { "lat": 46.4626114, "lon": 13.7819463 },
+    { "lat": 46.4622039, "lon": 13.7818490 },
+    { "lat": 46.4620040, "lon": 13.7818195 },
+    { "lat": 46.4618036, "lon": 13.7818113 },
+    { "lat": 46.4614885, "lon": 13.7818146 }
+  ],
+  "tags": {
+    "highway": "secondary",
+    "incline": "14%",
+    "lanes": "2",
+    "maxlength": "12.5",
+    "maxspeed": "90",
+    "maxspeed:advisory": "50",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Vršiška cesta",
+    "name:de": "Russische Straße",
+    "name:en": "Vršiška cesta",
+    "name:sl": "Ruska cesta",
+    "ref": "206",
+    "shoulder": "no",
+    "sidewalk": "no",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 704546928,
+  "bounds": {
+    "minlat": 46.4143651,
+    "minlon": 13.7410969,
+    "maxlat": 46.4295300,
+    "maxlon": 13.7452108
+  },
+  "geometry": [
+    { "lat": 46.4295300, "lon": 13.7451830 },
+    { "lat": 46.4294630, "lon": 13.7451501 },
+    { "lat": 46.4291138, "lon": 13.7449301 },
+    { "lat": 46.4290535, "lon": 13.7448968 },
+    { "lat": 46.4289883, "lon": 13.7448807 },
+    { "lat": 46.4289058, "lon": 13.7448878 },
+    { "lat": 46.4283668, "lon": 13.7450740 },
+    { "lat": 46.4281225, "lon": 13.7451712 },
+    { "lat": 46.4280346, "lon": 13.7452068 },
+    { "lat": 46.4279399, "lon": 13.7452108 },
+    { "lat": 46.4278782, "lon": 13.7451867 },
+    { "lat": 46.4278342, "lon": 13.7451546 },
+    { "lat": 46.4277709, "lon": 13.7450358 },
+    { "lat": 46.4276451, "lon": 13.7447053 },
+    { "lat": 46.4275647, "lon": 13.7445709 },
+    { "lat": 46.4274876, "lon": 13.7445062 },
+    { "lat": 46.4274067, "lon": 13.7444850 },
+    { "lat": 46.4273096, "lon": 13.7445051 },
+    { "lat": 46.4271311, "lon": 13.7446239 },
+    { "lat": 46.4270857, "lon": 13.7446324 },
+    { "lat": 46.4270432, "lon": 13.7446044 },
+    { "lat": 46.4270187, "lon": 13.7445504 },
+    { "lat": 46.4270247, "lon": 13.7444700 },
+    { "lat": 46.4270638, "lon": 13.7444214 },
+    { "lat": 46.4272659, "lon": 13.7443796 },
+    { "lat": 46.4273153, "lon": 13.7443649 },
+    { "lat": 46.4273501, "lon": 13.7443217 },
+    { "lat": 46.4273563, "lon": 13.7442566 },
+    { "lat": 46.4273315, "lon": 13.7442007 },
+    { "lat": 46.4272869, "lon": 13.7441722 },
+    { "lat": 46.4271282, "lon": 13.7441654 },
+    { "lat": 46.4270276, "lon": 13.7441459 },
+    { "lat": 46.4268005, "lon": 13.7439882 },
+    { "lat": 46.4265858, "lon": 13.7438515 },
+    { "lat": 46.4262544, "lon": 13.7437379 },
+    { "lat": 46.4256216, "lon": 13.7435893 },
+    { "lat": 46.4254976, "lon": 13.7435768 },
+    { "lat": 46.4254281, "lon": 13.7436023 },
+    { "lat": 46.4251951, "lon": 13.7437147 },
+    { "lat": 46.4250971, "lon": 13.7437344 },
+    { "lat": 46.4249975, "lon": 13.7437422 },
+    { "lat": 46.4248663, "lon": 13.7437141 },
+    { "lat": 46.4246612, "lon": 13.7436377 },
+    { "lat": 46.4241002, "lon": 13.7434571 },
+    { "lat": 46.4239612, "lon": 13.7434611 },
+    { "lat": 46.4237445, "lon": 13.7435659 },
+    { "lat": 46.4234963, "lon": 13.7436941 },
+    { "lat": 46.4233560, "lon": 13.7436934 },
+    { "lat": 46.4231759, "lon": 13.7436291 },
+    { "lat": 46.4230748, "lon": 13.7436127 },
+    { "lat": 46.4227577, "lon": 13.7436430 },
+    { "lat": 46.4224815, "lon": 13.7436426 },
+    { "lat": 46.4214191, "lon": 13.7439931 },
+    { "lat": 46.4213515, "lon": 13.7440323 },
+    { "lat": 46.4212921, "lon": 13.7440917 },
+    { "lat": 46.4212503, "lon": 13.7441606 },
+    { "lat": 46.4212342, "lon": 13.7442005 },
+    { "lat": 46.4211873, "lon": 13.7443163 },
+    { "lat": 46.4211541, "lon": 13.7443716 },
+    { "lat": 46.4210670, "lon": 13.7444762 },
+    { "lat": 46.4209580, "lon": 13.7445354 },
+    { "lat": 46.4208631, "lon": 13.7445680 },
+    { "lat": 46.4208303, "lon": 13.7445793 },
+    { "lat": 46.4206712, "lon": 13.7446413 },
+    { "lat": 46.4205268, "lon": 13.7446716 },
+    { "lat": 46.4204728, "lon": 13.7446679 },
+    { "lat": 46.4204147, "lon": 13.7446522 },
+    { "lat": 46.4203074, "lon": 13.7445728 },
+    { "lat": 46.4201523, "lon": 13.7444236 },
+    { "lat": 46.4200133, "lon": 13.7443135 },
+    { "lat": 46.4194434, "lon": 13.7440942 },
+    { "lat": 46.4191298, "lon": 13.7438850 },
+    { "lat": 46.4184447, "lon": 13.7433909 },
+    { "lat": 46.4183154, "lon": 13.7432514 },
+    { "lat": 46.4181536, "lon": 13.7429675 },
+    { "lat": 46.4179732, "lon": 13.7428022 },
+    { "lat": 46.4175823, "lon": 13.7425335 },
+    { "lat": 46.4174000, "lon": 13.7424306 },
+    { "lat": 46.4170363, "lon": 13.7423402 },
+    { "lat": 46.4168734, "lon": 13.7422278 },
+    { "lat": 46.4167250, "lon": 13.7420794 },
+    { "lat": 46.4165073, "lon": 13.7418144 },
+    { "lat": 46.4164071, "lon": 13.7417163 },
+    { "lat": 46.4162289, "lon": 13.7416616 },
+    { "lat": 46.4160798, "lon": 13.7415819 },
+    { "lat": 46.4158550, "lon": 13.7413691 },
+    { "lat": 46.4155473, "lon": 13.7411081 },
+    { "lat": 46.4154906, "lon": 13.7410969 },
+    { "lat": 46.4154328, "lon": 13.7411223 },
+    { "lat": 46.4153845, "lon": 13.7411567 },
+    { "lat": 46.4153153, "lon": 13.7412275 },
+    { "lat": 46.4152213, "lon": 13.7413113 },
+    { "lat": 46.4150783, "lon": 13.7414573 },
+    { "lat": 46.4149744, "lon": 13.7415893 },
+    { "lat": 46.4148658, "lon": 13.7418030 },
+    { "lat": 46.4147881, "lon": 13.7420796 },
+    { "lat": 46.4146178, "lon": 13.7424218 },
+    { "lat": 46.4145642, "lon": 13.7425807 },
+    { "lat": 46.4145406, "lon": 13.7428672 },
+    { "lat": 46.4145300, "lon": 13.7430735 },
+    { "lat": 46.4145125, "lon": 13.7432086 },
+    { "lat": 46.4144335, "lon": 13.7438032 },
+    { "lat": 46.4143651, "lon": 13.7440129 }
+  ],
+  "tags": {
+    "highway": "secondary",
+    "incline": "-14%",
+    "lanes": "2",
+    "maxspeed": "90",
+    "maxspeed:advisory": "40",
+    "name": "Trenta",
+    "ref": "206",
+    "sidewalk": "no",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 706597806,
+  "bounds": {
+    "minlat": 46.4386617,
+    "minlon": 13.7618237,
+    "maxlat": 46.4402283,
+    "maxlon": 13.7628847
+  },
+  "geometry": [
+    { "lat": 46.4402283, "lon": 13.7624381 },
+    { "lat": 46.4401262, "lon": 13.7624274 },
+    { "lat": 46.4400935, "lon": 13.7624289 },
+    { "lat": 46.4400470, "lon": 13.7624407 },
+    { "lat": 46.4399145, "lon": 13.7625004 },
+    { "lat": 46.4398588, "lon": 13.7625413 },
+    { "lat": 46.4397478, "lon": 13.7626337 },
+    { "lat": 46.4395811, "lon": 13.7627839 },
+    { "lat": 46.4394380, "lon": 13.7628721 },
+    { "lat": 46.4393434, "lon": 13.7628847 },
+    { "lat": 46.4392766, "lon": 13.7628784 },
+    { "lat": 46.4392227, "lon": 13.7628599 },
+    { "lat": 46.4391661, "lon": 13.7628224 },
+    { "lat": 46.4391107, "lon": 13.7627721 },
+    { "lat": 46.4389772, "lon": 13.7626220 },
+    { "lat": 46.4388989, "lon": 13.7625080 },
+    { "lat": 46.4387579, "lon": 13.7622727 },
+    { "lat": 46.4387258, "lon": 13.7621898 },
+    { "lat": 46.4387026, "lon": 13.7620856 },
+    { "lat": 46.4386924, "lon": 13.7620325 },
+    { "lat": 46.4386617, "lon": 13.7618237 }
+  ],
+  "tags": {
+    "highway": "secondary",
+    "incline": "14%",
+    "lane_markings": "no",
+    "maxlength": "12.5",
+    "maxspeed": "90",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Ruska cesta",
+    "name:de": "Russische Straße",
+    "name:en": "Russian Street",
+    "name:sl": "Ruska cesta",
+    "ref": "206",
+    "sidewalk": "no",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 706597807,
+  "bounds": {
+    "minlat": 46.4402283,
+    "minlon": 13.7624381,
+    "maxlat": 46.4403759,
+    "maxlon": 13.7624665
+  },
+  "geometry": [
+    { "lat": 46.4403759, "lon": 13.7624665 },
+    { "lat": 46.4402283, "lon": 13.7624381 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "highway": "secondary",
+    "incline": "14%",
+    "layer": "1",
+    "maxlength": "12.5",
+    "maxspeed": "90",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Ruska cesta",
+    "name:de": "Russische Straße",
+    "name:en": "Russian Street",
+    "name:sl": "Ruska cesta",
+    "ref": "206",
+    "sidewalk": "no",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 1113381260,
+  "bounds": {
+    "minlat": 46.4702659,
+    "minlon": 13.7847975,
+    "maxlat": 46.4705706,
+    "maxlon": 13.7848715
+  },
+  "geometry": [
+    { "lat": 46.4705706, "lon": 13.7848715 },
+    { "lat": 46.4702659, "lon": 13.7847975 }
+  ],
+  "tags": {
+    "cycleway:both": "no",
+    "highway": "secondary",
+    "lanes": "2",
+    "lit": "no",
+    "maxspeed": "50",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Vršiška cesta",
+    "ref": "206",
+    "sidewalk": "no",
+    "sidewalk:right:surface": "asphalt",
+    "smoothness": "good",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 1113381261,
+  "bounds": {
+    "minlat": 46.4701857,
+    "minlon": 13.7847780,
+    "maxlat": 46.4702659,
+    "maxlon": 13.7847975
+  },
+  "geometry": [
+    { "lat": 46.4702659, "lon": 13.7847975 },
+    { "lat": 46.4701857, "lon": 13.7847780 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "highway": "secondary",
+    "lanes": "2",
+    "layer": "1",
+    "maxspeed": "50",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Vršiška cesta",
+    "ref": "206",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 1118752224,
+  "bounds": {
+    "minlat": 46.4392514,
+    "minlon": 13.7532838,
+    "maxlat": 46.4393212,
+    "maxlon": 13.7539811
+  },
+  "geometry": [
+    { "lat": 46.4392514, "lon": 13.7539811 },
+    { "lat": 46.4392606, "lon": 13.7538409 },
+    { "lat": 46.4392856, "lon": 13.7534835 },
+    { "lat": 46.4393212, "lon": 13.7532838 }
+  ],
+  "tags": {
+    "highway": "secondary",
+    "incline": "14%",
+    "lane_markings": "no",
+    "maxlength": "12.5",
+    "maxspeed": "90",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Ruska cesta",
+    "name:de": "Russische Straße",
+    "name:en": "Russian Street",
+    "name:sl": "Ruska cesta",
+    "oneway": "no",
+    "ref": "206",
+    "sidewalk": "no",
+    "smoothness": "good",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 1118752225,
+  "bounds": {
+    "minlat": 46.4393212,
+    "minlon": 13.7531719,
+    "maxlat": 46.4393670,
+    "maxlon": 13.7532838
+  },
+  "geometry": [
+    { "lat": 46.4393212, "lon": 13.7532838 },
+    { "lat": 46.4393670, "lon": 13.7531719 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "highway": "secondary",
+    "incline": "14%",
+    "lane_markings": "no",
+    "layer": "1",
+    "maxlength": "12.5",
+    "maxspeed": "90",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Ruska cesta",
+    "name:de": "Russische Straße",
+    "name:en": "Russian Street",
+    "name:sl": "Ruska cesta",
+    "oneway": "no",
+    "ref": "206",
+    "sidewalk": "no",
+    "smoothness": "good",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 1176624647,
+  "bounds": {
+    "minlat": 46.4428886,
+    "minlon": 13.7642021,
+    "maxlat": 46.4433030,
+    "maxlon": 13.7649493
+  },
+  "geometry": [
+    { "lat": 46.4433030, "lon": 13.7649493 },
+    { "lat": 46.4431867, "lon": 13.7646912 },
+    { "lat": 46.4431195, "lon": 13.7645508 },
+    { "lat": 46.4430653, "lon": 13.7644486 },
+    { "lat": 46.4429679, "lon": 13.7642930 },
+    { "lat": 46.4428886, "lon": 13.7642021 }
+  ],
+  "tags": {
+    "highway": "secondary",
+    "incline": "14%",
+    "lane_markings": "no",
+    "maxlength": "12.5",
+    "maxspeed": "90",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Ruska cesta",
+    "name:de": "Russische Straße",
+    "name:en": "Russian Street",
+    "name:sl": "Ruska cesta",
+    "ref": "206",
+    "sidewalk": "no",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 1176624648,
+  "bounds": {
+    "minlat": 46.4427997,
+    "minlon": 13.7641228,
+    "maxlat": 46.4428886,
+    "maxlon": 13.7642021
+  },
+  "geometry": [
+    { "lat": 46.4428886, "lon": 13.7642021 },
+    { "lat": 46.4427997, "lon": 13.7641228 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "highway": "secondary",
+    "incline": "14%",
+    "layer": "1",
+    "maxlength": "12.5",
+    "maxspeed": "90",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Ruska cesta",
+    "name:de": "Russische Straße",
+    "name:en": "Russian Street",
+    "name:sl": "Ruska cesta",
+    "ref": "206",
+    "sidewalk": "no",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 1187574976,
+  "bounds": {
+    "minlat": 46.4754041,
+    "minlon": 13.7819196,
+    "maxlat": 46.4754700,
+    "maxlon": 13.7822582
+  },
+  "geometry": [
+    { "lat": 46.4754041, "lon": 13.7819196 },
+    { "lat": 46.4754408, "lon": 13.7821234 },
+    { "lat": 46.4754700, "lon": 13.7822582 }
+  ],
+  "tags": {
+    "cycleway:both": "no",
+    "highway": "secondary",
+    "lanes": "2",
+    "lit": "yes",
+    "maxspeed": "50",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Vršiška cesta",
+    "ref": "206",
+    "sidewalk": "right",
+    "sidewalk:lit": "yes",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 1248789573,
+  "bounds": {
+    "minlat": 46.4879654,
+    "minlon": 13.7894852,
+    "maxlat": 46.4882541,
+    "maxlon": 13.7894965
+  },
+  "geometry": [
+    { "lat": 46.4882541, "lon": 13.7894865 },
+    { "lat": 46.4881744, "lon": 13.7894872 },
+    { "lat": 46.4880608, "lon": 13.7894852 },
+    { "lat": 46.4879654, "lon": 13.7894965 }
+  ],
+  "tags": {
+    "cycleway:left": "no",
+    "cycleway:right": "track",
+    "highway": "secondary",
+    "lane_markings": "no",
+    "lit": "yes",
+    "maxspeed": "50",
+    "noname": "yes",
+    "oneway": "yes",
+    "ref": "206",
+    "sidewalk": "no",
+    "smoothness": "excellent",
+    "source": "survey",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 1540740192,
+  "bounds": {
+    "minlat": 46.4802204,
+    "minlon": 13.7810076,
+    "maxlat": 46.4806262,
+    "maxlon": 13.7812910
+  },
+  "geometry": [
+    { "lat": 46.4806262, "lon": 13.7812910 },
+    { "lat": 46.4803983, "lon": 13.7811175 },
+    { "lat": 46.4802204, "lon": 13.7810076 }
+  ],
+  "tags": {
+    "cycleway:both": "no",
+    "highway": "secondary",
+    "lanes": "2",
+    "lit": "yes",
+    "maxspeed": "50",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Vršiška cesta",
+    "ref": "206",
+    "sidewalk": "both",
+    "sidewalk:lit": "yes",
+    "smoothness": "excellent",
+    "source": "survey",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 1540740219,
+  "bounds": {
+    "minlat": 46.4810127,
+    "minlon": 13.7816462,
+    "maxlat": 46.4811209,
+    "maxlon": 13.7817534
+  },
+  "geometry": [
+    { "lat": 46.4811209, "lon": 13.7817534 },
+    { "lat": 46.4810127, "lon": 13.7816462 }
+  ],
+  "tags": {
+    "cycleway:both": "no",
+    "highway": "secondary",
+    "lanes": "2",
+    "lit": "yes",
+    "maxspeed": "50",
+    "name": "Vršiška cesta",
+    "ref": "206",
+    "sidewalk": "left",
+    "smoothness": "excellent",
+    "source": "survey",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 1540740220,
+  "bounds": {
+    "minlat": 46.4754616,
+    "minlon": 13.7803558,
+    "maxlat": 46.4756208,
+    "maxlon": 13.7805444
+  },
+  "geometry": [
+    { "lat": 46.4756208, "lon": 13.7803558 },
+    { "lat": 46.4755586, "lon": 13.7804069 },
+    { "lat": 46.4754616, "lon": 13.7805444 }
+  ],
+  "tags": {
+    "cycleway:both": "no",
+    "highway": "secondary",
+    "lanes": "2",
+    "lit": "yes",
+    "maxspeed": "70",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Vršiška cesta",
+    "ref": "206",
+    "sidewalk": "both",
+    "sidewalk:lit": "yes",
+    "smoothness": "excellent",
+    "source": "survey",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 1540740270,
+  "bounds": {
+    "minlat": 46.4816595,
+    "minlon": 13.7823793,
+    "maxlat": 46.4828014,
+    "maxlon": 13.7844394
+  },
+  "geometry": [
+    { "lat": 46.4828014, "lon": 13.7844394 },
+    { "lat": 46.4825980, "lon": 13.7839629 },
+    { "lat": 46.4822564, "lon": 13.7832943 },
+    { "lat": 46.4819924, "lon": 13.7828570 },
+    { "lat": 46.4816595, "lon": 13.7823793 }
+  ],
+  "tags": {
+    "cycleway:both": "no",
+    "highway": "secondary",
+    "lanes": "2",
+    "lit": "yes",
+    "maxspeed": "50",
+    "name": "Vršiška cesta",
+    "ref": "206",
+    "sidewalk:left": "no",
+    "sidewalk:right": "separate",
+    "smoothness": "excellent",
+    "source": "survey",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 1540740272,
+  "bounds": {
+    "minlat": 46.4828014,
+    "minlon": 13.7844394,
+    "maxlat": 46.4835422,
+    "maxlon": 13.7867487
+  },
+  "geometry": [
+    { "lat": 46.4835422, "lon": 13.7867487 },
+    { "lat": 46.4835387, "lon": 13.7867389 },
+    { "lat": 46.4834984, "lon": 13.7866254 },
+    { "lat": 46.4833908, "lon": 13.7862680 },
+    { "lat": 46.4832868, "lon": 13.7859222 },
+    { "lat": 46.4832610, "lon": 13.7858369 },
+    { "lat": 46.4831579, "lon": 13.7855003 },
+    { "lat": 46.4830415, "lon": 13.7851554 },
+    { "lat": 46.4828102, "lon": 13.7844601 },
+    { "lat": 46.4828014, "lon": 13.7844394 }
+  ],
+  "tags": {
+    "cycleway:both": "no",
+    "highway": "secondary",
+    "lanes": "2",
+    "lit": "yes",
+    "maxspeed": "50",
+    "name": "Vršiška cesta",
+    "ref": "206",
+    "sidewalk": "right",
+    "smoothness": "excellent",
+    "source": "survey",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 1540740273,
+  "bounds": {
+    "minlat": 46.4851641,
+    "minlon": 13.7897441,
+    "maxlat": 46.4854717,
+    "maxlon": 13.7898772
+  },
+  "geometry": [
+    { "lat": 46.4854717, "lon": 13.7898772 },
+    { "lat": 46.4853587, "lon": 13.7898573 },
+    { "lat": 46.4852720, "lon": 13.7898211 },
+    { "lat": 46.4851641, "lon": 13.7897441 }
+  ],
+  "tags": {
+    "cycleway:both": "no",
+    "highway": "secondary",
+    "lanes": "2",
+    "lit": "yes",
+    "maxspeed": "50",
+    "name": "Vršiška cesta",
+    "ref": "206",
+    "sidewalk": "right",
+    "smoothness": "excellent",
+    "source": "survey",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 1548303387,
+  "bounds": {
+    "minlat": 46.4663321,
+    "minlon": 13.7818162,
+    "maxlat": 46.4666509,
+    "maxlon": 13.7820688
+  },
+  "geometry": [
+    { "lat": 46.4666509, "lon": 13.7820688 },
+    { "lat": 46.4665413, "lon": 13.7818932 },
+    { "lat": 46.4664975, "lon": 13.7818561 },
+    { "lat": 46.4664304, "lon": 13.7818321 },
+    { "lat": 46.4663321, "lon": 13.7818162 }
+  ],
+  "tags": {
+    "highway": "secondary",
+    "maxspeed": "50",
+    "maxspeed:advisory": "50",
+    "maxweight": "7.5",
+    "maxweight:conditional": "none @ destination",
+    "name": "Vršiška cesta",
+    "name:de": "Russische Straße",
+    "name:en": "Vršiška cesta",
+    "name:sl": "Ruska cesta",
+    "ref": "206",
+    "surface": "asphalt"
+  }
+}
+
+  ]
+}

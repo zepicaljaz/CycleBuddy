@@ -1,0 +1,633 @@
+{
+  "version": 0.6,
+  "generator": "OpenStreetMap API 0.6 (way/full), assembled for CycleBuddy",
+  "osm3s": {
+    "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."
+  },
+  "elements": [
+    {
+      "type": "way",
+      "id": 1299596935,
+      "geometry": [
+        {
+          "lat": 46.4879848,
+          "lon": 13.7788728
+        },
+        {
+          "lat": 46.4879381,
+          "lon": 13.7788973
+        },
+        {
+          "lat": 46.4877404,
+          "lon": 13.7789461
+        }
+      ],
+      "tags": {
+        "cycleway:both": "no",
+        "highway": "residential",
+        "lanes": "1",
+        "lit": "yes",
+        "name": "Borovška cesta",
+        "oneway": "yes",
+        "sidewalk": "no",
+        "smoothness": "excellent",
+        "source": "survey",
+        "surface": "asphalt"
+      }
+    },
+    {
+      "type": "way",
+      "id": 1540740275,
+      "geometry": [
+        {
+          "lat": 46.4871567,
+          "lon": 13.7788938
+        },
+        {
+          "lat": 46.4877404,
+          "lon": 13.7789461
+        }
+      ],
+      "tags": {
+        "cycleway:both": "no",
+        "highway": "residential",
+        "lit": "yes",
+        "maxspeed": "30",
+        "maxspeed:type": "SI:zone30",
+        "name": "Borovška cesta",
+        "sidewalk": "no",
+        "source": "survey",
+        "surface": "asphalt"
+      }
+    },
+    {
+      "type": "way",
+      "id": 39226365,
+      "geometry": [
+        {
+          "lat": 46.4855561,
+          "lon": 13.7787753
+        },
+        {
+          "lat": 46.4856179,
+          "lon": 13.7787606
+        },
+        {
+          "lat": 46.4857102,
+          "lon": 13.7787669
+        },
+        {
+          "lat": 46.4858349,
+          "lon": 13.7787795
+        },
+        {
+          "lat": 46.4865861,
+          "lon": 13.7788475
+        },
+        {
+          "lat": 46.4870294,
+          "lon": 13.7788842
+        },
+        {
+          "lat": 46.4871567,
+          "lon": 13.7788938
+        }
+      ],
+      "tags": {
+        "cycleway:both": "no",
+        "highway": "residential",
+        "lit": "yes",
+        "maxspeed": "30",
+        "maxspeed:type": "SI:zone30",
+        "name": "Borovška cesta",
+        "sidewalk": "left",
+        "source": "survey",
+        "surface": "asphalt"
+      }
+    },
+    {
+      "type": "way",
+      "id": 1540746046,
+      "geometry": [
+        {
+          "lat": 46.4854237,
+          "lon": 13.77895
+        },
+        {
+          "lat": 46.4854619,
+          "lon": 13.77887
+        },
+        {
+          "lat": 46.4855029,
+          "lon": 13.7788195
+        },
+        {
+          "lat": 46.4855561,
+          "lon": 13.7787753
+        }
+      ],
+      "tags": {
+        "cycleway:both": "no",
+        "highway": "residential",
+        "lit": "yes",
+        "name": "Borovška cesta",
+        "sidewalk": "both",
+        "source": "survey",
+        "surface": "asphalt"
+      }
+    },
+    {
+      "type": "way",
+      "id": 577435491,
+      "geometry": [
+        {
+          "lat": 46.4852289,
+          "lon": 13.7795735
+        },
+        {
+          "lat": 46.4852799,
+          "lon": 13.7794002
+        },
+        {
+          "lat": 46.4853083,
+          "lon": 13.7793102
+        },
+        {
+          "lat": 46.4853517,
+          "lon": 13.7791725
+        },
+        {
+          "lat": 46.4854237,
+          "lon": 13.77895
+        }
+      ],
+      "tags": {
+        "cycleway:both": "no",
+        "highway": "residential",
+        "lit": "yes",
+        "name": "Borovška cesta",
+        "sidewalk": "right",
+        "source": "survey",
+        "surface": "asphalt"
+      }
+    },
+    {
+      "type": "way",
+      "id": 516659387,
+      "geometry": [
+        {
+          "lat": 46.4848882,
+          "lon": 13.7803829
+        },
+        {
+          "lat": 46.4849337,
+          "lon": 13.78024
+        },
+        {
+          "lat": 46.4849917,
+          "lon": 13.7801065
+        },
+        {
+          "lat": 46.4850851,
+          "lon": 13.7799206
+        },
+        {
+          "lat": 46.4851979,
+          "lon": 13.7796679
+        },
+        {
+          "lat": 46.4852289,
+          "lon": 13.7795735
+        }
+      ],
+      "tags": {
+        "cycleway:both": "no",
+        "highway": "residential",
+        "lanes": "2",
+        "lit": "yes",
+        "name": "Borovška cesta",
+        "sidewalk": "right",
+        "smoothness": "excellent",
+        "source": "survey",
+        "surface": "asphalt"
+      }
+    },
+    {
+      "type": "way",
+      "id": 459836160,
+      "geometry": [
+        {
+          "lat": 46.4848199,
+          "lon": 13.7810783
+        },
+        {
+          "lat": 46.4848322,
+          "lon": 13.7808098
+        },
+        {
+          "lat": 46.4848453,
+          "lon": 13.7806198
+        },
+        {
+          "lat": 46.4848734,
+          "lon": 13.7804413
+        },
+        {
+          "lat": 46.4848882,
+          "lon": 13.7803829
+        }
+      ],
+      "tags": {
+        "cycleway:both": "no",
+        "highway": "residential",
+        "lanes": "2",
+        "lit": "yes",
+        "name": "Borovška cesta",
+        "parking:lane:left": "diagonal",
+        "sidewalk": "right",
+        "smoothness": "excellent",
+        "source": "survey",
+        "surface": "asphalt"
+      }
+    },
+    {
+      "type": "way",
+      "id": 516659386,
+      "geometry": [
+        {
+          "lat": 46.4848211,
+          "lon": 13.7811274
+        },
+        {
+          "lat": 46.4848199,
+          "lon": 13.7810783
+        }
+      ],
+      "tags": {
+        "cycleway:both": "no",
+        "highway": "residential",
+        "lanes": "2",
+        "lit": "yes",
+        "name": "Borovška cesta",
+        "sidewalk": "right",
+        "smoothness": "excellent",
+        "source": "survey",
+        "surface": "asphalt"
+      }
+    },
+    {
+      "type": "way",
+      "id": 459836165,
+      "geometry": [
+        {
+          "lat": 46.4847708,
+          "lon": 13.782407
+        },
+        {
+          "lat": 46.4847883,
+          "lon": 13.7822511
+        },
+        {
+          "lat": 46.4847962,
+          "lon": 13.7820952
+        },
+        {
+          "lat": 46.4848119,
+          "lon": 13.7815278
+        },
+        {
+          "lat": 46.4848211,
+          "lon": 13.7811274
+        }
+      ],
+      "tags": {
+        "cycleway:both": "no",
+        "highway": "residential",
+        "lanes": "2",
+        "lit": "yes",
+        "name": "Borovška cesta",
+        "sidewalk": "both",
+        "source": "survey",
+        "surface": "asphalt"
+      }
+    },
+    {
+      "type": "way",
+      "id": 1545499328,
+      "geometry": [
+        {
+          "lat": 46.4847343,
+          "lon": 13.7826597
+        },
+        {
+          "lat": 46.4847618,
+          "lon": 13.7824889
+        },
+        {
+          "lat": 46.4847708,
+          "lon": 13.782407
+        }
+      ],
+      "tags": {
+        "cycleway:both": "no",
+        "highway": "residential",
+        "lit": "yes",
+        "name": "Borovška cesta",
+        "sidewalk": "both",
+        "source": "survey",
+        "surface": "asphalt"
+      }
+    },
+    {
+      "type": "way",
+      "id": 39226344,
+      "geometry": [
+        {
+          "lat": 46.4843661,
+          "lon": 13.7835261
+        },
+        {
+          "lat": 46.4844771,
+          "lon": 13.7833736
+        },
+        {
+          "lat": 46.4845211,
+          "lon": 13.7832669
+        },
+        {
+          "lat": 46.4845554,
+          "lon": 13.7831707
+        },
+        {
+          "lat": 46.4845921,
+          "lon": 13.7830619
+        },
+        {
+          "lat": 46.4847343,
+          "lon": 13.7826597
+        }
+      ],
+      "tags": {
+        "cycleway:both": "no",
+        "highway": "residential",
+        "lit": "yes",
+        "name": "Borovška cesta",
+        "sidewalk": "both",
+        "source": "survey",
+        "surface": "asphalt"
+      }
+    },
+    {
+      "type": "way",
+      "id": 1540746168,
+      "geometry": [
+        {
+          "lat": 46.4843661,
+          "lon": 13.7835261
+        },
+        {
+          "lat": 46.4843805,
+          "lon": 13.7836012
+        },
+        {
+          "lat": 46.484375,
+          "lon": 13.7837231
+        }
+      ],
+      "tags": {
+        "bicycle": "yes",
+        "highway": "pedestrian",
+        "lit": "yes",
+        "name": "Borovška cesta",
+        "source": "survey",
+        "surface": "sett",
+        "vehicle": "private;delivery"
+      }
+    },
+    {
+      "type": "way",
+      "id": 36734529,
+      "geometry": [
+        {
+          "lat": 46.484375,
+          "lon": 13.7837231
+        },
+        {
+          "lat": 46.4843741,
+          "lon": 13.7837435
+        },
+        {
+          "lat": 46.4843241,
+          "lon": 13.7839398
+        },
+        {
+          "lat": 46.4843109,
+          "lon": 13.7839916
+        },
+        {
+          "lat": 46.4842583,
+          "lon": 13.7841982
+        },
+        {
+          "lat": 46.4842296,
+          "lon": 13.7843163
+        },
+        {
+          "lat": 46.4842121,
+          "lon": 13.7843966
+        },
+        {
+          "lat": 46.4841966,
+          "lon": 13.7844675
+        },
+        {
+          "lat": 46.4841902,
+          "lon": 13.7845456
+        },
+        {
+          "lat": 46.484186,
+          "lon": 13.7846565
+        },
+        {
+          "lat": 46.4842019,
+          "lon": 13.7848109
+        },
+        {
+          "lat": 46.4842416,
+          "lon": 13.7849092
+        }
+      ],
+      "tags": {
+        "bicycle": "yes",
+        "highway": "pedestrian",
+        "lit": "yes",
+        "name": "Borovška cesta",
+        "source": "survey",
+        "surface": "sett",
+        "vehicle": "private;delivery"
+      }
+    },
+    {
+      "type": "way",
+      "id": 1540746167,
+      "geometry": [
+        {
+          "lat": 46.4842416,
+          "lon": 13.7849092
+        },
+        {
+          "lat": 46.4843204,
+          "lon": 13.7850878
+        },
+        {
+          "lat": 46.4843373,
+          "lon": 13.7851266
+        }
+      ],
+      "tags": {
+        "bicycle": "yes",
+        "highway": "pedestrian",
+        "lit": "yes",
+        "name": "Borovška cesta",
+        "source": "survey",
+        "surface": "sett",
+        "vehicle": "private;delivery"
+      }
+    },
+    {
+      "type": "way",
+      "id": 520323003,
+      "geometry": [
+        {
+          "lat": 46.4843373,
+          "lon": 13.7851266
+        },
+        {
+          "lat": 46.4844012,
+          "lon": 13.7852642
+        },
+        {
+          "lat": 46.4844398,
+          "lon": 13.7854011
+        },
+        {
+          "lat": 46.4844732,
+          "lon": 13.7855463
+        },
+        {
+          "lat": 46.4845017,
+          "lon": 13.7856607
+        },
+        {
+          "lat": 46.4845479,
+          "lon": 13.7857428
+        }
+      ],
+      "tags": {
+        "bicycle": "yes",
+        "highway": "pedestrian",
+        "lit": "yes",
+        "name": "Borovška cesta",
+        "source": "survey",
+        "surface": "paving_stones",
+        "vehicle": "private;delivery"
+      }
+    },
+    {
+      "type": "way",
+      "id": 45086551,
+      "geometry": [
+        {
+          "lat": 46.4845479,
+          "lon": 13.7857428
+        },
+        {
+          "lat": 46.4846127,
+          "lon": 13.7858449
+        },
+        {
+          "lat": 46.4846955,
+          "lon": 13.7859909
+        },
+        {
+          "lat": 46.4847487,
+          "lon": 13.7860939
+        },
+        {
+          "lat": 46.4848386,
+          "lon": 13.7862601
+        },
+        {
+          "lat": 46.4849528,
+          "lon": 13.7864919
+        },
+        {
+          "lat": 46.4851537,
+          "lon": 13.786923
+        },
+        {
+          "lat": 46.4852476,
+          "lon": 13.7871448
+        },
+        {
+          "lat": 46.4853226,
+          "lon": 13.7872819
+        },
+        {
+          "lat": 46.4854486,
+          "lon": 13.7875428
+        },
+        {
+          "lat": 46.4855794,
+          "lon": 13.787796
+        },
+        {
+          "lat": 46.4856275,
+          "lon": 13.7880355
+        },
+        {
+          "lat": 46.4856574,
+          "lon": 13.7881552
+        },
+        {
+          "lat": 46.4857915,
+          "lon": 13.7886484
+        },
+        {
+          "lat": 46.4858558,
+          "lon": 13.7890434
+        },
+        {
+          "lat": 46.4858975,
+          "lon": 13.7893798
+        },
+        {
+          "lat": 46.4859186,
+          "lon": 13.7895431
+        },
+        {
+          "lat": 46.48593,
+          "lon": 13.7896098
+        },
+        {
+          "lat": 46.4859428,
+          "lon": 13.789665
+        },
+        {
+          "lat": 46.4859537,
+          "lon": 13.7898199
+        }
+      ],
+      "tags": {
+        "cycleway:both": "no",
+        "highway": "living_street",
+        "lit": "yes",
+        "name": "Borovška cesta",
+        "sidewalk": "no",
+        "smoothness": "good",
+        "source": "survey",
+        "surface": "asphalt"
+      }
+    }
+  ]
+}
