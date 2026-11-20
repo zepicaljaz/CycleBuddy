@@ -7,6 +7,7 @@
 //   node scripts/real-track/build.mjs ventoux
 //   node scripts/real-track/build.mjs galibier
 //   node scripts/real-track/build.mjs giau
+//   node scripts/real-track/build.mjs krvavec
 // Output: src/routes/real/tracks/<id>.json (road line, elevation, sections) and
 // src/assets/terrain/<id>.bin (height grids around the road). See ATTRIBUTION.md.
 import fs from 'node:fs';
@@ -215,6 +216,32 @@ const CONFIGS = {
     // Signs count down: 29 on the way out of Selva, 1 at the last bend before the pass.
     hairpins: 'down',
     towns: [{ name: 'Selva di Cadore', fromM: 0, toM: 680 }],
+  },
+  krvavec: {
+    id: 'krvavec-cerklje',
+    climbId: 'krvavec-cerklje',
+    // Paved road from Grad to Plaža: tertiary Grad, then unclassified through
+    // Ambrož pod Krvavcem, then the ski-area service road to the hotel.
+    osm: 'data/osm/krvavec-grad.json',
+    // OpenStreetMap hamlet Grad: the CyclingCols / Pogi timed start.
+    from: { lat: 46.2701248, lon: 14.4924402 },
+    // Service road vertex beside the Plaža restaurant (node 252493393).
+    to: { lat: 46.3007269, lon: 14.5261189 },
+    climbStart: { lat: 46.2701248, lon: 14.4924402 },
+    summit: { lat: 46.3007269, lon: 14.5261189 },
+    startElevation: 431,
+    summitElevation: 1594,
+    // Keep the mapped bends. Opening them shortens the climb past the published length.
+    minRadius: 0,
+    balloonAtEnd: true,
+    // No published numbered series. Signs count up on the sharp bends.
+    hairpins: 'up',
+    // Metres from the valley end of the built road. Grad is the opening street;
+    // Ambrož sits where the road passes the village around 1,085 m.
+    towns: [
+      { name: 'Grad', fromM: 0, toM: 400 },
+      { name: 'Ambrož pod Krvavcem', fromM: 8000, toM: 9000 },
+    ],
   },
 };
 

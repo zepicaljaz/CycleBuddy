@@ -911,3 +911,93 @@ describe('Passo Giau from Selva di Cadore on its real road', () => {
     expect(Math.max(...Array.from(route.grade, Math.abs))).toBeLessThan(0.16);
   });
 });
+
+describe('Krvavec on its real road', () => {
+  const c = REAL_CLIMB_MAP.get('krvavec-cerklje')!;
+  const def = realClimbRoute(c);
+  const route = getRoute(def);
+  const climb = route.climbs[0];
+  const origin = def.track!.origin!;
+  const R = 6371000;
+  const rad = (d: number) => (d * Math.PI) / 180;
+  const xz = (lat: number, lon: number) => ({
+    x: rad(lon - origin.lon) * Math.cos(rad(origin.lat)) * R,
+    z: -rad(lat - origin.lat) * R,
+  });
+  const nearest = (lat: number, lon: number) => {
+    const p = xz(lat, lon);
+    let d = Infinity;
+    let y = 0;
+    let along = 0;
+    const iEnd = Math.floor(climb.end / ROUTE_DS);
+    for (let i = 0; i <= iEnd; i++) {
+      const dist = Math.hypot(route.x[i] - p.x, route.z[i] - p.z);
+      if (dist < d) {
+        d = dist;
+        y = route.y[i];
+        along = i * ROUTE_DS;
+      }
+    }
+    return { d, y, along };
+  };
+
+  it('uses the OpenStreetMap line', () => {
+    expect(hasRealRoad(c.id)).toBe(true);
+    expect(def.track).toBeDefined();
+  });
+
+  it('starts at Grad and climbs the published road to Plaža', () => {
+    expect(Math.abs(climb.length - c.lengthKm * 1000) / (c.lengthKm * 1000)).toBeLessThan(0.025);
+    expect(route.y[Math.floor(climb.start / ROUTE_DS)]).toBeCloseTo(431, -1);
+    expect(climb.summitElevation).toBeCloseTo(1594, -1);
+    expect(Math.abs(climb.gain - c.gain) / c.gain).toBeLessThan(0.03);
+    const grad = nearest(46.2701248, 14.4924402);
+    const plaza = nearest(46.3011603, 14.5263809);
+    const tiha = nearest(46.3004116, 14.5265222);
+    expect(grad.d).toBeLessThan(20);
+    expect(grad.along).toBeLessThan(climb.start + 40);
+    expect(tiha.d).toBeLessThan(30);
+    expect(tiha.y).toBeGreaterThan(1580);
+    expect(climb.end - tiha.along).toBeLessThan(80);
+    expect(plaza.d).toBeLessThan(80);
+    expect(plaza.y).toBeGreaterThan(1580);
+  });
+
+  it('passes Ambrož and Planina Jezerca on the way up', () => {
+    const ambroz = nearest(46.27468, 14.52894);
+    const jezerca = nearest(46.2848431, 14.5330196);
+    expect(ambroz.d).toBeLessThan(120);
+    expect(ambroz.y).toBeGreaterThan(1050);
+    expect(ambroz.y).toBeLessThan(1200);
+    expect(ambroz.along).toBeGreaterThan(climb.start + 7500);
+    expect(ambroz.along).toBeLessThan(climb.start + 9500);
+    expect(jezerca.d).toBeLessThan(120);
+    expect(jezerca.y).toBeGreaterThan(1380);
+    expect(jezerca.y).toBeLessThan(1460);
+    expect(jezerca.along).toBeGreaterThan(climb.start + 11000);
+    expect(jezerca.along).toBeLessThan(climb.start + 13500);
+    const towns = planTowns(route);
+    expect(towns.some((t) => t.name === 'Grad' && t.s0 < 50)).toBe(true);
+    expect(towns.some((t) => t.name === 'Ambrož pod Krvavcem')).toBe(true);
+  });
+
+  it('turns at Plaža and comes back down the same road', () => {
+    const up = Math.floor((climb.start + 5000) / ROUTE_DS);
+    let back = Infinity;
+    for (let i = Math.floor(climb.end / ROUTE_DS) + 20; i < route.count; i += 2) {
+      back = Math.min(back, Math.hypot(route.x[i] - route.x[up], route.z[i] - route.z[up]));
+    }
+    expect(back).toBeLessThan(6);
+    expect(route.y[Math.floor(climb.end / ROUTE_DS)]).toBeCloseTo(1594, 0);
+  });
+
+  it('closes the lap and never jumps', () => {
+    let worst = 0;
+    for (let i = 0; i < route.count; i++) {
+      const j = (i + 1) % route.count;
+      worst = Math.max(worst, Math.hypot(route.x[j] - route.x[i], route.z[j] - route.z[i]));
+    }
+    expect(worst).toBeLessThan(2.5);
+    expect(Math.max(...Array.from(route.grade, Math.abs))).toBeLessThan(0.16);
+  });
+});

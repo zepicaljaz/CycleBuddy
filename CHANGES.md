@@ -6,6 +6,7 @@ releases.
 
 ## Unreleased
 
+- **Krvavec from Grad to Plaža** on its real road: the Pogi Challenge climb from the end of Grad past Ambrož and Planina Jezerca to Plaža, with the published CyclingCols profile and a turnaround at the top. See `docs/REAL_ROADS.md`.
 - **Map** has a step between the nearby road and the full loop. Wider road is the same world-fixed view, about five times further out, still coloured by gradient. Press M to cycle: nearby road, wider road, full loop.
 - **First person** shows the handlebar. The rider's body stays hidden, so the view reads as the saddle.
 - **Nearby map** on a real out-and-back road uses the climb colours while you are riding up, and the descent colours once you are on the loop at the top. The road line runs to the edges of the map.

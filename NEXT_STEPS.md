@@ -20,7 +20,7 @@ In order. Each step says how you know it's done.
 
 ## 3. More real roads
 - Same pipeline as Vršič (`node scripts/real-track/build.mjs <name>`, steps in
-  `docs/REAL_ROADS.md`). Vršič, Alpe d'Huez, Stelvio from Prato, Mont Ventoux from Bédoin, Tourmalet from Luz, Angliru from La Vega, Galibier from Valloire and Passo Giau from Selva di Cadore are in. Good next ones: Mangart, Krvavec (Slovenia).
+  `docs/REAL_ROADS.md`). Vršič, Alpe d'Huez, Stelvio from Prato, Mont Ventoux from Bédoin, Tourmalet from Luz, Angliru from La Vega, Galibier from Valloire, Passo Giau from Selva di Cadore and Krvavec from Grad to Plaža are in. Good next one: Mangart.
 - Then real land cover from OpenStreetMap: forest vs meadow vs rock, villages,
   lakes (Lake Jasna is on Vršič), landmarks (Russian Chapel, huts).
 - Done when: 3–5 climbs ride 1:1 and look like the place.
