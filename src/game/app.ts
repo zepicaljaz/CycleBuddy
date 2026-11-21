@@ -44,7 +44,7 @@ import type { RaceClassifications, StageResultRow } from '../career/season';
 import { summarizeSamples } from './recorder';
 import { sound } from '../audio/sound';
 import { REAL_CLIMB_MAP, REAL_CLIMBS } from '../routes/real/data';
-import { hasRealRoad, realClimbRoute, realRoadClimbs } from '../routes/real/build';
+import { realClimbRoute, realRoadClimbs } from '../routes/real/build';
 import { drawRoadbook } from '../ui/roadbook';
 import { HOME_KEYS, homeHtml } from './homeView';
 import { bindProRace, loadChoice, proRaceHtml } from './proRaceView';
@@ -277,6 +277,8 @@ export class App {
   private freeSortDesc = false;
   /** World chosen on the Free Ride picker. Null shows the world cards. */
   private freeRegion: string | null = null;
+  /** Ride it now opens on one climb. Scroll that card into view once, then stop. */
+  private scrollFreeSelection = false;
   /** Loops the rider chose to ride backwards. Each loop has its own tick. */
   private reverseRoutes = new Set<string>();
   private climbSort: ClimbSort = 'length';
@@ -750,7 +752,11 @@ export class App {
     if (this.career.state && !this.career.state.offers?.length) this.career.tab = 'hub';
   }
 
-  private go(screen: Screen) {
+  /**
+   * `freeRegion` opens Free ride inside that landscape. With no region, Free ride
+   * starts on the landscape cards.
+   */
+  private go(screen: Screen, freeRegion?: string) {
     if (screen === 'history' && this.screen === 'home') {
       const today = new Date();
       this.analyticsPage = 'dashboard';
@@ -762,7 +768,7 @@ export class App {
       this.analyticsSessionShift = 0;
       this.analyticsPowerShift = 0;
     }
-    if (screen === 'free' && this.screen !== 'free') this.freeRegion = null;
+    if (screen === 'free' && this.screen !== 'free') this.freeRegion = freeRegion ?? null;
     if (screen === 'career' && this.screen === 'home') this.enterCareer();
     this.screen = screen;
     this.syncPlayPath(screen);
@@ -895,9 +901,14 @@ export class App {
       if (climb) requestAnimationFrame(() => drawRoadbook(canvas, route, { from: climb.start, to: climb.end, binM: 1000, compact: true }));
     }
     this.panel.querySelector<HTMLElement>('[data-ride-climb]')?.addEventListener('click', (e) => {
-      this.selectedClimb = (e.currentTarget as HTMLElement).dataset.rideClimb!;
-      this.climbRoute = '';
-      this.go('race');
+      const id = (e.currentTarget as HTMLElement).dataset.rideClimb ?? '';
+      const climb = REAL_CLIMB_MAP.get(id);
+      if (climb) {
+        this.selectedRoute = climb.id;
+        this.startIndex = 0;
+        this.scrollFreeSelection = true;
+      }
+      this.go('free', REAL_RIDE.id);
     });
   }
 
@@ -919,7 +930,7 @@ export class App {
 
   private defById(id: string): RouteDef {
     const climb = REAL_CLIMB_MAP.get(id);
-    if (climb && hasRealRoad(climb.id)) return realClimbRoute(climb);
+    if (climb) return realClimbRoute(climb);
     return getRouteDef(id);
   }
 
@@ -928,6 +939,11 @@ export class App {
     const region = !real && this.freeRegion ? rideRegion(this.freeRegion) : undefined;
     const allowed = region ? new Set(region.routes) : null;
     const list = real ? realRoadClimbs().map((climb) => realClimbRoute(climb)) : ROUTES.filter((def) => !allowed || allowed.has(def.id));
+    // Ride it now can pick a published climb that has no 1:1 road yet. Show that one here so the rider can start it.
+    if (real) {
+      const chosen = REAL_CLIMB_MAP.get(this.selectedRoute);
+      if (chosen && !list.some((def) => def.id === chosen.id)) list.push(realClimbRoute(chosen));
+    }
     const byName = (a: (typeof list)[number], b: (typeof list)[number]) => a.name.localeCompare(b.name);
     const byType = (a: (typeof list)[number], b: (typeof list)[number]) =>
       DIFFICULTY_RANK[a.difficulty] - DIFFICULTY_RANK[b.difficulty] || byName(a, b);
@@ -1144,6 +1160,10 @@ export class App {
     bindBuddy('#buddy-hill', '#buddy-hill-label', (n) => (this.buddyHill = n));
     bindBuddy('#buddy-mountain', '#buddy-mountain-label', (n) => (this.buddyMountain = n));
     $('#start-free', this.panel).addEventListener('click', () => void this.startRide('free'));
+    if (this.scrollFreeSelection) {
+      this.scrollFreeSelection = false;
+      this.panel.querySelector<HTMLElement>(`[data-route="${cssEscape(this.selectedRoute)}"]`)?.scrollIntoView({ block: 'center' });
+    }
   }
 
   /** Named climbs as the rider will meet them, forward or backwards. */

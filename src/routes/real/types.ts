@@ -40,6 +40,12 @@ export interface RealClimb {
   forestDensity?: number;
   /** The slopes above the treeline are grazed grass, not scree. */
   pasture?: boolean;
+  /** Unmapped ground from this elevation up is grazed and grows no trees. */
+  pastureAbove?: number;
+  /** Valley trees are broadleaf. */
+  broadleaf?: boolean;
+  /** Metres from the start of the road where the verge is open ground. */
+  openAlong?: { fromM: number; toM: number; radius: number }[];
   /** Where the ground turns to loose gravel, in metres. Trees still follow the treeline. */
   screeLine?: number;
   /** Lake or sea next to the foot. */

@@ -186,7 +186,10 @@ export class ChunkBuilder {
         const dune = n.noise(cx / 160, cz / 160) * 0.5 + 0.5;
         mix(col, pal.sand, dune * 0.5, col);
       } else {
-        const forest = smoothstep(1 - sc.forestDensity * 1.25, 1.1 - sc.forestDensity, forestN * 0.5 + 0.5) * (1 - smoothstep(treeline - 120, treeline + 40, cy));
+        const cover = field.groundCover(cx, cz, cy);
+        let forest = smoothstep(1 - sc.forestDensity * 1.25, 1.1 - sc.forestDensity, forestN * 0.5 + 0.5) * (1 - smoothstep(treeline - 120, treeline + 40, cy));
+        if (cover === 'pasture') forest = 0;
+        else if (cover === 'wood') forest = Math.max(forest, 0.82);
         mix(col, pal.forest, forest * 0.75, col);
       }
       const aboveTree = smoothstep(treeline + 100, treeline + 450, cy);
@@ -413,8 +416,10 @@ export class ChunkBuilder {
         if (sc.waterLevel !== null && ground.y < sc.waterLevel + 2) continue;
         const treeline = sc.treeline + n.noise(x / 700, z / 700) * 120;
         const forestN = n.fbm(x / 850, z / 850, 2) * 0.5 + 0.5;
-        const density = smoothstep(1 - sc.forestDensity * 1.25, 1.1 - sc.forestDensity, forestN);
-        const altFade = 1 - smoothstep(treeline - 200, treeline + 30, h);
+        const cover = field.groundCover(x, z, h);
+        let density = smoothstep(1 - sc.forestDensity * 1.25, 1.1 - sc.forestDensity, forestN);
+        if (cover === 'wood') density = Math.max(density, 0.9);
+        const altFade = cover === 'pasture' ? 0 : 1 - smoothstep(treeline - 200, treeline + 30, h);
         const biome = sc.biome ?? 'alpine';
         const lx = x - req.x0;
         const lz = z - req.z0;
@@ -428,7 +433,7 @@ export class ChunkBuilder {
         }
         const keep = (density * 0.85 + (biome === 'moor' ? 0.03 : 0.07)) * altFade * (1 - smoothstep(0.6, 1.0, slope)) * (biome === 'moor' ? 0.55 : 1);
         if (r3 < keep) {
-          const broadleaf = biome === 'spruce' ? false : biome === 'moor' ? n.noise(x / 300 + 40, z / 300) > 0.72 : h < 1100 && n.noise(x / 300 + 40, z / 300) > 0.15;
+          const broadleaf = sc.broadleaf ? true : biome === 'spruce' ? false : biome === 'moor' ? n.noise(x / 300 + 40, z / 300) > 0.72 : h < 1100 && n.noise(x / 300 + 40, z / 300) > 0.15;
           let scale = (0.75 + hash2(gx, gz) * 0.6) * req.treeScale * (altFade < 0.5 ? 0.8 : 1);
           if (biome === 'moor' && !broadleaf) scale *= 0.45;
           out.push(lx, ground.y - 0.3 - sink, lz, scale, r1 * Math.PI * 2, broadleaf ? 1 : 0);

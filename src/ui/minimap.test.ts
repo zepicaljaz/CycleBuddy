@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { RideSession } from '../game/session';
 import { realClimbRoute } from '../routes/real/build';
 import { REAL_CLIMB_MAP } from '../routes/real/data';
@@ -160,6 +160,177 @@ describe('nearby map drawing', () => {
     expect(Math.min(...xs)).toBeGreaterThan(40);
     expect(Math.max(...xs)).toBeLessThan(380);
     expect(colours[colours.length - 1].color).toBe('#e2412e');
+  });
+
+  it('zooms out from the nearby road toward the wider road', () => {
+    let now = 0;
+    const clock = vi.spyOn(performance, 'now').mockImplementation(() => now);
+    const strokes: { color: string; x0: number; x1: number }[] = [];
+    let x0 = 0;
+    let x1 = 0;
+    const ctx = {
+      lineJoin: '',
+      lineCap: '',
+      lineWidth: 1,
+      strokeStyle: '',
+      fillStyle: '',
+      globalAlpha: 1,
+      setTransform() {},
+      clearRect() {
+        strokes.length = 0;
+      },
+      beginPath() {},
+      moveTo(x: number) {
+        x0 = x;
+      },
+      lineTo(x: number) {
+        x1 = x;
+      },
+      stroke() {
+        strokes.push({ color: String(ctx.strokeStyle), x0, x1 });
+      },
+      save() {},
+      restore() {},
+      translate() {},
+      rotate() {},
+      fill() {},
+      arc() {},
+      closePath() {},
+    };
+    const canvas = { width: 0, height: 0, clientWidth: 420, clientHeight: 130, getContext: () => ctx };
+    const map = new Minimap(canvas as unknown as HTMLCanvasElement);
+    const route = straightOutAndBack();
+    const session = {
+      route,
+      player: { s: (3000 / 2) * ROUTE_DS, direction: 1, lat: 0 },
+      config: { mode: 'free' },
+      sim: { facingAngle: () => 0, racers: [] },
+    } as unknown as RideSession;
+    const span = () => {
+      const xs = strokes.filter((stroke) => stroke.color.startsWith('#')).flatMap((stroke) => [stroke.x0, stroke.x1]);
+      return Math.max(...xs) - Math.min(...xs);
+    };
+    map.draw(session);
+    const nearby = span();
+    map.toggle();
+    map.draw(session);
+    expect(map.current()).toBe('wide');
+    expect(span()).toBeGreaterThan(nearby * 0.9);
+    now = 220;
+    map.draw(session);
+    const mid = span();
+    expect(mid).toBeLessThan(nearby);
+    now = 600;
+    map.draw(session);
+    const wide = span();
+    expect(wide).toBeLessThan(mid);
+    expect(map.current()).toBe('wide');
+    clock.mockRestore();
+  });
+
+  it('keeps the rider on the plate while zooming out to the loop and back', () => {
+    let now = 0;
+    const clock = vi.spyOn(performance, 'now').mockImplementation(() => now);
+    const dots: { x: number; y: number }[] = [];
+    let strokes = 0;
+    const ctx = {
+      lineJoin: '',
+      lineCap: '',
+      lineWidth: 1,
+      strokeStyle: '',
+      fillStyle: '',
+      globalAlpha: 1,
+      setTransform() {},
+      clearRect() {
+        dots.length = 0;
+        strokes = 0;
+      },
+      beginPath() {},
+      moveTo() {},
+      lineTo() {},
+      stroke() {
+        strokes += 1;
+      },
+      save() {},
+      restore() {},
+      translate(x: number, y: number) {
+        dots.push({ x, y });
+      },
+      rotate() {},
+      fill() {},
+      arc() {},
+      closePath() {},
+      drawImage() {},
+    };
+    vi.stubGlobal('document', { createElement: () => ({ width: 0, height: 0, getContext: () => ctx }) });
+    const canvas = { width: 0, height: 0, clientWidth: 420, clientHeight: 130, getContext: () => ctx };
+    const count = 4000;
+    const x = new Float32Array(count);
+    const z = new Float32Array(count);
+    const grade = new Float32Array(count);
+    const section = new Uint8Array(count);
+    for (let i = 0; i < count; i++) {
+      if (i < count / 2) x[i] = i * ROUTE_DS;
+      else {
+        x[i] = (count / 2) * ROUTE_DS;
+        z[i] = (i - count / 2) * ROUTE_DS;
+      }
+    }
+    const length = count * ROUTE_DS;
+    const route = {
+      count,
+      length,
+      x,
+      z,
+      grade,
+      section,
+      climbs: [],
+      def: { id: 'corner' },
+      wrap: (s: number) => ((s % length) + length) % length,
+      sample(s: number) {
+        const i = Math.min(count - 1, Math.floor(this.wrap(s) / ROUTE_DS));
+        const tx = i < count / 2 ? 1 : 0;
+        const tz = i < count / 2 ? 0 : 1;
+        return { x: x[i], y: 0, z: z[i], tx, tz, grade: 0 };
+      },
+    };
+    const session = {
+      route,
+      player: { s: 0, direction: 1, lat: 0 },
+      config: { mode: 'free' },
+      sim: { facingAngle: () => 0, racers: [] },
+    } as unknown as RideSession;
+    const map = new Minimap(canvas as unknown as HTMLCanvasElement);
+    const rider = () => dots[dots.length - 1];
+    const onPlate = () => {
+      const dot = rider();
+      expect(dot).toBeTruthy();
+      expect(dot.x).toBeGreaterThan(-24);
+      expect(dot.x).toBeLessThan(444);
+      expect(dot.y).toBeGreaterThan(-24);
+      expect(dot.y).toBeLessThan(154);
+      expect(strokes).toBeGreaterThan(4);
+    };
+    map.draw(session);
+    map.toggle();
+    now = 600;
+    map.draw(session);
+    map.toggle();
+    map.draw(session);
+    now = 860;
+    map.draw(session);
+    expect(map.current()).toBe('loop');
+    onPlate();
+    now = 1400;
+    map.draw(session);
+    map.toggle();
+    map.draw(session);
+    now = 1660;
+    map.draw(session);
+    expect(map.current()).toBe('ahead');
+    onPlate();
+    clock.mockRestore();
+    vi.unstubAllGlobals();
   });
 
   it('cycles nearby road, wider road, then the full loop', () => {

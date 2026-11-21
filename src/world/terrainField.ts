@@ -79,6 +79,14 @@ function compileArea(p: MapPolygon): MapArea {
   return { x, z, level: p.level ?? NaN, minX, maxX, minZ, maxZ };
 }
 
+function insideAny(areas: MapArea[], x: number, z: number): boolean {
+  for (const area of areas) {
+    if (x < area.minX || x > area.maxX || z < area.minZ || z > area.maxZ) continue;
+    if (ringHas(area, x, z)) return true;
+  }
+  return false;
+}
+
 function ringHas(area: MapArea, x: number, z: number): boolean {
   const xs = area.x;
   const zs = area.z;
@@ -171,6 +179,9 @@ export class TerrainField {
   private pads: Float32Array | null = null;
   private readonly lakes: MapArea[] = [];
   private readonly lots: MapArea[] = [];
+  private readonly woods: MapArea[] = [];
+  /** Radius of the open verge at this road sample, or 0. The way back is included. */
+  private openRadius: Float32Array | null = null;
 
   constructor(input: FieldInput) {
     this.town = input.town ?? null;
@@ -178,12 +189,14 @@ export class TerrainField {
     this.pads = input.pads ?? null;
     for (const lake of input.places?.lakes ?? []) this.lakes.push(compileArea(lake));
     for (const lot of input.places?.lots ?? []) this.lots.push(compileArea(lot));
+    for (const wood of input.places?.cover?.wood ?? []) this.woods.push(compileArea(wood));
     if (input.clear) this.setClearings(input.clear);
     this.scenery = input.scenery;
     this.rx = input.x;
     this.rz = input.z;
     this.ry = input.y;
     this.n = input.x.length;
+    this.markOpenRoad();
     this.noise = new Noise2D(input.seed * 13 + 1);
     if (input.scenery.lakeshore) {
       const poly: { x: number; z: number }[] = [];
@@ -808,6 +821,51 @@ export class TerrainField {
         }
       }
     }
+  }
+
+  /** True on a road sample whose verge is kept open, including the way back down it. */
+  isOpenRoad(index: number): boolean {
+    return (this.openRadius?.[index] ?? 0) > 0;
+  }
+
+  /**
+   * What grows here. A mapped wood stands. A point whose nearest road sample is
+   * an open stretch, and which sits inside that stretch's radius, is grazed.
+   * Everywhere else keeps the generated forest.
+   */
+  groundCover(x: number, z: number, y: number): 'wood' | 'pasture' | 'forest' {
+    if (insideAny(this.woods, x, z)) return 'wood';
+    const near = this.openRadius ? this.nearestRoad(x, z) : null;
+    if (near && near.d <= (this.openRadius?.[near.i] ?? 0)) return 'pasture';
+    const line = this.scenery.pastureAbove;
+    if (line != null && y >= line) return 'pasture';
+    return 'forest';
+  }
+
+  /** Mark the open stretches, and the samples that come back down the same road. */
+  private markOpenRoad(): void {
+    const spans = this.scenery.openAlong;
+    if (!spans?.length) return;
+    const radius = new Float32Array(this.n);
+    for (const span of spans) {
+      const a = Math.max(0, Math.floor(span.fromM / ROUTE_DS));
+      const b = Math.min(this.n - 1, Math.ceil(span.toM / ROUTE_DS));
+      for (let i = a; i <= b; i++) radius[i] = Math.max(radius[i], span.radius);
+    }
+    const marked: number[] = [];
+    for (let i = 0; i < this.n; i += 2) if (radius[i] > 0) marked.push(i);
+    for (let i = 0; i < this.n; i++) {
+      if (radius[i] > 0) continue;
+      for (const j of marked) {
+        const dx = this.rx[i] - this.rx[j];
+        const dz = this.rz[i] - this.rz[j];
+        if (dx * dx + dz * dz < 25 * 25) {
+          radius[i] = radius[j];
+          break;
+        }
+      }
+    }
+    this.openRadius = radius;
   }
 
   /** True inside a clearing, where no trees grow. */

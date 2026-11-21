@@ -96,7 +96,7 @@ export function buildFarms(site: Site, towns: TownSpan[], junctions: Junction[])
   let farms = 0;
   while (next < route.length - 1200 && farms < 5) {
     const idx = Math.floor(next / ROUTE_DS);
-    let flat = Math.abs(route.grade[idx]) < 0.035 && !route.hairpin[idx] && route.y[idx] < treeline - 140;
+    let flat = Math.abs(route.grade[idx]) < 0.035 && !route.hairpin[idx] && route.y[idx] < treeline - 140 && !site.field.isOpenRoad(idx);
     for (let k = -40; k <= 40 && flat; k += 10) {
       if (Math.abs(route.grade[(idx + k + route.count) % route.count]) > 0.05) flat = false;
     }

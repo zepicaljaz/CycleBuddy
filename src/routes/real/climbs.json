@@ -433,6 +433,9 @@
   "id": "angliru-la-vega",
   "name": "Alto de l'Angliru",
   "treeline": 1500,
+  "openAlong": [
+   { "fromM": 5000, "toM": 6000, "radius": 80 }
+  ],
   "side": "La Vega (Riosa)",
   "country": "Spain",
   "region": "Asturias",
