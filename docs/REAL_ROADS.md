@@ -156,7 +156,7 @@ Built with `node scripts/real-track/build.mjs angliru`. Same rules as Vršič, w
 - Cuesta Les Cabanes is on the road just after the flat kilometre at Viapará. La Cueña Les Cabres is the node at the start of the 17.5 % kilometre. That kilometre is the published average. The 23.5 % ramp quoted inside it is not a separate piece on the cols-cyclisme profile, so the road rides the 17.5 %.
 - There is no published numbered hairpin series. Signs count down, on the sharp bends of this line only.
 - La Vega is the opening half kilometre. The summit parking is the OpenStreetMap polygon, paved flat beside the road.
-- The treeline is 1,500 m. The lower slopes stay wooded, and the summit parking is open. A flat stretch up there would otherwise be treated as valley farmland.
+- The treeline is 1,500 m, so the summit parking stays open. The one open stretch below that is the flat kilometre at Viapará, from 5 km to 6 km: Street View there is pasture, and the trees stay off the verge for 80 m either side. Above 6 km the woods are the usual forest again. OpenStreetMap's hand-mapped cover is in `data/osm/angliru-landcover.json`. It does not draw that shelf as meadow. The forest polygons tagged EU CORINE land cover 2006 are a coarse class and are not used.
 
 ## Col du Galibier from Valloire
 

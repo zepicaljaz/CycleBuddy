@@ -5,6 +5,7 @@ import { REAL_CLIMB_MAP } from './data';
 import { hasRealRoad, realClimbRoute } from './build';
 import { findHairpins } from '../../world/climbs';
 import { planTowns } from '../../world/scenery';
+import { ChunkBuilder } from '../../world/terrainChunk';
 import { ROAD_HALF_WIDTH, TerrainField } from '../../world/terrainField';
 import { ventouxAntennaGroup } from '../../world/ventouxAntenna';
 
@@ -658,6 +659,58 @@ describe("Alto de l'Angliru from La Vega on its real road", () => {
     const max = Math.max(...Array.from(route.grade, Math.abs));
     expect(max).toBeGreaterThan(0.16);
     expect(max).toBeLessThan(0.2);
+  });
+
+  it('opens only the flat kilometre at Viapará, and keeps the woods above it', () => {
+    expect(def.scenery.treeline).toBe(1500);
+    expect(def.scenery.pastureAbove).toBeUndefined();
+    expect(def.scenery.forestDensity).toBeCloseTo(0.78);
+    expect(def.scenery.openAlong).toEqual([{ fromM: 5000, toM: 6000, radius: 80 }]);
+    const field = new TerrainField({
+      x: route.x,
+      z: route.z,
+      y: route.y,
+      seed: def.seed,
+      scenery: def.scenery,
+      places: def.track!.places,
+    });
+    const side = (along: number, metres: number) => {
+      const i = Math.floor((climb.start + along) / ROUTE_DS);
+      const dx = route.x[i + 1] - route.x[i - 1];
+      const dz = route.z[i + 1] - route.z[i - 1];
+      const len = Math.hypot(dx, dz) || 1;
+      const x = route.x[i] + (-dz / len) * metres;
+      const z = route.z[i] + (dx / len) * metres;
+      return { x, z, h: field.heightAt(x, z) };
+    };
+    for (const along of [5200, 5600, 5900]) {
+      for (const metres of [16, -24]) {
+        const p = side(along, metres);
+        expect(field.groundCover(p.x, p.z, p.h), `${along} m`).toBe('pasture');
+      }
+    }
+    for (const along of [1800, 4200, 6800, 10500]) {
+      const p = side(along, 20);
+      expect(field.groundCover(p.x, p.z, p.h), `${along} m`).toBe('forest');
+    }
+    const treesAt = (along: number) => {
+      const i = Math.floor((climb.start + along) / ROUTE_DS);
+      const chunk = new ChunkBuilder(field, def.seed).build({
+        id: 1,
+        x0: route.x[i] - 40,
+        z0: route.z[i] - 40,
+        size: 80,
+        segs: 6,
+        treeSpacing: 9,
+        propDetail: 1,
+        treeScale: 1,
+      });
+      let trees = 0;
+      for (let k = 5; k < chunk.props.length; k += 6) if (chunk.props[k] < 2) trees++;
+      return trees;
+    };
+    expect(treesAt(5500)).toBe(0);
+    expect(treesAt(7500)).toBeGreaterThan(8);
   });
 });
 

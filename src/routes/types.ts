@@ -52,6 +52,20 @@ export interface SceneryDef {
    * turn that ground to scree, which is right for a bare summit and wrong for pasture.
    */
   pasture?: boolean;
+  /**
+   * Unmapped ground from this elevation up is grazed: no trees, and the grass
+   * is not tinted as forest. A mapped wood still stands. The ordinary treeline
+   * fades in over a noisy band, so a shelf that should be bare needs this hard line.
+   */
+  pastureAbove?: number;
+  /** The trees below the pasture are broadleaf. Omitted keeps the usual mix of pine and broadleaf. */
+  broadleaf?: boolean;
+  /**
+   * Stretches of this road, in metres from the start, where the verge is open
+   * ground. The way back along the same bend is included. Outside the radius
+   * the forest is unchanged.
+   */
+  openAlong?: { fromM: number; toM: number; radius: number }[];
   /** The inside of the loop is a lake that meets the verge. The outside stays land. */
   lakeshore?: boolean;
 }
@@ -90,10 +104,20 @@ export interface MapPolygon {
   level?: number;
 }
 
-/** Lakes and parking lots taken from OpenStreetMap and stored in the road's frame. */
+/** Meadow and woodland polygons taken from OpenStreetMap, in the road's frame. */
+export interface TrackCover {
+  /** Grazed ground: meadow, grass, grassland, scrub, farmland. No trees. */
+  open: MapPolygon[];
+  /** Hand-mapped woodland. */
+  wood: MapPolygon[];
+}
+
+/** Lakes, parking and land cover taken from OpenStreetMap and stored in the road's frame. */
 export interface TrackPlaces {
   lakes: MapPolygon[];
   lots: MapPolygon[];
+  /** Present when this road uses mapped ground cover instead of a forest everywhere. */
+  cover?: TrackCover;
 }
 
 /**

@@ -6,12 +6,12 @@ releases.
 
 ## Unreleased
 
-- **Map** has a step between the nearby road and the full loop. Wider road is the same world-fixed view, about five times further out, still coloured by gradient. Press M to cycle: nearby road, wider road, full loop.
+- **Map** has a step between the nearby road and the full loop. Wider road is the same world-fixed view, about five times further out, still coloured by gradient. Press M to cycle: nearby road, wider road, full loop. The map zooms out and back in as the setting changes.
 - **First person** shows the handlebar. The rider's body stays hidden, so the view reads as the saddle.
 - **Nearby map** on a real out-and-back road uses the climb colours while you are riding up, and the descent colours once you are on the loop at the top. The road line runs to the edges of the map.
 - **Free ride** has a Real climbs category for the roads that go up and come back down the same way.
 - **Hill-climb races and career stages** paint fictional riders' full names, and the cheers, rarely at the foot, more often through the middle, and about every 10 m in the top fifth of the climb. Some names cross the road and some sit on part of it. A free ride follows the same shape, a little further apart.
-- **Alto de l'Angliru from La Vega** on its real road: the RI-2 and Carretera a L'Angliru from the valley junction to the summit parking, with the published profile to the 1,570 m point and the turnaround in the parking. See `docs/REAL_ROADS.md`.
+- **Alto de l'Angliru from La Vega** on its real road: the RI-2 and Carretera a L'Angliru from the valley junction to the summit parking, with the published profile to the 1,570 m point and the turnaround in the parking. The flat kilometre at Viapará, from 5 km to 6 km, is open ground. Above that the woods stay. See `docs/REAL_ROADS.md`.
 - **Hill-climb race:** the strongest W/kg is the best climber's power. The rest of the field sits just under him and spreads down to the slowest W/kg, so a long climb opens its gaps near the summit.
 - **Stage results** use the whole screen. The finish order and the time, sprint and mountains standings stay readable from a phone-sized window up to a wide monitor, and your row is scrolled into view.
 - **Vršič starts on the way out of Kranjska Gora,** about half a kilometre before Lake Jasna, then the published climb from the Pišnica bridge. Parking at the Ajdovska deklica viewpoint and at Erjavčeva koča sits where OpenStreetMap maps it.
