@@ -5,6 +5,7 @@ import { REAL_CLIMB_MAP } from './data';
 import { hasRealRoad, realClimbRoute } from './build';
 import { findHairpins } from '../../world/climbs';
 import { planTowns } from '../../world/scenery';
+import { ChunkBuilder } from '../../world/terrainChunk';
 import { ROAD_HALF_WIDTH, TerrainField } from '../../world/terrainField';
 import { ventouxAntennaGroup } from '../../world/ventouxAntenna';
 
@@ -659,6 +660,58 @@ describe("Alto de l'Angliru from La Vega on its real road", () => {
     expect(max).toBeGreaterThan(0.16);
     expect(max).toBeLessThan(0.2);
   });
+
+  it('opens only the flat kilometre at Viapará, and keeps the woods above it', () => {
+    expect(def.scenery.treeline).toBe(1500);
+    expect(def.scenery.pastureAbove).toBeUndefined();
+    expect(def.scenery.forestDensity).toBeCloseTo(0.78);
+    expect(def.scenery.openAlong).toEqual([{ fromM: 5000, toM: 6000, radius: 80 }]);
+    const field = new TerrainField({
+      x: route.x,
+      z: route.z,
+      y: route.y,
+      seed: def.seed,
+      scenery: def.scenery,
+      places: def.track!.places,
+    });
+    const side = (along: number, metres: number) => {
+      const i = Math.floor((climb.start + along) / ROUTE_DS);
+      const dx = route.x[i + 1] - route.x[i - 1];
+      const dz = route.z[i + 1] - route.z[i - 1];
+      const len = Math.hypot(dx, dz) || 1;
+      const x = route.x[i] + (-dz / len) * metres;
+      const z = route.z[i] + (dx / len) * metres;
+      return { x, z, h: field.heightAt(x, z) };
+    };
+    for (const along of [5200, 5600, 5900]) {
+      for (const metres of [16, -24]) {
+        const p = side(along, metres);
+        expect(field.groundCover(p.x, p.z, p.h), `${along} m`).toBe('pasture');
+      }
+    }
+    for (const along of [1800, 4200, 6800, 10500]) {
+      const p = side(along, 20);
+      expect(field.groundCover(p.x, p.z, p.h), `${along} m`).toBe('forest');
+    }
+    const treesAt = (along: number) => {
+      const i = Math.floor((climb.start + along) / ROUTE_DS);
+      const chunk = new ChunkBuilder(field, def.seed).build({
+        id: 1,
+        x0: route.x[i] - 40,
+        z0: route.z[i] - 40,
+        size: 80,
+        segs: 6,
+        treeSpacing: 9,
+        propDetail: 1,
+        treeScale: 1,
+      });
+      let trees = 0;
+      for (let k = 5; k < chunk.props.length; k += 6) if (chunk.props[k] < 2) trees++;
+      return trees;
+    };
+    expect(treesAt(5500)).toBe(0);
+    expect(treesAt(7500)).toBeGreaterThan(8);
+  });
 });
 
 describe('Col du Galibier from Valloire on its real road', () => {
@@ -899,6 +952,96 @@ describe('Passo Giau from Selva di Cadore on its real road', () => {
     }
     expect(back).toBeLessThan(6);
     expect(route.y[Math.floor(climb.end / ROUTE_DS)]).toBeCloseTo(2236, 0);
+  });
+
+  it('closes the lap and never jumps', () => {
+    let worst = 0;
+    for (let i = 0; i < route.count; i++) {
+      const j = (i + 1) % route.count;
+      worst = Math.max(worst, Math.hypot(route.x[j] - route.x[i], route.z[j] - route.z[i]));
+    }
+    expect(worst).toBeLessThan(2.5);
+    expect(Math.max(...Array.from(route.grade, Math.abs))).toBeLessThan(0.16);
+  });
+});
+
+describe('Krvavec on its real road', () => {
+  const c = REAL_CLIMB_MAP.get('krvavec-cerklje')!;
+  const def = realClimbRoute(c);
+  const route = getRoute(def);
+  const climb = route.climbs[0];
+  const origin = (def.track as { origin?: { lat: number; lon: number } }).origin!;
+  const R = 6371000;
+  const rad = (d: number) => (d * Math.PI) / 180;
+  const xz = (lat: number, lon: number) => ({
+    x: rad(lon - origin.lon) * Math.cos(rad(origin.lat)) * R,
+    z: -rad(lat - origin.lat) * R,
+  });
+  const nearest = (lat: number, lon: number) => {
+    const p = xz(lat, lon);
+    let d = Infinity;
+    let y = 0;
+    let along = 0;
+    const iEnd = Math.floor(climb.end / ROUTE_DS);
+    for (let i = 0; i <= iEnd; i++) {
+      const dist = Math.hypot(route.x[i] - p.x, route.z[i] - p.z);
+      if (dist < d) {
+        d = dist;
+        y = route.y[i];
+        along = i * ROUTE_DS;
+      }
+    }
+    return { d, y, along };
+  };
+
+  it('uses the OpenStreetMap line', () => {
+    expect(hasRealRoad(c.id)).toBe(true);
+    expect(def.track).toBeDefined();
+  });
+
+  it('starts at Grad and climbs the published road to Plaža', () => {
+    expect(Math.abs(climb.length - c.lengthKm * 1000) / (c.lengthKm * 1000)).toBeLessThan(0.025);
+    expect(route.y[Math.floor(climb.start / ROUTE_DS)]).toBeCloseTo(431, -1);
+    expect(climb.summitElevation).toBeCloseTo(1594, -1);
+    expect(Math.abs(climb.gain - c.gain) / c.gain).toBeLessThan(0.03);
+    const grad = nearest(46.2701248, 14.4924402);
+    const plaza = nearest(46.3011603, 14.5263809);
+    const tiha = nearest(46.3004116, 14.5265222);
+    expect(grad.d).toBeLessThan(20);
+    expect(grad.along).toBeLessThan(climb.start + 40);
+    expect(tiha.d).toBeLessThan(30);
+    expect(tiha.y).toBeGreaterThan(1580);
+    expect(climb.end - tiha.along).toBeLessThan(80);
+    expect(plaza.d).toBeLessThan(80);
+    expect(plaza.y).toBeGreaterThan(1580);
+  });
+
+  it('passes Ambrož and Planina Jezerca on the way up', () => {
+    const ambroz = nearest(46.27468, 14.52894);
+    const jezerca = nearest(46.2848431, 14.5330196);
+    expect(ambroz.d).toBeLessThan(120);
+    expect(ambroz.y).toBeGreaterThan(1050);
+    expect(ambroz.y).toBeLessThan(1200);
+    expect(ambroz.along).toBeGreaterThan(climb.start + 7500);
+    expect(ambroz.along).toBeLessThan(climb.start + 9500);
+    expect(jezerca.d).toBeLessThan(120);
+    expect(jezerca.y).toBeGreaterThan(1380);
+    expect(jezerca.y).toBeLessThan(1460);
+    expect(jezerca.along).toBeGreaterThan(climb.start + 11000);
+    expect(jezerca.along).toBeLessThan(climb.start + 13500);
+    const towns = planTowns(route);
+    expect(towns.some((t) => t.name === 'Grad' && t.s0 < 50)).toBe(true);
+    expect(towns.some((t) => t.name === 'Ambrož pod Krvavcem')).toBe(true);
+  });
+
+  it('turns at Plaža and comes back down the same road', () => {
+    const up = Math.floor((climb.start + 5000) / ROUTE_DS);
+    let back = Infinity;
+    for (let i = Math.floor(climb.end / ROUTE_DS) + 20; i < route.count; i += 2) {
+      back = Math.min(back, Math.hypot(route.x[i] - route.x[up], route.z[i] - route.z[up]));
+    }
+    expect(back).toBeLessThan(6);
+    expect(route.y[Math.floor(climb.end / ROUTE_DS)]).toBeCloseTo(1594, 0);
   });
 
   it('closes the lap and never jumps', () => {

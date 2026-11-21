@@ -67,6 +67,23 @@ const MODE_LABEL: Record<MapMode, string> = {
   loop: 'Map: full loop',
 };
 
+/** How long the map takes to zoom from one setting to the next. */
+const ZOOM_MS = 520;
+
+interface MapView {
+  /** World width of the shorter side, in metres. */
+  metres: number;
+  x: number;
+  z: number;
+  /** 0 is the gradient road. 1 is the full-loop line. */
+  style: number;
+}
+
+function easeOut(t: number): number {
+  const c = Math.max(0, Math.min(1, t));
+  return 1 - (1 - c) * (1 - c) * (1 - c);
+}
+
 /** The ride map. A line only: the road nearby, a wider stretch of it, or the whole loop. */
 export class Minimap {
   private ctx: CanvasRenderingContext2D;
@@ -74,6 +91,11 @@ export class Minimap {
   private size: CssSize;
   /** The full-loop line and its climbs, drawn once per route, size and direction. */
   private loopCache: { key: string; canvas: HTMLCanvasElement; midX: number; midZ: number; scale: number } | null = null;
+  /** What the last frame showed, so a zoom starts from there. */
+  private shown: MapView | null = null;
+  private zoom: { from: MapView; start: number; follow: boolean } | null = null;
+  private lastSession: RideSession | null = null;
+  private raf = 0;
 
   constructor(private canvas: HTMLCanvasElement) {
     const ctx = canvas.getContext('2d');
@@ -88,16 +110,59 @@ export class Minimap {
 
   setMode(mode: MapMode): void {
     this.mode = mode;
+    this.zoom = null;
+    this.stopPump();
   }
 
   /** Nearby road, then the wider road, then the whole loop. Returns the label to show. */
   toggle(): string {
     const at = MODE_ORDER.indexOf(this.mode);
-    this.mode = MODE_ORDER[(at < 0 ? 0 : at + 1) % MODE_ORDER.length];
+    const next = MODE_ORDER[(at < 0 ? 0 : at + 1) % MODE_ORDER.length];
+    this.beginZoom(next);
     return MODE_LABEL[this.mode];
   }
 
+  /** Move to a setting. A drawn map zooms there; the first choice just appears. */
+  private beginZoom(next: MapMode): void {
+    const from = this.shown;
+    this.mode = next;
+    const reduce = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!from || reduce) {
+      this.zoom = null;
+      this.stopPump();
+      return;
+    }
+    this.zoom = { from, start: -1, follow: next !== 'loop' };
+  }
+
+  private stopPump(): void {
+    if (!this.raf || typeof cancelAnimationFrame !== 'function') {
+      this.raf = 0;
+      return;
+    }
+    cancelAnimationFrame(this.raf);
+    this.raf = 0;
+  }
+
+  /** Keep painting through the zoom. The ride redraws the map on its own, slower clock. */
+  private pump(): void {
+    if (!this.zoom || this.raf || typeof requestAnimationFrame !== 'function') return;
+    const loop = () => {
+      this.raf = 0;
+      if (!this.zoom || !this.lastSession) return;
+      this.render(this.lastSession);
+      if (this.zoom) this.raf = requestAnimationFrame(loop);
+    };
+    this.raf = requestAnimationFrame(loop);
+  }
+
   draw(session: RideSession): void {
+    this.lastSession = session;
+    this.render(session);
+    this.pump();
+  }
+
+  private render(session: RideSession): void {
     const canvas = this.canvas;
     const dpr = Math.min(2, window.devicePixelRatio || 1);
     const w = this.size.width;
@@ -114,26 +179,101 @@ export class Minimap {
     ctx.clearRect(0, 0, w, h);
     ctx.lineJoin = 'round';
     ctx.lineCap = 'round';
+    ctx.globalAlpha = 1;
 
-    if (this.mode === 'loop') this.drawLoop(session, w, h);
-    else this.drawAhead(session, w, h, this.mode === 'wide' ? WIDE_METRES : NEARBY_METRES);
+    const view = this.frameView(session, w, h);
+    this.shown = view;
+    if (!this.zoom && this.mode === 'loop') {
+      this.drawLoop(session, w, h);
+      return;
+    }
+    if (!this.zoom) {
+      this.drawAhead(session, w, h, this.mode === 'wide' ? WIDE_METRES : NEARBY_METRES);
+      return;
+    }
+    const { project } = this.projector(w, h, view.metres, view);
+    if (view.style < 0.98) {
+      ctx.globalAlpha = view.style > 0.02 ? 1 - view.style : 1;
+      this.drawAhead(session, w, h, view.metres, view, false);
+      ctx.globalAlpha = 1;
+    }
+    if (view.style > 0.02) {
+      ctx.save();
+      ctx.globalAlpha = view.style;
+      this.strokeLoop(session, project);
+      ctx.restore();
+    }
+    this.drawMarks(session, project, w, h);
   }
 
   /**
-   * Road around the rider, fixed to the world. It does not turn with the rider
-   * and it does not zoom. Each stretch is coloured by its gradient.
-   * `metres` is the world width along the shorter side.
+   * The view for this frame. While a zoom is running, the centre and the scale
+   * move from the previous setting toward the new one.
    */
-  private drawAhead(session: RideSession, w: number, h: number, metres: number): void {
+  private frameView(session: RideSession, w: number, h: number): MapView {
+    const player = session.route.sample(session.player.s);
+    const roadMetres = this.mode === 'wide' ? WIDE_METRES : NEARBY_METRES;
+    const zoomingOut = this.zoom != null && !this.zoom.follow;
+    const loop = this.mode === 'loop' || zoomingOut ? this.loopFocus(session, w, h) : null;
+    const target: MapView = this.mode === 'loop' && loop
+      ? { metres: loop.metres, x: loop.x, z: loop.z, style: 1 }
+      : { metres: roadMetres, x: player.x, z: player.z, style: 0 };
+    const zoom = this.zoom;
+    if (!zoom) return target;
+    if (zoom.start < 0) zoom.start = performance.now();
+    const t = easeOut((performance.now() - zoom.start) / ZOOM_MS);
+    if (t >= 1) {
+      this.zoom = null;
+      return target;
+    }
+    const destM = zoom.follow || !loop ? roadMetres : loop.metres;
+    const destX = zoom.follow || !loop ? player.x : loop.x;
+    const destZ = zoom.follow || !loop ? player.z : loop.z;
+    const u = 1 - t;
+    const metres = Math.exp(Math.log(Math.max(1, zoom.from.metres)) * u + Math.log(Math.max(1, destM)) * t);
+    // Slide the rider across the plate while the scale changes. A world-space
+    // slide sends them off the map, through the empty middle of the loop.
+    const short = Math.max(2, Math.min(w, h) - MAP_PAD * 2);
+    const scale = short / metres;
+    const fromScale = short / Math.max(1, zoom.from.metres);
+    const toScale = short / Math.max(1, destM);
+    const ox = (player.x - zoom.from.x) * fromScale * u + (player.x - destX) * toScale * t;
+    const oz = (player.z - zoom.from.z) * fromScale * u + (player.z - destZ) * toScale * t;
+    return {
+      metres,
+      x: player.x - ox / scale,
+      z: player.z - oz / scale,
+      style: zoom.from.style + ((zoom.follow ? 0 : 1) - zoom.from.style) * t,
+    };
+  }
+
+  private projector(w: number, h: number, metres: number, focus: { x: number; z: number }): { scale: number; project: (x: number, z: number) => [number, number] } {
+    const scale = (Math.min(w, h) - MAP_PAD * 2) / metres;
+    return {
+      scale,
+      project: (x, z) => [w / 2 + (x - focus.x) * scale, h / 2 + (z - focus.z) * scale],
+    };
+  }
+
+  /** Where the full loop sits, and the fixed-map metres that match its scale. */
+  private loopFocus(session: RideSession, w: number, h: number): { metres: number; x: number; z: number } {
+    const fit = this.measureLoop(session, w, h);
+    const short = Math.max(2, Math.min(w, h) - MAP_PAD * 2);
+    return { metres: short / Math.max(fit.scale, 1e-6), x: fit.midX, z: fit.midZ };
+  }
+
+  /**
+   * Road around a point, fixed to the world. It does not turn with the rider.
+   * `metres` is the world width along the shorter side. `focus` is the world
+   * point in the middle; omitted, that point is the rider.
+   */
+  private drawAhead(session: RideSession, w: number, h: number, metres: number, focus?: { x: number; z: number }, marks = true): void {
     const ctx = this.ctx;
     const route = session.route;
-    const origin = route.sample(session.player.s);
+    const rider = route.sample(session.player.s);
+    const origin = focus ?? rider;
     const step = AHEAD_STEP * Math.max(1, Math.round(metres / NEARBY_METRES));
-    const scale = (Math.min(w, h) - MAP_PAD * 2) / metres;
-    const project = (x: number, z: number): [number, number] => [
-      w / 2 + (x - origin.x) * scale,
-      h / 2 + (z - origin.z) * scale,
-    ];
+    const { project } = this.projector(w, h, metres, origin);
     const reach = nearbyReachMetres(w, h, metres) + step * ROUTE_DS;
     const reach2 = reach * reach;
     const playerI = Math.min(route.count - 1, Math.max(0, Math.floor(route.wrap(session.player.s) / ROUTE_DS)));
@@ -193,6 +333,12 @@ export class Minimap {
       ctx.stroke();
     }
 
+    if (marks) this.drawMarks(session, project, w, h);
+  }
+
+  /** The rider, and the other riders in a race. */
+  private drawMarks(session: RideSession, project: (x: number, z: number) => [number, number], w: number, h: number): void {
+    const route = session.route;
     if (session.config.mode === 'race') {
       for (const rider of session.sim.racers) {
         if (rider.isPlayer || (session.config.career?.road.timeTrial && session.sim.time < rider.ttStart)) continue;
@@ -202,11 +348,55 @@ export class Minimap {
         this.dot(x, y, 2.2, rider.direction < 0 ? 'rgba(255,120,96,0.9)' : 'rgba(255,255,255,0.85)');
       }
     }
-
     const me = session.player;
-    const [mx, my] = project(origin.x - origin.tz * me.lat, origin.z + origin.tx * me.lat);
+    const here = route.sample(me.s);
+    const [mx, my] = project(here.x - here.tz * me.lat, here.z + here.tx * me.lat);
     const nose = this.nose(route, session, project);
     this.playerDot(mx, my, nose, session.config.mode === 'race');
+  }
+
+  /** The full-loop line drawn in the current zoom, so it can grow or shrink with the road. */
+  private strokeLoop(session: RideSession, project: (x: number, z: number) => [number, number]): void {
+    const ctx = this.ctx;
+    const route = session.route;
+    const stage = session.config.career ? session.config.climb : null;
+    const i0 = stage ? Math.max(0, Math.floor(stage.start / ROUTE_DS)) : 0;
+    const i1 = stage ? Math.min(route.count - 1, Math.ceil(stage.end / ROUTE_DS)) : route.count - 1;
+    const step = 8;
+    ctx.beginPath();
+    for (let i = i0; i <= i1; i += step) {
+      const [x, y] = project(route.x[i], route.z[i]);
+      if (i === i0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    if (!stage) ctx.closePath();
+    ctx.strokeStyle = 'rgba(0,0,0,0.72)';
+    ctx.lineWidth = 4.5;
+    ctx.stroke();
+    ctx.strokeStyle = 'rgba(255,255,255,0.95)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    const dir = session.player.direction;
+    ctx.beginPath();
+    let drawing = false;
+    for (let i = i0; i <= i1; i += step) {
+      const on = dir < 0 ? route.grade[i] * dir > 0.02 : onClimb(route, i * ROUTE_DS);
+      if (!on) {
+        drawing = false;
+        continue;
+      }
+      const [x, y] = project(route.x[i], route.z[i]);
+      if (!drawing) {
+        ctx.moveTo(x, y);
+        drawing = true;
+      } else ctx.lineTo(x, y);
+    }
+    ctx.strokeStyle = 'rgba(40, 24, 0, 0.75)';
+    ctx.lineWidth = 6;
+    ctx.stroke();
+    ctx.strokeStyle = '#ff7f2a';
+    ctx.lineWidth = 3.2;
+    ctx.stroke();
   }
 
   /** The whole loop, or just the stage when a career race is on a section of a longer road. */
@@ -253,8 +443,8 @@ export class Minimap {
 
   private tmp = { x: 0, y: 0, z: 0, tx: 1, tz: 0, grade: 0 };
 
-  /** The static part of the loop map: road line and climbs. Returns how it was fitted. */
-  private drawLoopLine(ctx: CanvasRenderingContext2D, session: RideSession, w: number, h: number): { midX: number; midZ: number; scale: number } {
+  /** The box the full loop (or the career stage) fits into. */
+  private measureLoop(session: RideSession, w: number, h: number): { midX: number; midZ: number; scale: number } {
     const route = session.route;
     const stage = session.config.career ? session.config.climb : null;
     const i0 = stage ? Math.max(0, Math.floor(stage.start / ROUTE_DS)) : 0;
@@ -272,8 +462,17 @@ export class Minimap {
     }
     const pad = 12;
     const scale = Math.min((w - pad * 2) / Math.max(maxX - minX, 1), (h - pad * 2) / Math.max(maxZ - minZ, 1));
-    const midX = (minX + maxX) / 2;
-    const midZ = (minZ + maxZ) / 2;
+    return { midX: (minX + maxX) / 2, midZ: (minZ + maxZ) / 2, scale };
+  }
+
+  /** The static part of the loop map: road line and climbs. Returns how it was fitted. */
+  private drawLoopLine(ctx: CanvasRenderingContext2D, session: RideSession, w: number, h: number): { midX: number; midZ: number; scale: number } {
+    const route = session.route;
+    const stage = session.config.career ? session.config.climb : null;
+    const i0 = stage ? Math.max(0, Math.floor(stage.start / ROUTE_DS)) : 0;
+    const i1 = stage ? Math.min(route.count - 1, Math.ceil(stage.end / ROUTE_DS)) : route.count - 1;
+    const step = 8;
+    const { midX, midZ, scale } = this.measureLoop(session, w, h);
     const projectIndex = (i: number): [number, number] => [
       w / 2 + (route.x[i] - midX) * scale,
       h / 2 + (route.z[i] - midZ) * scale,

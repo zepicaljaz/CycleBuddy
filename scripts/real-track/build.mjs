@@ -7,6 +7,7 @@
 //   node scripts/real-track/build.mjs ventoux
 //   node scripts/real-track/build.mjs galibier
 //   node scripts/real-track/build.mjs giau
+//   node scripts/real-track/build.mjs krvavec
 // Output: src/routes/real/tracks/<id>.json (road line, elevation, sections) and
 // src/assets/terrain/<id>.bin (height grids around the road). See ATTRIBUTION.md.
 import fs from 'node:fs';
@@ -143,6 +144,8 @@ const CONFIGS = {
     climbId: 'angliru-la-vega',
     osm: 'data/osm/angliru-la-vega.json',
     places: 'data/osm/angliru-places.json',
+    // Meadows, grass and the hand-mapped woods. CORINE forest in this file is skipped.
+    cover: 'data/osm/angliru-landcover.json',
     // Eastern end of the RI-2, where it leaves the valley road in La Vega.
     from: { lat: 43.2307334, lon: -5.8821195 },
     // Dead end of Carretera a L'Angliru, in the summit parking.
@@ -215,6 +218,32 @@ const CONFIGS = {
     // Signs count down: 29 on the way out of Selva, 1 at the last bend before the pass.
     hairpins: 'down',
     towns: [{ name: 'Selva di Cadore', fromM: 0, toM: 680 }],
+  },
+  krvavec: {
+    id: 'krvavec-cerklje',
+    climbId: 'krvavec-cerklje',
+    // Paved road from Grad to Plaža: tertiary Grad, then unclassified through
+    // Ambrož pod Krvavcem, then the ski-area service road to the hotel.
+    osm: 'data/osm/krvavec-grad.json',
+    // OpenStreetMap hamlet Grad: the CyclingCols / Pogi timed start.
+    from: { lat: 46.2701248, lon: 14.4924402 },
+    // Service road vertex beside the Plaža restaurant (node 252493393).
+    to: { lat: 46.3007269, lon: 14.5261189 },
+    climbStart: { lat: 46.2701248, lon: 14.4924402 },
+    summit: { lat: 46.3007269, lon: 14.5261189 },
+    startElevation: 431,
+    summitElevation: 1594,
+    // Keep the mapped bends. Opening them shortens the climb past the published length.
+    minRadius: 0,
+    balloonAtEnd: true,
+    // No published numbered series. Signs count up on the sharp bends.
+    hairpins: 'up',
+    // Metres from the valley end of the built road. Grad is the opening street;
+    // Ambrož sits where the road passes the village around 1,085 m.
+    towns: [
+      { name: 'Grad', fromM: 0, toM: 400 },
+      { name: 'Ambrož pod Krvavcem', fromM: 8000, toM: 9000 },
+    ],
   },
 };
 
@@ -642,11 +671,43 @@ if (cfg.places) {
   places = { lakes, lots };
 }
 
+const OPEN_COVER = new Set(['meadow', 'grass', 'grassland', 'farmland', 'scrub']);
+if (cfg.cover) {
+  const src = JSON.parse(fs.readFileSync(path.join(ROOT, cfg.cover), 'utf8'));
+  const open = [];
+  const wood = [];
+  for (const el of src.elements ?? []) {
+    if (el.type !== 'way' || !el.geometry?.length) continue;
+    const tags = el.tags ?? {};
+    if (String(tags.source ?? '').includes('CORINE')) continue;
+    const kind = tags.landuse || tags.natural;
+    const cls = kind === 'forest' || kind === 'wood' ? 'wood' : OPEN_COVER.has(kind) ? 'open' : null;
+    if (!cls) continue;
+    const ring = projectRing(el.geometry.map((p) => [p.lat, p.lon]));
+    if (ring.x.length < 3) continue;
+    let shore = Infinity;
+    let inside = false;
+    for (let i = 0; i < line.length; i += 4) {
+      shore = Math.min(shore, ringDistance(line[i].x, line[i].z, ring));
+      if (!inside && insideRing(line[i].x, line[i].z, ring)) inside = true;
+    }
+    const dist = inside ? 0 : shore;
+    if (dist > 400) continue;
+    const poly = { name: tags.name || kind, ...ring };
+    (cls === 'wood' ? wood : open).push(poly);
+    console.log(`cover ${cls} ${poly.name}: ${dist.toFixed(0)} m, ${ring.x.length} pts`);
+  }
+  if (!places) places = { lakes: [], lots: [] };
+  places.cover = { open, wood };
+  console.log(`cover kept ${open.length} open and ${wood.length} wood (CORINE forest left out)`);
+}
+
 function creditLine(places) {
   const bits = ['Road line'];
   if (places?.lakes?.length) bits.push('lake');
+  if (places?.cover && (places.cover.open.length || places.cover.wood.length)) bits.push('land cover');
   if (places?.lots?.length) bits.push('parking');
-  const what = bits.length === 1 ? bits[0] : bits.length === 2 ? bits.join(' and ') : `${bits[0]}, ${bits[1]} and ${bits[2]}`;
+  const what = bits.length === 1 ? bits[0] : `${bits.slice(0, -1).join(', ')} and ${bits.at(-1)}`;
   return `${what} © OpenStreetMap contributors (ODbL). `;
 }
 

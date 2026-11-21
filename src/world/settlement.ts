@@ -804,7 +804,7 @@ function buildYards(site: Site, towns: TownSpan[], junctions: Junction[]): void 
       const g = route.grade[(idx + k + route.count) % route.count];
       if (Math.abs(g) > 0.055) flat = false;
     }
-    if (flat && route.y[idx] < treeline - 120 && !route.hairpin[idx] && !inTown(towns, next, 90)) {
+    if (flat && route.y[idx] < treeline - 120 && !site.field.isOpenRoad(idx) && !route.hairpin[idx] && !inTown(towns, next, 90)) {
       const houses = 3 + Math.floor(rng() * 5);
       for (let h = 0; h < houses; h++) {
         tryYard(next + (rng() - 0.5) * 320, rng() < 0.5 ? -1 : 1, EDGE + 9 + rng() * 14);
@@ -816,6 +816,7 @@ function buildYards(site: Site, towns: TownSpan[], junctions: Junction[]): void 
   }
 
   for (const j of junctions) {
+    if (site.field.isOpenRoad(j.idx)) continue;
     tryYard(j.idx * ROUTE_DS + 34, j.side, EDGE + 10 + rng() * 4);
     tryYard(j.idx * ROUTE_DS - 34, j.side, EDGE + 13 + rng() * 5);
   }
