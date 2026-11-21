@@ -970,7 +970,7 @@ describe('Krvavec on its real road', () => {
   const def = realClimbRoute(c);
   const route = getRoute(def);
   const climb = route.climbs[0];
-  const origin = def.track!.origin!;
+  const origin = (def.track as { origin?: { lat: number; lon: number } }).origin!;
   const R = 6371000;
   const rad = (d: number) => (d * Math.PI) / 180;
   const xz = (lat: number, lon: number) => ({
