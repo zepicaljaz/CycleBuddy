@@ -1,7 +1,7 @@
 {
  "_about": {
   "generated": "2026-11-15",
-  "method": "Per-km gradients are re-binned from published segment profiles: cols-cyclisme.com SVG profiles (exact segment endpoints and elevations), cols-cyclisme/salite.ch profile images (elevation labels read off the image, segment boundaries from pixel positions, every segment checked against its printed grade), and the myCols profile SVG for Krvavec. Each km value = (elevation at km end - elevation at km start) / km length, using linear interpolation between published points. A remainder shorter than 200 m is folded into the last km, so last_km_length_km can be up to 1.2.",
+  "method": "Per-km gradients are re-binned from published segment profiles: cols-cyclisme.com SVG profiles (exact segment endpoints and elevations), cols-cyclisme/salite.ch profile images (elevation labels read off the image, segment boundaries from pixel positions, every segment checked against its printed grade), and the CyclingCols Grad profile image for Krvavec to Plaža. Each km value = (elevation at km end - elevation at km start) / km length, using linear interpolation between published points. A remainder shorter than 200 m is folded into the last km, so last_km_length_km can be up to 1.2.",
   "fields": {
    "elevation_gain_m": "net gain, summit minus start (what the km grades sum to)",
    "total_ascent_m": "sum of all uphill (differs only where the climb has dips)",
@@ -209,19 +209,19 @@
    "elevation_gain_m": 1112,
    "total_ascent_m": 1119,
    "avg_grade_pct": 7.6,
-   "max_grade_pct": 14.0,
+   "max_grade_pct": 14,
    "max_grade_note": "cols-cyclisme published max (steepest profile segment); first 3 km after the valley are the steepest part",
    "hairpins": 21,
    "km_grades": [
     3.2,
     10.7,
     9.6,
-    8.0,
-    8.0,
+    8,
+    8,
     8.8,
     7.9,
     8.8,
-    8.0,
+    8,
     7.3,
     8.7,
     8.5,
@@ -247,12 +247,12 @@
     [
      0,
      0.2,
-     -2.0
+     -2
     ],
     [
      0.2,
      0.7,
-     1.0
+     1
     ],
     [
      0.7,
@@ -277,7 +277,7 @@
     [
      2.6,
      3,
-     9.0
+     9
     ],
     [
      3,
@@ -292,7 +292,7 @@
     [
      3.89,
      4.19,
-     9.0
+     9
     ],
     [
      4.19,
@@ -327,7 +327,7 @@
     [
      7.09,
      7.7,
-     9.0
+     9
     ],
     [
      7.7,
@@ -347,12 +347,12 @@
     [
      9,
      9.29,
-     10.0
+     10
     ],
     [
      9.29,
      9.79,
-     5.0
+     5
     ],
     [
      9.79,
@@ -367,7 +367,7 @@
     [
      10.29,
      11.19,
-     8.0
+     8
     ],
     [
      11.19,
@@ -377,7 +377,7 @@
     [
      11.6,
      12.19,
-     8.0
+     8
     ],
     [
      12.19,
@@ -402,7 +402,7 @@
     [
      14,
      14.3,
-     -1.0
+     -1
     ],
     [
      14.3,
@@ -434,7 +434,7 @@
    "max_grade_note": "cols-cyclisme published max (steepest profile segment)",
    "hairpins": null,
    "km_grades": [
-    2.0,
+    2,
     3.2,
     4.4,
     6.1,
@@ -444,10 +444,10 @@
     9.3,
     10.3,
     8.9,
-    9.0,
+    9,
     10.4,
     8.9,
-    9.0,
+    9,
     7.9,
     6.5,
     5.6,
@@ -573,7 +573,7 @@
     [
      10.7,
      11.2,
-     10.0
+     10
     ],
     [
      11.2,
@@ -598,7 +598,7 @@
     [
      13.19,
      13.69,
-     9.0
+     9
     ],
     [
      13.69,
@@ -638,7 +638,7 @@
     [
      17.09,
      17.59,
-     7.0
+     7
     ],
     [
      17.59,
@@ -653,7 +653,7 @@
     [
      18.59,
      19.09,
-     8.0
+     8
     ],
     [
      19.09,
@@ -673,7 +673,7 @@
     [
      20.6,
      21.09,
-     10.0
+     10
     ],
     [
      21.09,
@@ -710,26 +710,26 @@
     6.5,
     7.8,
     7.3,
-    7.0,
-    7.0,
+    7,
+    7,
     7.5,
     8.5,
     8.4,
     5.5,
-    8.0,
+    8,
     7.5,
-    8.0,
+    8,
     7.6,
     9.3,
     7.8,
     7.6,
     10.2
    ],
-   "last_km_length_km": 1.0,
+   "last_km_length_km": 1,
    "gain_check": {
     "sum_of_km_grades_m": 1404,
     "elevation_gain_m": 1404,
-    "diff_pct": 0.0,
+    "diff_pct": 0,
     "independent_references": []
    },
    "source_segments": [
@@ -761,12 +761,12 @@
     [
      5,
      6,
-     7.0
+     7
     ],
     [
      6,
      7,
-     7.0
+     7
     ],
     [
      7,
@@ -791,7 +791,7 @@
     [
      11,
      12,
-     8.0
+     8
     ],
     [
      12,
@@ -801,7 +801,7 @@
     [
      13,
      14,
-     8.0
+     8
     ],
     [
      14,
@@ -860,7 +860,7 @@
     2.5,
     4.3,
     7.3,
-    7.0,
+    7,
     7.2,
     7.4,
     5.2,
@@ -889,7 +889,7 @@
    },
    "source_segments": [
     [
-     0.0,
+     0,
      0.22,
      3.6
     ],
@@ -901,7 +901,7 @@
     [
      1.22,
      2.11,
-     9.0
+     9
     ],
     [
      2.11,
@@ -921,7 +921,7 @@
     [
      5.02,
      5.32,
-     8.0
+     8
     ],
     [
      5.32,
@@ -931,7 +931,7 @@
     [
      6.22,
      7.22,
-     7.0
+     7
     ],
     [
      7.22,
@@ -985,11 +985,11 @@
     ],
     [
      16.22,
-     17.0,
+     17,
      8.8
     ],
     [
-     17.0,
+     17,
      17.5,
      10.4
     ],
@@ -1032,8 +1032,8 @@
     11.3,
     13.1,
     11.2,
-    9.0,
-    9.0,
+    9,
+    9,
     8.4,
     7.8
    ],
@@ -1041,7 +1041,7 @@
    "gain_check": {
     "sum_of_km_grades_m": 1300,
     "elevation_gain_m": 1300,
-    "diff_pct": 0.0,
+    "diff_pct": 0,
     "independent_references": [
      {
       "source": "salite.ch list",
@@ -1063,127 +1063,127 @@
    },
    "source_segments": [
     [
-     0.0,
+     0,
      0.5,
-     5.0
+     5
     ],
     [
      0.5,
-     1.0,
+     1,
      8.6
     ],
     [
-     1.0,
+     1,
      1.5,
-     8.0
+     8
     ],
     [
      1.5,
-     2.0,
+     2,
      9.8
     ],
     [
-     2.0,
+     2,
      2.5,
      11.6
     ],
     [
      2.5,
-     3.0,
+     3,
      9.8
     ],
     [
-     3.0,
+     3,
      3.5,
      11.2
     ],
     [
      3.5,
-     4.0,
+     4,
      12.4
     ],
     [
-     4.0,
+     4,
      4.5,
      14.2
     ],
     [
      4.5,
-     5.0,
+     5,
      13.4
     ],
     [
-     5.0,
+     5,
      5.5,
-     14.0
+     14
     ],
     [
      5.5,
-     6.0,
+     6,
      11.8
     ],
     [
-     6.0,
+     6,
      6.5,
      11.2
     ],
     [
      6.5,
-     7.0,
+     7,
      11.4
     ],
     [
-     7.0,
+     7,
      7.5,
      12.8
     ],
     [
      7.5,
-     8.0,
+     8,
      13.4
     ],
     [
-     8.0,
+     8,
      8.5,
      10.8
     ],
     [
      8.5,
-     9.0,
+     9,
      11.6
     ],
     [
-     9.0,
+     9,
      9.5,
      9.2
     ],
     [
      9.5,
-     10.0,
+     10,
      8.8
     ],
     [
-     10.0,
+     10,
      10.5,
      9.2
     ],
     [
      10.5,
-     11.0,
+     11,
      8.8
     ],
     [
-     11.0,
+     11,
      11.5,
-     9.0
+     9
     ],
     [
      11.5,
-     12.0,
+     12,
      7.8
     ],
     [
-     12.0,
+     12,
      12.4,
      7.8
     ]
@@ -1229,12 +1229,12 @@
    "gain_check": {
     "sum_of_km_grades_m": 1205,
     "elevation_gain_m": 1205,
-    "diff_pct": 0.0,
+    "diff_pct": 0,
     "independent_references": []
    },
    "source_segments": [
     [
-     0.0,
+     0,
      0.55,
      7.6
     ],
@@ -1251,7 +1251,7 @@
     [
      1.69,
      2.2,
-     1.0
+     1
     ],
     [
      2.2,
@@ -1326,7 +1326,7 @@
     [
      9.2,
      9.4,
-     10.0
+     10
     ],
     [
      9.4,
@@ -1370,8 +1370,8 @@
     8.8,
     6.8,
     8.1,
-    11.0,
-    10.0,
+    11,
+    10,
     8.7,
     7.3,
     8.3,
@@ -1379,14 +1379,14 @@
     8.7,
     9.6,
     9.3,
-    9.0,
+    9,
     6.8
    ],
    "last_km_length_km": 0.39,
    "gain_check": {
     "sum_of_km_grades_m": 1363,
     "elevation_gain_m": 1363,
-    "diff_pct": 0.0,
+    "diff_pct": 0,
     "independent_references": [
      {
       "source": "salite.ch list",
@@ -1405,47 +1405,47 @@
    },
    "source_segments": [
     [
-     0.0,
-     1.0,
+     0,
+     1,
      3.8
     ],
     [
-     1.0,
+     1,
      1.5,
-     4.0
+     4
     ],
     [
      1.5,
-     2.0,
+     2,
      5.8
     ],
     [
-     2.0,
-     3.0,
+     2,
+     3,
      4.9
     ],
     [
-     3.0,
+     3,
      3.5,
      6.2
     ],
     [
      3.5,
-     4.0,
-     7.0
+     4,
+     7
     ],
     [
-     4.0,
+     4,
      4.6,
      9.1
     ],
     [
      4.6,
-     5.0,
+     5,
      8.4
     ],
     [
-     5.0,
+     5,
      5.5,
      7.2
     ],
@@ -1467,7 +1467,7 @@
     [
      7.99,
      8.99,
-     10.0
+     10
     ],
     [
      8.99,
@@ -1496,31 +1496,31 @@
     ],
     [
      11.4,
-     12.0,
+     12,
      9.3
     ],
     [
-     12.0,
-     13.0,
+     12,
+     13,
      7.8
     ],
     [
-     13.0,
+     13,
      14.2,
      8.7
     ],
     [
      14.2,
      14.7,
-     9.0
+     9
     ],
     [
      14.7,
-     15.0,
+     15,
      11.3
     ],
     [
-     15.0,
+     15,
      15.7,
      9.3
     ],
@@ -1536,11 +1536,11 @@
     ],
     [
      16.5,
-     17.0,
-     8.0
+     17,
+     8
     ],
     [
-     17.0,
+     17,
      17.39,
      6.8
     ]
@@ -1591,7 +1591,7 @@
    },
    "source_segments": [
     [
-     0.0,
+     0,
      0.29,
      8.3
     ],
@@ -1603,7 +1603,7 @@
     [
      1.31,
      1.64,
-     10.0
+     10
     ],
     [
      1.64,
@@ -1633,7 +1633,7 @@
     [
      4.41,
      5.36,
-     9.0
+     9
     ],
     [
      5.36,
@@ -1648,7 +1648,7 @@
     [
      6.52,
      7.46,
-     10.0
+     10
     ],
     [
      7.46,
@@ -1709,77 +1709,77 @@
    },
    "source_segments": [
     [
-     0.0,
+     0,
      0.5,
      2.2
     ],
     [
      0.5,
-     1.0,
+     1,
      5.2
     ],
     [
-     1.0,
+     1,
      1.5,
      11.8
     ],
     [
      1.5,
-     2.0,
-     3.0
+     2,
+     3
     ],
     [
-     2.0,
+     2,
      2.5,
      -2.6
     ],
     [
      2.5,
-     3.0,
-     -4.0
+     3,
+     -4
     ],
     [
-     3.0,
+     3,
      3.5,
      2.4
     ],
     [
      3.5,
-     4.0,
+     4,
      7.8
     ],
     [
-     4.0,
+     4,
      4.5,
      11.4
     ],
     [
      4.5,
-     5.0,
+     5,
      10.2
     ],
     [
-     5.0,
+     5,
      5.5,
      13.4
     ],
     [
      5.5,
-     6.0,
+     6,
      13.8
     ],
     [
-     6.0,
+     6,
      6.5,
      11.4
     ],
     [
      6.5,
-     7.0,
+     7,
      11.8
     ],
     [
-     7.0,
+     7,
      7.5,
      12.4
     ],
@@ -1809,7 +1809,7 @@
    "elevation_gain_m": 1248,
    "total_ascent_m": 1248,
    "avg_grade_pct": 9.9,
-   "max_grade_pct": 23.0,
+   "max_grade_pct": 23,
    "max_grade_note": "cols-cyclisme header; the Cueña les Cabres ramp ~3 km from the top is usually quoted at 23.5 % (cyclingstage)",
    "hairpins": null,
    "km_grades": [
@@ -1831,7 +1831,7 @@
    "gain_check": {
     "sum_of_km_grades_m": 1248,
     "elevation_gain_m": 1248,
-    "diff_pct": 0.0,
+    "diff_pct": 0,
     "independent_references": [
      {
       "source": "cyclingstage (Vuelta 2017)",
@@ -1937,18 +1937,18 @@
     4.6,
     9.3,
     8.7,
-    7.0,
+    7,
     4.6,
     8.4,
     7.3,
     7.1,
-    12.0
+    12
    ],
    "last_km_length_km": 0.39,
    "gain_check": {
     "sum_of_km_grades_m": 669,
     "elevation_gain_m": 669,
-    "diff_pct": 0.0,
+    "diff_pct": 0,
     "independent_references": []
    },
    "source_segments": [
@@ -1975,7 +1975,7 @@
     [
      4,
      5,
-     7.0
+     7
     ],
     [
      5,
@@ -2000,7 +2000,7 @@
     [
      9,
      9.39,
-     12.0
+     12
     ]
    ],
    "description": "A dead-end road built in the 1930s that snakes up from the tiny port through limestone cliffs, including the 270-degree 'knot' where the road loops under itself, to the Coll dels Reis. It is a classic winter and spring training test for pro teams and amateurs based on Mallorca.",
@@ -2023,7 +2023,7 @@
    "elevation_gain_m": 1095,
    "total_ascent_m": 1118,
    "avg_grade_pct": 6.9,
-   "max_grade_pct": 12.0,
+   "max_grade_pct": 12,
    "max_grade_note": "cols-cyclisme published max (short ramp after the Casse Déserte dip)",
    "hairpins": null,
    "km_grades": [
@@ -2035,11 +2035,11 @@
     7.8,
     9.1,
     5.5,
-    9.0,
+    9,
     8.6,
     8.7,
     8.4,
-    8.0,
+    8,
     3.3,
     9.3,
     6.9
@@ -2048,7 +2048,7 @@
    "gain_check": {
     "sum_of_km_grades_m": 1095,
     "elevation_gain_m": 1095,
-    "diff_pct": 0.0,
+    "diff_pct": 0,
     "independent_references": []
    },
    "source_segments": [
@@ -2060,7 +2060,7 @@
     [
      1.09,
      1.59,
-     3.0
+     3
     ],
     [
      1.59,
@@ -2075,7 +2075,7 @@
     [
      2.29,
      2.59,
-     1.0
+     1
     ],
     [
      2.59,
@@ -2090,7 +2090,7 @@
     [
      4.5,
      5,
-     -1.0
+     -1
     ],
     [
      5,
@@ -2100,7 +2100,7 @@
     [
      5.29,
      6.39,
-     8.0
+     8
     ],
     [
      6.39,
@@ -2145,7 +2145,7 @@
     [
      11.7,
      13.3,
-     8.0
+     8
     ],
     [
      13.3,
@@ -2155,7 +2155,7 @@
     [
      13.59,
      13.8,
-     1.0
+     1
     ],
     [
      13.8,
@@ -2165,7 +2165,7 @@
     [
      14.09,
      15.09,
-     9.0
+     9
     ],
     [
      15.09,
@@ -2202,13 +2202,13 @@
     9.4,
     9.5,
     8.3,
-    4.0
+    4
    ],
    "last_km_length_km": 0.5,
    "gain_check": {
     "sum_of_km_grades_m": 453,
     "elevation_gain_m": 453,
-    "diff_pct": 0.0,
+    "diff_pct": 0,
     "independent_references": []
    },
    "source_segments": [
@@ -2240,12 +2240,12 @@
     [
      1.5,
      1.75,
-     6.0
+     6
     ],
     [
      1.75,
      2,
-     2.0
+     2
     ],
     [
      2,
@@ -2265,7 +2265,7 @@
     [
      2.75,
      3,
-     10.0
+     10
     ],
     [
      3,
@@ -2280,12 +2280,12 @@
     [
      3.5,
      3.75,
-     8.0
+     8
     ],
     [
      3.75,
      4,
-     10.0
+     10
     ],
     [
      4,
@@ -2305,7 +2305,7 @@
     [
      4.75,
      5,
-     6.0
+     6
     ],
     [
      5,
@@ -2357,12 +2357,12 @@
    "gain_check": {
     "sum_of_km_grades_m": 761,
     "elevation_gain_m": 761,
-    "diff_pct": 0.0,
+    "diff_pct": 0,
     "independent_references": []
    },
    "source_segments": [
     [
-     0.0,
+     0,
      0.25,
      10.3
     ],
@@ -2384,7 +2384,7 @@
     [
      0.8,
      1.22,
-     4.0
+     4
     ],
     [
      1.22,
@@ -2449,7 +2449,7 @@
     [
      5.28,
      5.59,
-     11.0
+     11
     ],
     [
      5.59,
@@ -2464,7 +2464,7 @@
     [
      6.14,
      6.84,
-     10.0
+     10
     ],
     [
      6.84,
@@ -2489,7 +2489,7 @@
     [
      8.09,
      8.99,
-     12.0
+     12
     ],
     [
      8.99,
@@ -2531,7 +2531,7 @@
     6.9,
     7.7,
     8.7,
-    9.0,
+    9,
     8.8,
     9.1,
     7.1,
@@ -2552,14 +2552,14 @@
       "source": "climbfinder",
       "length_km": 10.9,
       "gain_m": 980,
-      "avg_pct": 9.0,
+      "avg_pct": 9,
       "max_pct": 18.8
      }
     ]
    },
    "source_segments": [
     [
-     0.0,
+     0,
      0.79,
      7.2
     ],
@@ -2644,177 +2644,229 @@
   {
    "id": "krvavec-cerklje",
    "name": "Krvavec",
-   "side": "Cerklje na Gorenjskem",
+   "side": "Grad (Cerklje na Gorenjskem)",
    "country": "Slovenia",
    "region": "Upper Carniola (Kamnik-Savinja Alps)",
-   "length_km": 11.6,
-   "start_elevation_m": 461,
-   "summit_elevation_m": 1423,
-   "elevation_gain_m": 962,
-   "total_ascent_m": 968,
-   "avg_grade_pct": 8.3,
+   "length_km": 15.2,
+   "start_elevation_m": 431,
+   "summit_elevation_m": 1594,
+   "elevation_gain_m": 1163,
+   "total_ascent_m": 1165,
+   "avg_grade_pct": 7.7,
    "max_grade_pct": 12.6,
-   "max_grade_note": "mycols published max",
+   "max_grade_note": "steepest half-kilometre on the CyclingCols Grad profile (km 1.2–1.7)",
    "hairpins": null,
    "km_grades": [
-    11.4,
-    9.6,
-    3.4,
-    7.0,
-    8.0,
-    7.7,
-    7.1,
+    8.9,
+    11.5,
+    6.1,
+    4,
+    8.3,
+    8.1,
+    7,
+    8.4,
+    11.1,
     9.3,
-    11.0,
-    8.2,
-    9.6,
-    6.4
+    9.3,
+    7.1,
+    3.5,
+    3.4,
+    7.8,
+    11.8
    ],
-   "last_km_length_km": 0.6,
+   "last_km_length_km": 0.2,
    "gain_check": {
-    "sum_of_km_grades_m": 961,
-    "elevation_gain_m": 962,
+    "sum_of_km_grades_m": 1162,
+    "elevation_gain_m": 1163,
     "diff_pct": 0.1,
     "independent_references": [
      {
-      "source": "RTV Slovenija (from Grad)",
-      "length_km": 11.7,
-      "gain_m": 950,
-      "avg_pct": 8.0
+      "source": "Pogi Challenge / RTV Slovenija (S Klanca v Klanc)",
+      "length_km": 15.13,
+      "gain_m": 1177,
+      "avg_pct": 7.9
+     },
+     {
+      "source": "PJAMM (Grad to Tiha dolina)",
+      "length_km": 15.6,
+      "gain_m": 1177,
+      "avg_pct": 7.5
+     },
+     {
+      "source": "CyclingCols (Grad)",
+      "length_km": 15.2,
+      "gain_m": 1163,
+      "avg_pct": 7.7
      }
     ]
    },
    "source_segments": [
     [
-     0.0,
-     0.5,
-     11.2
+     0,
+     0.31,
+     1.6
     ],
     [
-     0.5,
-     1.0,
-     11.7
+     0.31,
+     0.7,
+     12.5
     ],
     [
-     1.0,
-     1.5,
+     0.7,
+     1.21,
      11.6
     ],
     [
-     1.5,
-     2.0,
-     7.7
-    ],
-    [
-     2.0,
-     2.5,
-     8.1
-    ],
-    [
-     2.5,
-     3.0,
-     -1.2
-    ],
-    [
-     3.0,
-     3.5,
-     4.3
-    ],
-    [
-     3.5,
-     4.0,
-     9.8
-    ],
-    [
-     4.0,
-     4.5,
-     8.4
-    ],
-    [
-     4.5,
-     5.0,
-     7.6
-    ],
-    [
-     5.0,
-     5.5,
-     9.0
-    ],
-    [
-     5.5,
-     6.0,
-     6.4
-    ],
-    [
-     6.0,
-     6.5,
-     6.8
-    ],
-    [
-     6.5,
-     7.0,
-     7.4
-    ],
-    [
-     7.0,
-     7.5,
-     8.9
-    ],
-    [
-     7.5,
-     8.0,
-     9.7
-    ],
-    [
-     8.0,
-     8.5,
+     1.21,
+     1.7,
      12.6
     ],
     [
-     8.5,
-     9.0,
-     9.5
+     1.7,
+     2.21,
+     9.7
     ],
     [
-     9.0,
-     9.5,
-     8.4
+     2.21,
+     2.7,
+     8.7
     ],
     [
-     9.5,
-     10.0,
-     8.0
+     2.7,
+     3.2,
+     -0.4
     ],
     [
-     10.0,
-     10.5,
-     9.8
+     3.2,
+     3.66,
+     3
     ],
     [
-     10.5,
-     11.0,
-     9.4
+     3.66,
+     4.2,
+     8.1
     ],
     [
-     11.0,
-     11.5,
-     7.7
+     4.2,
+     4.7,
+     8.8
     ],
     [
-     11.5,
-     11.6,
-     0.0
+     4.7,
+     5.21,
+     7.5
+    ],
+    [
+     5.21,
+     5.7,
+     9.1
+    ],
+    [
+     5.7,
+     6.18,
+     7
+    ],
+    [
+     6.18,
+     6.7,
+     6.8
+    ],
+    [
+     6.7,
+     7.16,
+     7.3
+    ],
+    [
+     7.16,
+     7.7,
+     7.9
+    ],
+    [
+     7.7,
+     8.2,
+     10
+    ],
+    [
+     8.2,
+     8.7,
+     12
+    ],
+    [
+     8.7,
+     9.2,
+     10.4
+    ],
+    [
+     9.2,
+     9.7,
+     9.2
+    ],
+    [
+     9.7,
+     10.2,
+     8.6
+    ],
+    [
+     10.2,
+     10.7,
+     9.2
+    ],
+    [
+     10.7,
+     11.2,
+     10
+    ],
+    [
+     11.2,
+     11.72,
+     8.7
+    ],
+    [
+     11.72,
+     12.2,
+     2.1
+    ],
+    [
+     12.2,
+     12.7,
+     3.6
+    ],
+    [
+     12.7,
+     13.2,
+     4.4
+    ],
+    [
+     13.2,
+     13.7,
+     3.8
+    ],
+    [
+     13.7,
+     14.2,
+     2
+    ],
+    [
+     14.2,
+     14.7,
+     7.8
+    ],
+    [
+     14.7,
+     15.2,
+     11.8
     ]
    ],
-   "description": "The road to the Krvavec ski area climbs from the Cerklje plain at a steady 8-12 %, with a short dip around km 2.5-3 and a steep upper half, to a viewpoint over the Ljubljana basin and the Kamnik Alps. It is one of the hardest road climbs in Slovenia and has hosted Tour of Slovenia summit finishes (e.g. 2010 stage 3, Bled-Krvavec).",
-   "famous_for": "One of Slovenia's hardest road climbs; Tour of Slovenia finish",
+   "description": "The Pogi Challenge climb: from the end of Grad, near Cerklje na Gorenjskem, the paved road climbs past Ambrož pod Krvavcem and Planina Jezerca to Plaža beside Hotel Krvavec. The first kilometres are the steepest, there is a short dip near km 3, then a hard run through Ambrož to Jezerca and a steeper finish across the pastures to 1,594 m. It is Tadej Pogačar's home climb and the finish of the Tour of Slovenia 2024 stage to Plaža.",
+   "famous_for": "Pogačar's home climb; Pogi Challenge finish; Tour of Slovenia summit at Plaža",
    "sources": [
-    "https://mycols.app/en/climb/krvavec",
-    "https://mycols.app/en/climb/profile/krvavec",
-    "https://rtvslo.si/news-in-english/climb-by-bike-to-krvavec-is-second-only-to-ascent-to-mangart/319916",
-    "https://www.bikemap.net/en/r/485075"
+    "https://www.cyclingcols.com/col/krvavec",
+    "https://cyclingcols.b-cdn.net/p/Krvavec.png",
+    "https://pogichallenge.com/en/",
+    "https://www.rtvslo.si/sport/kolesarstvo/sklancavklanc/zelite-s-kolesom-osvojiti-krvavec-medtem-ko-vas-lovi-sam-pogacar/788089",
+    "https://pjammcycling.com/climb/870.Krvavec"
    ],
-   "notes": "Derived from the myCols profile SVG (11.6 km, 461 -> 1,423 m, 8.8 %, max 12.6 %): elevations every 500 m from the drawn profile, scaled between the labelled start and finish heights; each 500 m grade matches the printed (rounded) label. The last ~0.1 km is flat. Not on cols-cyclisme/salite; the only per-segment source found."
+   "notes": "Elevation labels every ~0.5 km read from the CyclingCols Grad profile image (15.2 km, 431 -> 1,594 m, 7.7 %). Each segment grade is (elevation change) / (distance between labels). The road continues on asphalt past Planina Jezerca to Plaža (OpenStreetMap restaurant node). The Pogi Challenge timed climb is the same road: 15.13 km, 1,177 m, 7.9 % from the fork at Grad to the hotel. Older myCols / Tour finishes stopped at Jezerca (~11.6–12.2 km)."
   },
   {
    "id": "grossglockner-fusch",
@@ -2844,10 +2896,10 @@
     9.9,
     9.9,
     9.9,
-    10.0,
-    10.0,
+    10,
+    10,
     10.7,
-    11.0,
+    11,
     11.1,
     10.9,
     8.6,
@@ -2857,7 +2909,7 @@
    "gain_check": {
     "sum_of_km_grades_m": 1589,
     "elevation_gain_m": 1589,
-    "diff_pct": 0.0,
+    "diff_pct": 0,
     "independent_references": []
    },
    "source_segments": [
@@ -2878,18 +2930,18 @@
     ],
     [
      7.19,
-     12.0,
+     12,
      9.9
     ],
     [
-     12.0,
+     12,
      14.3,
-     10.0
+     10
     ],
     [
      14.3,
      16.2,
-     11.0
+     11
     ],
     [
      16.2,
@@ -2941,10 +2993,10 @@
     7.3,
     9.1,
     8.3,
-    7.0,
+    7,
     9.4,
     5.7,
-    8.0,
+    8,
     8.2,
     7.8,
     7.1,
@@ -2957,7 +3009,7 @@
    "gain_check": {
     "sum_of_km_grades_m": 1505,
     "elevation_gain_m": 1505,
-    "diff_pct": 0.0,
+    "diff_pct": 0,
     "independent_references": []
    },
    "source_segments": [
@@ -2969,12 +3021,12 @@
     [
      1,
      1.5,
-     7.0
+     7
     ],
     [
      1.5,
      2,
-     6.0
+     6
     ],
     [
      2,
@@ -2989,7 +3041,7 @@
     [
      3.59,
      4,
-     9.0
+     9
     ],
     [
      4,
@@ -3044,7 +3096,7 @@
     [
      12,
      13,
-     8.0
+     8
     ],
     [
      13,
@@ -3102,7 +3154,7 @@
    "elevation_gain_m": 128,
    "total_ascent_m": 128,
    "avg_grade_pct": 9.8,
-   "max_grade_pct": 17.0,
+   "max_grade_pct": 17,
    "max_grade_note": "cols-cyclisme published max; the hairpin at the chapels is widely quoted at about 26 %",
    "hairpins": null,
    "km_grades": [
@@ -3113,54 +3165,54 @@
    "gain_check": {
     "sum_of_km_grades_m": 128,
     "elevation_gain_m": 128,
-    "diff_pct": 0.0,
+    "diff_pct": 0,
     "independent_references": []
    },
    "source_segments": [
     [
      0,
      0.1,
-     7.0
+     7
     ],
     [
      0.1,
      0.2,
-     1.0
+     1
     ],
     [
      0.2,
      0.3,
-     5.0
+     5
     ],
     [
      0.3,
      0.4,
-     6.0
+     6
     ],
     [
      0.4,
      0.5,
-     10.0
+     10
     ],
     [
      0.5,
      0.61,
-     10.0
+     10
     ],
     [
      0.61,
      0.71,
-     11.0
+     11
     ],
     [
      0.71,
      0.81,
-     10.0
+     10
     ],
     [
      0.81,
      0.91,
-     17.0
+     17
     ],
     [
      0.91,
@@ -3175,12 +3227,12 @@
     [
      1.11,
      1.21,
-     15.0
+     15
     ],
     [
      1.21,
      1.31,
-     6.0
+     6
     ]
    ],
    "description": "A short, savage wall that leaves the town of Huy and climbs the Chemin des Chapelles past small roadside chapels, steepening in the middle before easing slightly at the line. It has been the finish of La Flèche Wallonne since 1983.",
@@ -3208,7 +3260,7 @@
    "hairpins": null,
    "km_grades": [
     1.4,
-    1.0,
+    1,
     1.5,
     1.7,
     2.4,
@@ -3217,18 +3269,18 @@
     10.6,
     8.6,
     8.3,
-    10.0,
+    10,
     12.5,
     7.2,
     7.9,
     0.1,
-    10.0
+    10
    ],
-   "last_km_length_km": 1.0,
+   "last_km_length_km": 1,
    "gain_check": {
     "sum_of_km_grades_m": 1014,
     "elevation_gain_m": 1014,
-    "diff_pct": 0.0,
+    "diff_pct": 0,
     "independent_references": []
    },
    "source_segments": [
@@ -3240,7 +3292,7 @@
     [
      1,
      2,
-     1.0
+     1
     ],
     [
      2,
@@ -3290,7 +3342,7 @@
     [
      10,
      11,
-     10.0
+     10
     ],
     [
      11,
@@ -3320,7 +3372,7 @@
     [
      15,
      16,
-     10.0
+     10
     ]
    ],
    "description": "After 5 km of valley road past the basilica of Covadonga, the climb rears up into the Picos de Europa, with the steep La Huesera section and the Mirador de la Reina, a short descent near the top and a final ramp to the glacial lakes Enol and Ercina. It has been the Vuelta's signature summit finish since 1983.",
@@ -3343,122 +3395,122 @@
    "elevation_gain_m": 478,
    "total_ascent_m": 478,
    "avg_grade_pct": 11.9,
-   "max_grade_pct": 17.0,
+   "max_grade_pct": 17,
    "max_grade_note": "cols-cyclisme published max",
    "hairpins": null,
    "km_grades": [
     11.8,
     11.2,
     11.8,
-    13.0
+    13
    ],
-   "last_km_length_km": 1.0,
+   "last_km_length_km": 1,
    "gain_check": {
     "sum_of_km_grades_m": 478,
     "elevation_gain_m": 478,
-    "diff_pct": 0.0,
+    "diff_pct": 0,
     "independent_references": []
    },
    "source_segments": [
     [
      0,
      0.2,
-     12.0
+     12
     ],
     [
      0.2,
      0.4,
-     12.0
+     12
     ],
     [
      0.4,
      0.6,
-     11.0
+     11
     ],
     [
      0.6,
      0.8,
-     12.0
+     12
     ],
     [
      0.8,
      1,
-     12.0
+     12
     ],
     [
      1,
      1.2,
-     11.0
+     11
     ],
     [
      1.2,
      1.4,
-     11.0
+     11
     ],
     [
      1.4,
      1.6,
-     12.0
+     12
     ],
     [
      1.6,
      1.8,
-     11.0
+     11
     ],
     [
      1.8,
      2,
-     11.0
+     11
     ],
     [
      2,
      2.2,
-     11.0
+     11
     ],
     [
      2.2,
      2.4,
-     12.0
+     12
     ],
     [
      2.4,
      2.6,
-     12.0
+     12
     ],
     [
      2.6,
      2.8,
-     12.0
+     12
     ],
     [
      2.8,
      3,
-     12.0
+     12
     ],
     [
      3,
      3.2,
-     13.0
+     13
     ],
     [
      3.2,
      3.4,
-     12.0
+     12
     ],
     [
      3.4,
      3.6,
-     12.0
+     12
     ],
     [
      3.6,
      3.8,
-     13.0
+     13
     ],
     [
      3.8,
      4,
-     15.0
+     15
     ]
    ],
    "description": "The final road spirals around the extinct volcano at a near-constant 12 %, with views over the Chaîne des Puys, to the summit at about 1,412 m. Normally closed to bikes and cars (a rack railway runs alongside), it is famous for the 1964 Tour shoulder-to-shoulder duel between Poulidor and Anquetil and returned to the Tour in 2023.",
@@ -3567,7 +3619,7 @@
        8.1,
        7.2,
        7.6,
-       7.0,
+       7,
        6.1,
        6.2,
        6.4,
@@ -3689,7 +3741,7 @@
      "climb_ref": {
       "name": "Côte de Renoir",
       "length_km": 2.2,
-      "avg_grade_pct": 6.0
+      "avg_grade_pct": 6
      },
      "category": "4"
     },
@@ -3829,7 +3881,7 @@
      "type": "climb",
      "climb_ref": {
       "name": "Côte de Saint-Roch",
-      "length_km": 1.0,
+      "length_km": 1,
       "avg_grade_pct": 11.2
      },
      "category": "côte"
@@ -3839,7 +3891,7 @@
      "type": "climb",
      "climb_ref": {
       "name": "Côte de Mont-le-Soie",
-      "length_km": 4.0,
+      "length_km": 4,
       "avg_grade_pct": 6.1
      },
      "category": "côte"
@@ -3859,7 +3911,7 @@
      "type": "climb",
      "climb_ref": {
       "name": "Côte de Stockeu",
-      "length_km": 1.0,
+      "length_km": 1,
       "avg_grade_pct": 12.5
      },
      "category": "côte"
@@ -3910,7 +3962,7 @@
       "last_km_length_km": 0.72,
       "source": "cols-cyclisme c433 SVG",
       "race_figures": {
-       "length_km": 2.0,
+       "length_km": 2,
        "avg_grade_pct": 8.9
       }
      },
@@ -3943,7 +3995,7 @@
       "source": "cols-cyclisme c2234 SVG",
       "race_figures": {
        "length_km": 1.3,
-       "avg_grade_pct": 11.0
+       "avg_grade_pct": 11
       }
      },
      "category": "côte"

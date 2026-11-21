@@ -78,9 +78,9 @@ Also on the home screen: **Analytics** (dashboard, all rides, segment analyzer, 
   gradients don't add up to its gain is dropped (`checkClimb`).
 - **Real road 1:1:** Vršič, Alpe d'Huez, Passo dello Stelvio from Prato, Mont Ventoux from
   Bédoin, Col du Tourmalet from Luz-Saint-Sauveur, Alto de l'Angliru from La Vega, Col du
-  Galibier from Valloire and Passo Giau from Selva di Cadore run on their real roads (OpenStreetMap
-  line, published profile, real terrain). Free ride lists them under **Real climbs**. How they
-  are built: `docs/REAL_ROADS.md`.
+  Galibier from Valloire, Passo Giau from Selva di Cadore and Krvavec from Grad to Plaža run
+  on their real roads (OpenStreetMap line, published profile, real terrain). Free ride lists
+  them under **Real climbs**. How they are built: `docs/REAL_ROADS.md`.
 - **Time trials:** a start ramp, riders leave one by one (the GC leader last), each on their own
   clock, with a broom car behind the last rider.
 

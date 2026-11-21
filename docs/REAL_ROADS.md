@@ -252,6 +252,26 @@ is built. They are in `TerrainField`, so a new road gets them on its own.
   jumps to the terrace on the other side. Do not paper over the fin with a
   vertical skirt.
 
+## Krvavec from Grad to Plaža
+
+Built with `node scripts/real-track/build.mjs krvavec`. Same rules as Vršič, with these choices:
+
+- The line is the paved road from the tertiary named Grad in Grad (Cerklje na
+  Gorenjskem), through Ambrož pod Krvavcem and Planina Jezerca, then the ski-area
+  service road to Plaža beside Hotel Krvavec. Tracks toward Zvoh and the gondola stay out.
+- The timed climb is the Pogi Challenge / CyclingCols road: 15.2 km from the Grad
+  hamlet (431 m) to Plaža (1,594 m). The climb starts on the first metre. After the
+  corner rounding the line is 15.50 km (2.0 % long). On a full kilometre the gradient
+  stays inside a point of that profile. The 30 m terrain is about 13 m off along the
+  road, so it is used for the mountains and not for the slope.
+- There is no published numbered hairpin series. Signs count up from the foot, on
+  the sharp bends of this line only. The bends stay as mapped (`minRadius: 0`).
+- The turn at Plaža and the turn on the Grad street are the same small balloon as
+  Vršič, so the ride comes back down this road and can climb it again.
+- Towns, measured from the valley end: Grad on the opening street, Ambrož pod
+  Krvavcem where the road passes the village around 1,085 m. The pastures above
+  Jezerca stay open (`pastureAbove` 1,400 m).
+
 ## Adding the next road
 
 1. Fetch the OSM ways for the road into `data/osm/<name>.json` (Overpass; ask
