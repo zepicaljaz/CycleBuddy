@@ -11,8 +11,8 @@ MEASURE=1 npx vitest run src/ai/raceMeasure.test.ts          # macOS, Linux
 $env:MEASURE=1; npx vitest run src/ai/raceMeasure.test.ts    # Windows PowerShell
 ```
 
-It rides one road stage per terrain band (flat, hilly, medium mountain, mountain), the one closest
-to 22 km, with three seeds each. About 20 seconds per stage and seed on a laptop, so a few minutes
+It rides one road stage per terrain band (flat, hilly, medium mountain, mountain), with the finish
+that band usually has (sprint, hill, hill, mountain), the one closest to 22 km, with three seeds each. About 20 seconds per stage and seed on a laptop, so a few minutes
 in all. Options:
 
 | Variable | What it does |
@@ -30,7 +30,7 @@ effort. The player is left out of every number. Sliders are flat 2.8, hills 3.2,
 
 | Line | Meaning |
 |---|---|
-| break: formed | Share of races where a group of 20 riders or fewer got 20 s or more clear of the biggest group |
+| break: formed | Share of races where a group of 20 riders or fewer got 20 s or more clear of the biggest group, before 85% of the stage |
 | break: wins | Share of races won by a rider who spent a minute or more in such a group before the last tenth of the stage |
 | biggest gap, mean size, caught | The gap in seconds, the riders in small groups ahead, and the kilometres to go when the gap first fell under 3 s after its peak ("0.0" means it was only caught at the line, or never) |
 | bunch split | Share of races where more than 20 riders got clear of the biggest group, so the field split in two big parts |
@@ -84,6 +84,16 @@ the 3%, 5% and 7% steps. At the start of a steep descent the group
 speed lock may add up to 1.8 m/s each second on top of what the physics gives (`accel` in
 `RideSim.step`). That is more than gravity alone gives on a -10% slope, so it is a likely cause of
 the 7 to 9 km/h jumps. I have not checked that, and nothing here changes it.
+
+## After the racing rework
+
+The racing rework (`docs/CAREER_RACING.md`) changed the tool too: it now rides one stage per terrain band
+**with the finish that band usually has** (the flat stage above ends on a hill, so the new flat stage is
+Regional Tour Stage 3, a sprint finish), times the gap at a point on the road instead of dividing a distance
+by the bunch's speed (that inflated gaps on steep walls), and counts the break only up to 85% of the stage so
+the attacks of a finale are not counted as a break. The tables above were made before those changes; the
+before-and-after comparison on the new stages, five seeds each, is in `docs/CAREER_RACING.md` under
+"What the measuring tool says".
 
 ## Limits
 

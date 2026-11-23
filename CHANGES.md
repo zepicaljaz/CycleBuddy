@@ -6,6 +6,16 @@ releases.
 
 ## Unreleased
 
+- **Career racing: how a road race is raced** (`ai/raceBrain.ts`, `ai/road.ts`, `docs/CAREER_RACING.md`). The bunch still rides your sliders; everything else changed:
+  - **Early break:** several attempts in the first quarter of the stage, a break of 3 to 6 riders who are not today's leaders, one or two more bridging across. About one race in ten has no break.
+  - **Chase director:** the bunch lets the break go to about 2.2 s per km of stage, holds it there, then chases at Chapatte's 6 s per km to catch it about 2-3 km out (on the last climb for a climb finish). How hard the chase can ride depends on the day and on how fresh the pullers are, so a break sometimes stays away. A late attack by a leader is chased at once.
+  - **Surges that cost something:** a surge reserve (a W'-balance model against the slider) for every rider, sized by their rating against today's best. Attacks are 1.16-1.35 times the slider for 30-60 s; a rider cracks when the reserve is empty on a climb, not from a fixed rating gap.
+  - **Final climb:** the decisive ascent is found from the road profile, including a run of short walls. Team tempo from 30% of the way up (1.04-1.05 times the slider), 1.06-1.08 from 70%, planned attacks by the contenders, counters, then the uphill kick in the last 200-300 m at up to 2.4 times the slider.
+  - **Sprint:** lead-out from about 13% of the stage out (1.15, then 1.28 in the last km, 1.38 in the last 500 m at the front), each sprinter jumping at a distance of their own, and a peak of 4.7 times the flat slider for the day's best sprinter (up to 16 W/kg), 3 s ramp, 9-12 s hold, fade.
+  - **Splits close again:** a group that falls a few seconds behind another closes on the flat (and on climbs, before the finale), so the field no longer stays split in two.
+  - **Descents:** a small descending skill per rider for riders off the bunch, the reserve refills on descents, and an occasional descent attack by a fresh, good descender.
+  - **Day form:** 0.93 to 1.07 per rider and stage, on surge capacity and sprint power only.
+- **Measuring tool:** measures one stage per terrain band with the finish that band usually has (a flat stage ends in a sprint), times gaps at a point on the road, and counts the break only up to 85% of the stage.
 - **Career racing: measuring tool** (`ai/raceMeasure.ts`, `docs/RACE_MEASURING.md`). Rides a stage headless with a seeded field and reports the break and its gap, how often the break and the best rider win, how the bunch splits, how fast the bunch speed changes, and how hard the AI attacks and sprints. Off by default; run with `MEASURE=1`. The doc has the numbers before and after the descent fix.
 - **Career racing: descents.** The AI bunch used to drop to a flat 1.15 W/kg the moment the road tipped down past 1.5%, so it rode slower there than on a 1% descent. It now pedals at a share of your flat W/kg that tapers smoothly with the slope: 90% at 1.5%, 60% at 3%, 30% at 5%, and a tuck with no pedalling from 10%. Steeper descents are always faster. (`descentWkg` in `ai/road.ts`)
 - **Career racing: terrain steps.** The hill, medium and mountain sliders used to switch at exactly 3%, 5% and 7%, so the bunch's target jumped when the road tipped up. They now blend over a one percent ramp around each of those slopes.
