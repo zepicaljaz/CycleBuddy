@@ -106,6 +106,7 @@ cyclebuddy/
 ├── public/route-previews/     Still image of each loop, for the Free ride picker
 ├── logo/                      Logo source files
 ├── docs/REAL_ROADS.md         How real roads are built
+├── docs/RACE_MEASURING.md     How to measure Career racing, and the numbers so far
 ├── README.md                  This file: what is where
 ├── ARCHITECTURE.md            How the parts fit together
 ├── CONTRIBUTING.md            How we work: branches, pull requests, versions (read this first)
@@ -142,6 +143,7 @@ cyclebuddy/
 | `ai/peloton.ts` | The AI field: pacing, drafting, lanes and packs, attacks, finish and time-trial clocks |
 | `ai/road.ts` | Road-race plans: terrain W/kg, team orders, time-trial start order and gaps |
 | `ai/climbers.ts`, `ai/names.ts` | Hill-climb fields and rider names |
+| `ai/raceMeasure.ts` | Measuring tool for Career races: rides a stage headless and reports breaks, gaps, winners, bunch size and power. See `docs/RACE_MEASURING.md` |
 
 **Roads**
 

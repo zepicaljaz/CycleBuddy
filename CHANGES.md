@@ -6,6 +6,7 @@ releases.
 
 ## Unreleased
 
+- **Career racing: measuring tool** (`ai/raceMeasure.ts`, `docs/RACE_MEASURING.md`). Rides a stage headless with a seeded field and reports the break and its gap, how often the break and the best rider win, how the bunch splits, how fast the bunch speed changes, and how hard the AI attacks and sprints. Off by default; run with `MEASURE=1`. The doc has the numbers before and after the descent fix.
 - **Career racing: descents.** The AI bunch used to drop to a flat 1.15 W/kg the moment the road tipped down past 1.5%, so it rode slower there than on a 1% descent. It now pedals at a share of your flat W/kg that tapers smoothly with the slope: 90% at 1.5%, 60% at 3%, 30% at 5%, and a tuck with no pedalling from 10%. Steeper descents are always faster. (`descentWkg` in `ai/road.ts`)
 - **Career racing: terrain steps.** The hill, medium and mountain sliders used to switch at exactly 3%, 5% and 7%, so the bunch's target jumped when the road tipped up. They now blend over a one percent ramp around each of those slopes.
 - **Krvavec from Grad to Plaža** on its real road: the Pogi Challenge climb from the end of Grad past Ambrož and Planina Jezerca to Plaža, with the published CyclingCols profile and a turnaround at the top. See `docs/REAL_ROADS.md`.
