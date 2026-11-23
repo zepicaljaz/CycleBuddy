@@ -148,6 +148,11 @@ const BUDDY_GAP = 2.3;
 /** Seconds from the start before the buddy is holding the power you set. */
 const BUDDY_WARMUP = 16;
 
+/** m/s² a pace-locked rider may slow beyond what rolling resistance and the slope already do. */
+const EXTRA_BRAKE = 0.6;
+/** The same on a climb. Gravity already slows a rider hard there, and more would throw away the speed carried into the wall. */
+const CLIMB_BRAKE = 0.2;
+
 /** Simulates all riders (player included) with the same physics. */
 export class RideSim {
   readonly racers: Racer[] = [];
@@ -823,7 +828,7 @@ export class RideSim {
         if (r.isPlayer || r.finishTime != null || !rolled || this.holdingStart(r)) continue;
         const g = this.route.gradeAt(r.s) * r.direction;
         const accel = g < -0.02 ? 1.8 : 0.55;
-        r.v = clamp(r.v, rolled[i] - 0.6 * dt, rolled[i] + accel * dt);
+        r.v = clamp(r.v, rolled[i] - (g > 0.03 ? CLIMB_BRAKE : EXTRA_BRAKE) * dt, rolled[i] + accel * dt);
       }
     }
     for (const r of this.racers) {

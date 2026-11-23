@@ -141,6 +141,39 @@ the first wall. If the last 300 m do not climb, it uses the plan's last climb.
 In the finale, a few riders who slipped ahead without attacking do not ride away: their group rides
 97% of the slider and the bunch brings them back.
 
+## The foot of a wall
+
+Found by riding North Week stage 3 (Slenaken: three 500 m walls at 9-10%) at a steady 2.1 W/kg, below the
+2.6 W/kg the bunch rides on the hills. The player went from 48th to 5th of 140 without touching the power.
+Three things made the bunch slower than its own power on a wall, and each is a few percent only on the flat:
+
+1. **The bunch took the slope under its front rider.** Every rider, however far back, slowed to the wall
+   speed as soon as the front rider reached the wall. Each rider now takes the slope under his own wheels
+   (`shapeRoad`, the speed of a rider who is not the nose). On a flat stage the slopes are all alike, so
+   nothing changes there.
+2. **The slot drift was a flat 0.2 m/s.** When the bunch squeezes together at a wall, a rider sits closer
+   to the front than his slot wants, and was held 0.2 m/s under the pace until he had dropped back, which
+   at 8 km/h is a tenth of the speed for about 90 s. The drift now scales with the pace (full strength at
+   9 m/s and above, a quarter at the slowest, `DRIFT_PACE`). The same rule on the flat is unchanged.
+3. **The pace lock braked 0.6 m/s² beyond physics on a climb.** On a wall gravity already slows a rider at
+   about 1 m/s², and the extra threw away the speed the bunch carries in, especially off a descent. On a
+   slope above 3% the extra is now 0.2 m/s² (`CLIMB_BRAKE` in `RideSim.step`). Less than that and the
+   pace lock can no longer hold the bunch to the pace (the bunch ran 30-45 s ahead of the player).
+
+A fourth change, easing the wheel-following rule (`FILE_SPACING`), was tried and dropped: it did nothing for
+the wall and made the flat stage's bunch split (1.8 groups at 90% instead of 1.2).
+
+Measured on that stage with the player at the bunch's own power (time against the 10th rider, 3 seeds,
+before the first wall to the end of the third): the player gained 25-27 s on the first wall and 48-60 s over
+the three before, and 5-10 s and 1-5 s now. At a constant 2.1 W/kg
+he passed 56 and 67 riders on the first wall in two of three seeds before (5 in the third), and passes none now. This is `a rider holding steady power
+at the foot of a wall` in `raceMeasure.test.ts`, which fails on the old code.
+
+What is left: the player still gains a few seconds per wall, because a free rider keeps the speed he
+carries into the wall and a rider in a bunch of 140 cannot (the riders ahead are slower). A real rider in
+the bunch would lose it too, so this is roughly right. After the change the bunch also stretches and
+closes up around the walls (two groups for a short time), which is how a real bunch looks there.
+
 ## The sprint
 
 On a sprint finish (`flatRunIn`, `launchDistance`, `sprintPeakWkg`, `sprintCurve`):

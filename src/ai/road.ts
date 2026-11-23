@@ -139,6 +139,9 @@ export interface RoadActor {
 
 const HOLD = 78;
 
+/** Speed (m/s) at which the group's slot drift is at full strength. Slower than this it shrinks with the speed. */
+const DRIFT_PACE = 9;
+
 /** Wheel to wheel along one file of riders. A bike is about 1.7 m long, so this leaves a small gap. */
 export const FILE_SPACING = 2.2;
 /** Riders closer than this sideways are in the same file and must keep FILE_SPACING. */
@@ -1162,6 +1165,11 @@ export function shapeRoad(
     const slot = new Map(ordered.map((rider, index) => [rider, index]));
     for (const rider of current) {
       let base = pace;
+      if (!matesLead && rider !== nose) {
+        const rg = slope(rider.s);
+        const ew = opening ? terrainWkg(plan, rg) : racePace(plan, rg, roadRemaining(plan, rider.s));
+        base = steadySpeed(Math.max(0, ew * factor * nose.mass), rg, nose.bike, altAt(rider.s), 0);
+      }
       if (!opening && orderedOn && rider.road?.teammate && !matesLead) {
         const own = steadySpeed(Math.max(0, ask.paceWkg * rider.mass), rollGrade, rider.bike, altAt(rider.s), 0);
         base = Math.max(own, bunch + 0.65);
@@ -1177,6 +1185,8 @@ export function shapeRoad(
         if (rider === lead && rider !== nose) drift = 0.3;
         else if (rider === nose && rider !== lead) drift = -0.18;
         else if (rider !== nose) drift = clamp((wantAlong - along(rider.s)) * 0.08, -0.2, 0.3);
+        // The same few percent of the pace at any speed. A flat 0.2 m/s is nothing at 10 m/s and a tenth of the speed on a wall.
+        drift *= clamp(base / DRIFT_PACE, 0.25, 1);
       }
       rider.v = Math.max(0.4, base + drift);
     }

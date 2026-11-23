@@ -6,6 +6,7 @@ releases.
 
 ## Unreleased
 
+- **Career racing: the bunch no longer slows before a wall** (`ai/road.ts`, `ai/peloton.ts`, `docs/CAREER_RACING.md`). Found in a recording of North Week stage 3 at a steady 2.1 W/kg: the player passed most of the bunch at the foot of the first wall. Each rider now takes the slope under his own wheels, the slot drift scales with the pace instead of a flat 0.2 m/s, and the pace lock brakes less beyond physics on a climb. Test: `a rider holding steady power at the foot of a wall` (`raceMeasure.test.ts`).
 - **Career racing: how a road race is raced** (`ai/raceBrain.ts`, `ai/road.ts`, `docs/CAREER_RACING.md`). The bunch still rides your sliders; everything else changed:
   - **Early break:** several attempts in the first quarter of the stage, a break of 3 to 6 riders who are not today's leaders, one or two more bridging across. About one race in ten has no break.
   - **Chase director:** the bunch lets the break go to about 2.2 s per km of stage, holds it there, then chases at Chapatte's 6 s per km to catch it about 2-3 km out (on the last climb for a climb finish). How hard the chase can ride depends on the day and on how fresh the pullers are, so a break sometimes stays away. A late attack by a leader is chased at once.

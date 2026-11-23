@@ -205,7 +205,7 @@ function median(values: number[]): number {
   return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
 }
 
-function startersFor(race: RaceDef): RoadStarter[] {
+export function startersFor(race: RaceDef): RoadStarter[] {
   return aiField(race, null, false).map((slot) => {
     const rider = slot.rider;
     const team = teamById(rider.teamId);

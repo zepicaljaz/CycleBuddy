@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { BREAK_MAX, clusterGroups, defaultStages, formatSummary, listStages, mainGroup, measureMany, measureStage, summarise, type StageReport } from './raceMeasure';
+import { RACES, stageCourse } from '../career/calendar';
+import { teamById, teamKit } from '../career/teams';
+import { RideSim } from './peloton';
+import { BREAK_MAX, clusterGroups, defaultStages, formatSummary, listStages, mainGroup, measureMany, measureStage, planFor, startersFor, summarise, type StageReport } from './raceMeasure';
 
 /**
  * Turned on by MEASURE=1 because it rides whole stages, which is slow on a laptop:
@@ -166,4 +169,42 @@ describe('race measuring tool: racing', () => {
     expect(b.winnerTimeSec).toBe(a.winnerTimeSec);
     expect(b.maxGapSec).toBe(a.maxGapSec);
   }, 3_600_000);
+});
+
+describe('a rider holding steady power at the foot of a wall', () => {
+  // North Week, stage 3 (Slenaken): three 500 m walls at 9% to 10%, the first at 33.5 km.
+  // The player holds 2.1 W/kg all the way, below the 2.6 W/kg the bunch rides on the hills. The bunch
+  // used to brake before the wall and sag behind its slots on it, so the player passed dozens of riders at once.
+  function passedBetween(seed: number, fromS: number, toS: number): number {
+    const race = RACES.find((r) => r.id === 'north-week')!;
+    const stage = race.stages[2];
+    const course = stageCourse(stage);
+    const plan = planFor(race, stage, { flatWkg: 2.2, hillWkg: 2.6, mountainWkg: 3, ttWkg: 3 });
+    const sim = new RideSim(course.route, {
+      startS: course.from,
+      finishS: course.to,
+      aiCount: 0,
+      seed,
+      road: plan,
+      roadField: startersFor(race),
+      player: { name: 'Test', massKg: 72, ftp: 250, colors: teamKit(teamById('atlas')!) },
+    });
+    sim.started = true;
+    const ahead = () => sim.racers.filter((r) => !r.isPlayer && r.s > sim.player.s).length;
+    let before = -1;
+    let after = -1;
+    for (let t = 0; t < 1500 && after < 0; t += 0.25) {
+      sim.step(0.25, 2.1 * sim.player.mass, 90);
+      if (before < 0 && sim.player.s >= fromS) before = ahead();
+      if (before >= 0 && sim.player.s >= toS) after = ahead();
+    }
+    return before - after;
+  }
+
+  it('does not carry the player past the bunch on the first wall or the second', () => {
+    for (const seed of [1, 3]) {
+      expect(passedBetween(seed, 33300, 33700)).toBeLessThan(10);
+      expect(passedBetween(seed, 34400, 34800)).toBeLessThan(10);
+    }
+  });
 });
