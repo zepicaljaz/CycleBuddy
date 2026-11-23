@@ -106,6 +106,7 @@ cyclebuddy/
 ├── public/route-previews/     Still image of each loop, for the Free ride picker
 ├── logo/                      Logo source files
 ├── docs/REAL_ROADS.md         How real roads are built
+├── docs/CAREER_RACING.md      How a Career road race is raced: breaks, chase, climbs, sprints
 ├── docs/RACE_MEASURING.md     How to measure Career racing, and the numbers so far
 ├── README.md                  This file: what is where
 ├── ARCHITECTURE.md            How the parts fit together
@@ -141,8 +142,9 @@ cyclebuddy/
 | `ble/` | Web Bluetooth. `devices.ts` owns trainer and HR connections and reconnects; `ftms.ts` and `fec.ts` are the two trainer protocols; `heartRate.ts`; `virtualTrainer.ts` (arrow keys) |
 | `physics/cycling.ts` | Speed from power, grade, mass, drag, drafting and braking |
 | `ai/peloton.ts` | The AI field: pacing, drafting, lanes and packs, attacks, finish and time-trial clocks |
-| `ai/road.ts` | Road-race plans: terrain W/kg, team orders, time-trial start order and gaps |
+| `ai/road.ts` | Road-race plans and the road AI: terrain W/kg, each rider's move (`decideRoad`), group speeds and the chase (`shapeRoad`), team orders, time-trial start order and gaps |
 | `ai/climbers.ts`, `ai/names.ts` | Hill-climb fields and rider names |
+| `ai/raceBrain.ts` | Career race state and physiology: the early break, the chase director's limits, surge reserve, sprint and kick power, day form, descending skill. See `docs/CAREER_RACING.md` |
 | `ai/raceMeasure.ts` | Measuring tool for Career races: rides a stage headless and reports breaks, gaps, winners, bunch size and power. See `docs/RACE_MEASURING.md` |
 
 **Roads**

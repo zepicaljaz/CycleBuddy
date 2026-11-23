@@ -659,7 +659,8 @@ describe('career season', () => {
       for (let t = 0; t < 150; t += 0.2) sim.step(0.2, 250, 90);
       return sim;
     };
-    const nose = (sim: RideSim) => [...sim.racers].filter((r) => !r.isPlayer && r.mode !== 'attack').sort((a, b) => b.s - a.s)[0]?.road?.teamId;
+    // The front of the bunch: riders off the front on an attack, or easing off after one, do not count.
+    const nose = (sim: RideSim) => [...sim.racers].filter((r) => !r.isPlayer && (r.mode === 'follow' || r.mode === 'pace')).sort((a, b) => b.s - a.s)[0]?.road?.teamId;
     expect(nose(ride('sprint'))).toBe('sprint');
     expect(nose(ride('mountain'))).toBe('climb');
   });
@@ -726,6 +727,7 @@ describe('career season', () => {
     expect(breakFactor(0.6)).toBeCloseTo(1.02, 2);
     expect(breakFactor(0.3)).toBeCloseTo(0.93, 2);
     expect(breakFactor(0.1)).toBe(0.84);
+    // A rider alone off the front rides breakPace: 1.10 of the slider fresh, falling to 0.86 of that when empty.
     const plan: RoadPlan = {
       flatWkg: 2.2, hillWkg: 3, mountainWkg: 3.6, oneDay: false, timeTrial: false,
       startS: 0, finishS: 18000, lastClimbS: null, finishKind: 'sprint', tactic: 'control', features: [],
@@ -747,21 +749,25 @@ describe('career season', () => {
     decideRoad(fresh, plan, orders, 0, [fresh], []);
     decideRoad(tired, plan, orders, 0, [tired], []);
     expect(fresh.mode).toBe('attack');
-    expect(fresh.targetPower / fresh.mass).toBeCloseTo(2.2 * 1.04, 2);
-    expect(tired.targetPower / tired.mass).toBeCloseTo(2.2 * 0.84, 2);
+    expect(fresh.targetPower / fresh.mass).toBeCloseTo(2.2 * 1.1, 2);
+    expect(tired.targetPower / tired.mass).toBeCloseTo(2.2 * 1.1 * 0.86, 2);
+    expect(tired.targetPower).toBeLessThan(fresh.targetPower);
   });
 
-  it('lifts a flat sprint in steps and leaves a hill finish on the slider', () => {
+  it('lifts the front of the bunch in steps on a sprint run-in and leaves a hill finish on the slider', () => {
     const sprint: RoadPlan = {
       flatWkg: 2.2, hillWkg: 3, mountainWkg: 3.6, oneDay: false, timeTrial: false,
       startS: 0, finishS: 18200, lastClimbS: null, finishKind: 'sprint', tactic: 'sprint', features: [],
     };
     const hill: RoadPlan = { ...sprint, finishKind: 'hill', finishS: 21000, lastClimbS: 18000 };
+    // Lead-out from 13% of the stage (2.4 km here): 1.15, the last kilometre 1.28, the last 500 m 1.38.
+    // A break up the road no longer changes it; the chase of a break is the chase director's.
     expect(flatRunIn(sprint, 7000, 0, 0)).toBe(1);
-    expect(flatRunIn(sprint, 7000, 20, 0)).toBe(1.04);
-    expect(flatRunIn(sprint, 5000, 0, 0)).toBe(1.05);
-    expect(flatRunIn(sprint, 2000, 0, 0)).toBe(1.08);
-    expect(flatRunIn(sprint, 500, 30, 0)).toBe(1.1);
+    expect(flatRunIn(sprint, 7000, 20, 0)).toBe(1);
+    expect(flatRunIn(sprint, 3000, 0, 0)).toBe(1);
+    expect(flatRunIn(sprint, 2000, 0, 0)).toBe(1.15);
+    expect(flatRunIn(sprint, 900, 0, 0)).toBe(1.28);
+    expect(flatRunIn(sprint, 500, 30, 0)).toBe(1.38);
     expect(flatRunIn(sprint, 500, 30, 0.04)).toBe(1);
     expect(flatRunIn(hill, 500, 30, 0)).toBe(1);
   });
@@ -794,7 +800,8 @@ describe('career season', () => {
   it('opens a gap when the best climbers attack', () => {
     const route = getRoute(getRouteDef('argent'));
     const climb = route.climbs.find((item) => item.id === 'arg-lune')!;
-    const start = climb.start + 150;
+    // The last 1.6 km of the climb: the attacks come in the second half of a final climb.
+    const start = climb.end - 1600;
     const climber = (id: string, mountain: number) => {
       const body: RoadBody = {
         riderId: id, teamId: 'hive', age: 27, teammate: false,
@@ -816,9 +823,10 @@ describe('career season', () => {
       player: { name: 'Me', massKg: 68, ftp: 280, colors: DEFAULT_COLORS },
     });
     sim.started = true;
-    for (let t = 0; t < 150; t += 0.2) sim.step(0.2, 300, 85);
     const star = sim.racers.find((r) => r.road?.riderId === 'star')!;
     const dom = sim.racers.find((r) => r.road?.riderId === 'dom')!;
+    for (let t = 0; t < 900 && star.finishTime == null; t += 0.2) sim.step(0.2, 300, 85);
+    expect(star.finishTime).not.toBeNull();
     expect(star.s - dom.s).toBeGreaterThan(40);
     expect(sim.events.some((text) => text.includes('attacks'))).toBe(true);
   });

@@ -1,5 +1,10 @@
 import { steadySpeed, type BikeParams } from '../physics/cycling';
 import { clamp } from '../util/math';
+import {
+  brainFor, breakPace, finaleStart, catchRemaining, chaseCap, chaseSpeedNeeded, criticalRatio, dayForm, descentSkill, factorForSpeed,
+  hash01, kickPeakWkg, launchDistance, reserveBudget, sprintCurve, sprintHold, sprintPeakWkg, tickReserve,
+  type FieldPeers, type RaceBrain, type SurgeKind,
+} from './raceBrain';
 import type { RiderColors } from '../world/riders';
 
 /** Seconds between two riders on a time-trial ramp. */
@@ -126,6 +131,10 @@ export interface RoadActor {
   road: RoadBody | null;
   /** Fraction of this rider's stamina bar still left. 1 is full. */
   energy?: number;
+  /** Surge reserve, 0 to 1: what is left for attacks and for following them. See tickReserve. */
+  reserve?: number;
+  /** W/kg it costs to hold the group this step, set by shapeRoad. Undefined when the rider is not in a group. */
+  effort?: number;
 }
 
 const HOLD = 78;
@@ -229,26 +238,24 @@ export function breakFactor(energy: number): number {
   return 0.84;
 }
 
-/** Where a flat sprint starts to lift. A short stage starts closer to the line, and never further than 8 km. */
+/** Where the lead-out trains take the front: about 13% of the stage from the line, 1.5 to 3 km. */
 export function sprintRampFrom(stageLength: number): number {
-  return Math.min(8000, Math.max(6000, stageLength * 0.33));
+  return clamp(stageLength * 0.13, 1500, 3000);
 }
 
 /**
- * Bunch multiplier on a flat sprint finish.
- * A gap only adds a small tempo, because the break slows as its bar falls.
- * The run-in then steps up over the last kilometres.
+ * Speed of the front of the bunch on a flat sprint finish, as a multiple of the flat slider.
+ * The lead-out riders are in the wind at these numbers; a rider sitting in the wheels, the player
+ * included, rides about the slider at the speed they give. The chase of a break is separate (chaseFactor).
  */
 export function flatRunIn(plan: RoadPlan, remaining: number, gapSec: number, grade: number): number {
-  if (plan.timeTrial || plan.finishKind !== 'sprint' || grade < 0) return 1;
-  if (terrainKind(grade) !== 'flat') return 1;
+  void gapSec;
+  if (plan.timeTrial || plan.finishKind !== 'sprint' || grade < -0.02 || grade >= 0.035) return 1;
   const from = sprintRampFrom(Math.abs(plan.finishS - plan.startS));
-  let factor = 1;
-  if (remaining <= 1000) factor = 1.1;
-  else if (remaining <= 3000) factor = 1.08;
-  else if (remaining <= from) factor = 1.05;
-  if (gapSec > 10 && remaining > 1000) factor = Math.max(factor, 1.04);
-  return factor;
+  if (remaining <= 500) return 1.38;
+  if (remaining <= 1000) return 1.28;
+  if (remaining <= from) return 1.15;
+  return 1;
 }
 
 /** Fraction taken off the climb pace on the last climb. Rating does most of it. A low bar adds a little, and a bar above 65% adds none. */
@@ -468,11 +475,6 @@ export function terrainWkg(plan: RoadPlan, grade: number): number {
   return blendBetween(wkg, mountain, grade, 0.065, 0.075);
 }
 
-/** Attack watts. Harder than the pace you set, and never more than twice that pace. */
-function attackPower(pace: number, mass: number, factor: number): number {
-  return Math.min(pace * factor, pace * 2) * mass;
-}
-
 export function raceDir(plan: RoadPlan): 1 | -1 {
   if (plan.dir === 1 || plan.dir === -1) return plan.dir;
   return plan.finishS >= plan.startS ? 1 : -1;
@@ -541,15 +543,6 @@ export function climbPeers(field: { road: RoadBody | null; isPlayer: boolean }[]
   };
 }
 
-function bestClimb(field: RoadActor[], grade: number, punchy?: boolean): number {
-  let best = 0;
-  for (const rider of field) {
-    if (!rider.road || rider.isPlayer || rider.finishTime != null) continue;
-    best = Math.max(best, climbRating(rider.road.attrs, grade, punchy));
-  }
-  return best;
-}
-
 /**
  * Extra stamina cost on a climb when this rider is well short of the best.
  * The first few points are free, which is the draft. After that the bar falls faster.
@@ -560,13 +553,83 @@ export function climbDrain(attr: number, peer: number, grade: number): number {
   return 1 + Math.min(0.45, gap / 50);
 }
 
-function stageBest(body: RoadBody, field: RoadActor[], plan: RoadPlan): number {
-  let best = stageStrength(body.attrs, plan.finishKind, plan.punchy);
-  for (const rider of field) {
-    if (rider.road?.teamId !== body.teamId) continue;
-    best = Math.max(best, stageStrength(rider.road.attrs, plan.finishKind, plan.punchy));
+/** Rating that decides how much over the slider this rider can hold on this slope. */
+function slopeRating(attrs: RaceAttrs, grade: number, punchy?: boolean): number {
+  return grade >= 0.03 ? climbRating(attrs, grade, punchy) : attrs.flat;
+}
+
+/** The best slopeRating in today's field for this slope. Ratings do not change in a race, so they are found once. */
+function slopePeer(brain: RaceBrain, field: readonly { road?: RoadBody | null; isPlayer?: boolean }[], grade: number, punchy?: boolean): number {
+  if (!brain.peers) {
+    const peers: FieldPeers = { flat: 0, hills: 0, medium: 0, mountain: 0, punch: 0, sprint: 0 };
+    for (const r of field) {
+      if (!r.road || r.isPlayer) continue;
+      const a = r.road.attrs;
+      peers.flat = Math.max(peers.flat, a.flat);
+      peers.hills = Math.max(peers.hills, a.hills);
+      peers.medium = Math.max(peers.medium, a.medium);
+      peers.mountain = Math.max(peers.mountain, a.mountain);
+      peers.punch = Math.max(peers.punch, punchScore(a));
+      peers.sprint = Math.max(peers.sprint, a.sprint);
+    }
+    brain.peers = peers;
   }
-  return best;
+  const p = brain.peers;
+  if (grade < 0.03) return p.flat;
+  if (punchy) return p.punch;
+  if (grade > 0.06) return p.mountain;
+  if (grade > 0.045) return p.medium;
+  return p.hills;
+}
+
+/** Strength for the finish of a mountain-top or hill-top kick. */
+function kickRating(attrs: RaceAttrs, finish: RoadFinish): number {
+  return finish === 'hill' ? punchScore(attrs) : attrs.mountain * 0.8 + attrs.sprint * 0.2;
+}
+
+/**
+ * Metres along where the decisive final climb starts. The road profile when shapeRoad has read it
+ * (a finish that keeps climbing for several climbs counts from the first of them); else the plan's last climb.
+ */
+function finaleAlong(plan: RoadPlan, brain: RaceBrain): number | null {
+  if (plan.finishKind === 'sprint') return null;
+  const last = plan.lastClimbS != null ? roadAlong(plan, plan.lastClimbS) : null;
+  const profile = brain.finaleAlong;
+  if (profile != null) return last != null ? Math.min(profile, last) : profile;
+  return last;
+}
+
+/** Share of the slider a cracked rider holds on a climb. */
+export const CRACKED_SHARE = 0.97;
+
+/** Start the last climb this far before its foot, so the tempo is on when the road tips up. */
+const FINALE_LEAD_M = 100;
+
+function startSurge(brain: RaceBrain, r: RoadActor, kind: SurgeKind, along: number, seconds: number, factor: number): void {
+  brain.surges.set(r.id, { kind, fromAlong: along, lenM: seconds * Math.max(4, r.v), factor });
+}
+
+/**
+ * One tick of the surge reserve for an AI road rider. Effort is measured against the slider for
+ * the slope (the flat slider on descents, so a descent refills it). A sprint does not touch it.
+ */
+export function tickRoadReserve(
+  r: RoadActor & { power: number },
+  plan: RoadPlan,
+  grade: number,
+  field: readonly { phase: number; road?: RoadBody | null; isPlayer?: boolean }[],
+  dt: number,
+): number {
+  const reserve = r.reserve ?? 1;
+  const body = r.road;
+  if (!body || r.isPlayer || plan.timeTrial || r.mode === 'sprint' || r.mode === 'finished') return reserve;
+  const brain = brainFor(field, Math.abs(plan.finishS - plan.startS));
+  const form = dayForm(body.riderId, brain.seed);
+  const rating = slopeRating(body.attrs, grade, plan.punchy);
+  const peer = slopePeer(brain, field, grade, plan.punchy);
+  const ref = Math.max(0.5, grade < 0 ? plan.flatWkg : terrainWkg(plan, grade));
+  const wkg = r.effort ?? r.power / Math.max(1, r.mass);
+  return tickReserve(reserve, wkg / ref, criticalRatio(rating, peer, form), reserveBudget(rating, peer, form), body.attrs.recovery, dt);
 }
 
 function note(events: string[], text: string): void {
@@ -617,146 +680,324 @@ export function decideRoad(r: RoadActor, plan: RoadPlan, orders: RoadOrders, gra
     return;
   }
 
-  const nearLast = plan.lastClimbS != null && along >= roadAlong(plan, plan.lastClimbS) - 500 && remaining > 100;
-  const onLast = nearLast && grade > 0.035;
-  const mine = climbRating(body.attrs, grade, plan.punchy);
-  const peer = bestClimb(field, grade, plan.punchy);
-  const attackers = field.filter((o) => o !== r && o.mode === 'attack' && o.finishTime == null).length;
+  const span = Math.abs(plan.finishS - plan.startS);
+  const brain = brainFor(field, span);
+  const form = dayForm(body.riderId, brain.seed);
+  const reserve = r.reserve ?? 1;
   const already = r.mode === 'attack';
-  const fresh = energy >= 0.32;
+  const mine = stageStrength(body.attrs, plan.finishKind, plan.punchy);
+  const say = (verb: string) => {
+    if (r.told) return;
+    r.told = true;
+    note(events, `${r.name} ${verb} · ${(r.targetPower / r.mass).toFixed(1)} W/kg`);
+  };
+
+  // Where the race is: the front, the best rider for this finish near it, the bunch, the break.
+  let localFront = along;
   let pack = -Infinity;
   let sawPack = false;
-  for (const other of field) {
-    if (other.finishTime != null || other.mode === 'attack' || other.mode === 'sprint') continue;
-    sawPack = true;
-    pack = Math.max(pack, roadAlong(plan, other.s));
+  let memberTail = Infinity;
+  for (const o of field) {
+    if (o.isPlayer || !o.road || o.finishTime != null) continue;
+    const a = roadAlong(plan, o.s);
+    if (a >= along && a <= along + 150) localFront = Math.max(localFront, a);
+    if (o.mode !== 'attack' && o.mode !== 'sprint' && o !== r) {
+      sawPack = true;
+      pack = Math.max(pack, a);
+    }
+    if (brain.members.has(o.id) && o !== r) memberTail = Math.min(memberTail, a);
+  }
+  // The best rider for this finish who is with me or ahead of me. Riders further back no longer matter to me.
+  let frontPeer = 0;
+  let stronger = 0;
+  for (const o of field) {
+    if (o.isPlayer || !o.road || o.finishTime != null || roadAlong(plan, o.s) < along - 150) continue;
+    const strength = stageStrength(o.road.attrs, plan.finishKind, plan.punchy);
+    frontPeer = Math.max(frontPeer, strength);
+    if (strength > mine) stronger++;
   }
   const clear = sawPack ? along > pack + 35 : r.s > 35;
+  // Metres to the front of my group (a bunch is never longer than about 150 m).
+  const behind = localFront - along;
+  const nearFront = behind <= 30;
+  const climbStart = finaleAlong(plan, brain);
+  const finale = climbStart != null && along >= climbStart - FINALE_LEAD_M && remaining > 0;
+  const climbFrac = climbStart != null ? clamp((along - climbStart) / Math.max(200, span - climbStart), 0, 1) : 0;
 
-  // A clear move keeps a small edge while the bar is high, then falls under the bunch as the wind spends it.
-  if (already && !nearLast) {
-    if (clear) {
+  // Flat sprint. Each sprinter jumps at their own distance and holds the peak for 9-12 s.
+  if (plan.finishKind === 'sprint' && remaining > 0 && grade < 0.035) {
+    let launched = brain.launchedAt.get(r.id);
+    // A sprint team's leader can go from deeper in the bunch, jumping earlier the further back he is.
+    slopePeer(brain, field, 0);
+    const leader = body.attrs.sprint >= brain.peers!.sprint - 8 && isProtectedRider(r, field, plan);
+    const reach = leader ? behind <= 90 : nearFront;
+    const jumpAt = launchDistance(body.riderId, body.attrs.sprint, brain.seed) + (leader ? behind * 1.2 : 0);
+    if (launched == null && remaining <= jumpAt && body.attrs.sprint >= 62 && energy >= 0.25 && reach) {
+      launched = along;
+      brain.launchedAt.set(r.id, along);
+    }
+    if (launched != null) {
+      const t = (along - launched) / Math.max(8, r.v);
+      slopePeer(brain, field, 0);
+      const peak = sprintPeakWkg(plan.flatWkg, body.attrs.sprint, brain.peers!.sprint, form);
+      r.mode = 'sprint';
+      r.targetPower = sprintCurve(peak, plan.flatWkg * 1.3, t, sprintHold(body.attrs.sprint)) * r.mass;
+      say('sprints');
+      return;
+    }
+  }
+
+  // Hill or mountain finish: the riders still at the front kick in the last 200-300 m.
+  if (plan.finishKind !== 'sprint' && remaining > 0) {
+    let launched = brain.launchedAt.get(r.id);
+    const kickFrom = plan.finishKind === 'hill' ? 300 : 220;
+    if (launched == null && remaining <= kickFrom && reserve > 0.08 && mine >= frontPeer - 10 && behind <= 60 && r.mode !== 'cracked') {
+      launched = along;
+      brain.launchedAt.set(r.id, along);
+    }
+    if (launched != null) {
+      const t = (along - launched) / Math.max(3, r.v);
+      let best = 0;
+      for (const o of field) if (o.road && !o.isPlayer) best = Math.max(best, kickRating(o.road.attrs, plan.finishKind));
+      const peak = kickPeakWkg(Math.max(pace, plan.flatWkg), kickRating(body.attrs, plan.finishKind), best, form);
+      r.mode = 'sprint';
+      r.targetPower = sprintCurve(peak, pace * 1.05, t, sprintHold(body.attrs.sprint), 2) * r.mass;
+      return;
+    }
+  }
+
+  // A surge already under way: an attempt, a bridge, an attack, a counter, a descent move.
+  const surge = brain.surges.get(r.id);
+  if (surge) {
+    const travelled = along - surge.fromAlong;
+    const bridged = surge.kind === 'bridge' && memberTail < Infinity && along >= memberTail - 8;
+    const descentOver = surge.kind === 'descent' && grade > -0.01;
+    const empty = surge.kind !== 'descent' && reserve <= 0.02 && grade >= 0.03;
+    if (travelled < surge.lenM && !bridged && !descentOver && !empty) {
+      const ref = surge.kind === 'descent' ? Math.max(pace, plan.flatWkg * 0.3) : pace;
       r.mode = 'attack';
-      r.targetPower = attackPower(pace, r.mass, breakFactor(energy));
+      r.targetPower = ref * surge.factor * r.mass;
       return;
     }
-    if (energy >= 0.45) {
+    brain.surges.delete(r.id);
+    if (bridged) brain.members.add(r.id);
+    else if ((surge.kind === 'attempt' || surge.kind === 'bridge') && !brain.members.has(r.id)) brain.sitUp.add(r.id);
+  }
+
+  // The early break shares the wind until the bunch takes it back.
+  if (brain.members.has(r.id)) {
+    if (pack < along - 10) {
+      let size = 1;
+      for (const o of field) {
+        if (o !== r && brain.members.has(o.id) && o.finishTime == null && Math.abs(roadAlong(plan, o.s) - along) < 30) size++;
+      }
       r.mode = 'attack';
-      r.targetPower = attackPower(pace, r.mass, 1.12);
+      r.targetPower = pace * breakPace(energy, grade, size) * r.mass;
       return;
     }
-    r.mode = 'follow';
+    brain.members.delete(r.id);
   }
 
-  // The riders who can win this climb go. Everyone more than a few points back lets them go.
-  if (!opening && !body.teammate && fresh && nearLast && attackers < 8 && mine >= peer - 6 && energy >= 0.4 && (mine >= peer - 2 || r.phase > 22 || already)) {
-    const factor = clamp(1.1 + Math.max(0, mine - (peer - 3)) / 45, 1.1, 1.28);
-    r.mode = 'attack';
-    r.targetPower = attackPower(pace, r.mass, factor);
-    if (!r.told) {
-      r.told = true;
-      note(events, `${r.name} attacks · ${(r.targetPower / r.mass).toFixed(1)} W/kg`);
-    }
-    return;
-  }
-
-  const marked = field.some((o) => o !== r && o.mode === 'attack' && !!o.road && roadAlong(plan, o.s) >= along - 20 && climbRating(o.road.attrs, grade, plan.punchy) >= mine - 1);
-  if (!opening && !body.teammate && fresh && nearLast && marked && mine >= peer - 8 && energy >= 0.36 && attackers < 12) {
-    r.mode = 'attack';
-    r.targetPower = attackPower(pace, r.mass, 1.08);
-    if (!r.told) {
-      r.told = true;
-      note(events, `${r.name} follows · ${(r.targetPower / r.mass).toFixed(1)} W/kg`);
-    }
-    return;
-  }
-
-  // One-day races: the best puncheur tries from a hill, not from the gun.
-  if (!opening && !body.teammate && fresh && plan.oneDay && !onLast && progress > 0.38 && progress < 0.72 && grade > 0.03 && remaining > 1800 && mine >= peer - 2 && attackers < 2 && (r.phase > 60 || already)) {
-    r.mode = 'attack';
-    r.targetPower = attackPower(pace, r.mass, 1.12);
-    if (!r.told) {
-      r.told = true;
-      note(events, `${r.name} attacks · ${(r.targetPower / r.mass).toFixed(1)} W/kg`);
-    }
-    return;
-  }
-
-  // Early move. The leader for this finish stays in. A few others jump, then ride a steady gap.
-  const ownFinish = stageStrength(body.attrs, plan.finishKind, plan.punchy);
-  const teamBestHere = stageBest(body, field, plan);
-  const leader = ownFinish >= teamBestHere - 1 && teamBestHere >= 68;
-  if (!opening && !body.teammate && fresh && !onLast && !leader && progress > 0.06 && progress < 0.22 && attackers < 4 && (r.phase > 84 || already)) {
-    r.mode = 'attack';
-    r.targetPower = attackPower(pace, r.mass, 1.16);
-    if (!r.told) {
-      r.told = true;
-      note(events, `${r.name} goes clear · ${(r.targetPower / r.mass).toFixed(1)} W/kg`);
-    }
-    return;
-  }
-
-  if (remaining < 320 && remaining > 0 && plan.punchy && plan.finishKind === 'hill' && (onLast || remaining < 180)) {
-    const kick = 1.04 + Math.max(0, punchScore(body.attrs) - 72) / 80;
-    r.mode = 'sprint';
-    r.targetPower = pace * kick * r.mass;
-    return;
-  }
-
-  if (plan.finishKind === 'sprint' && grade < 0.035 && remaining < 800 && remaining > 0) {
-    if (energy < 0.3) {
-      r.mode = 'follow';
-      r.targetPower = pace * r.mass;
+  // A failed attempt eases off until the bunch comes past.
+  if (brain.sitUp.has(r.id)) {
+    if (pack < along - 12) {
+      r.mode = 'cracked';
+      r.targetPower = pace * 0.8 * r.mass;
       return;
     }
-    if (remaining > 500) {
-      if (body.attrs.sprint >= 82) {
-        const move = Math.min(1.16, 1.12 + Math.max(0, body.attrs.sprint - 82) / 80);
-        r.mode = 'sprint';
-        r.targetPower = plan.flatWkg * move * r.mass;
+    brain.sitUp.delete(r.id);
+  }
+
+  // Alone off the front after an attack: on the last climb, the pace this rider can hold; elsewhere a solo break.
+  if (already && clear) {
+    r.mode = 'attack';
+    if (finale && grade >= 0.02) {
+      const hold = Math.min(criticalRatio(slopeRating(body.attrs, grade, plan.punchy), slopePeer(brain, field, grade, plan.punchy), form) + (reserve > 0.3 ? 0.03 : 0), 1.14);
+      r.targetPower = pace * Math.max(1, hold) * r.mass;
+    } else {
+      r.targetPower = pace * breakPace(energy, grade, 1) * r.mass;
+    }
+    return;
+  }
+
+  if (!opening && !body.teammate && finale && grade >= 0.025) {
+    // A contender is close to the best rider still in reach, and one of the ten best of them.
+    const contender = mine >= frontPeer - 8 && stronger < 10;
+    let moving = 0;
+    for (const move of brain.surges.values()) if (move.kind === 'climb' || move.kind === 'counter') moving++;
+    // Planned attacks: one, or two for the strongest, between 42% and 90% of the way up.
+    const moves = brain.climbMoves.get(r.id) ?? 0;
+    const maxMoves = mine >= frontPeer - 3 ? 2 : 1;
+    if (contender && moves < maxMoves && moving < 3 && reserve >= 0.55 && energy >= 0.3) {
+      const at = [0, 1].map((k) => 0.42 + 0.48 * hash01(`climb:${body.riderId}:${k}:${brain.seed}`)).sort((a, b) => a - b);
+      if (climbFrac >= at[moves]) {
+        const factor = clamp(1.16 + (mine - (frontPeer - 8)) / 80, 1.16, 1.28) * (1 + (form - 1) * 0.5);
+        const seconds = 30 + 30 * hash01(`climb-len:${body.riderId}:${moves}:${brain.seed}`);
+        startSurge(brain, r, 'climb', along, seconds, factor);
+        brain.climbMoves.set(r.id, moves + 1);
+        r.mode = 'attack';
+        r.targetPower = pace * factor * r.mass;
+        say('attacks');
         return;
       }
-    } else {
-      const kick = 1.08 + Math.max(0, body.attrs.sprint - 68) / 70;
-      r.mode = 'sprint';
-      r.targetPower = plan.flatWkg * kick * r.mass;
-      return;
+    }
+    // Counters: a rival who can stay with the move goes with it.
+    if (mine >= frontPeer - 6 && stronger < 6 && moving < 5 && reserve >= 0.4 && energy >= 0.3) {
+      for (const o of field) {
+        if (o === r || !o.road || o.finishTime != null) continue;
+        const move = brain.surges.get(o.id);
+        if (!move || move.kind !== 'climb') continue;
+        const ahead = roadAlong(plan, o.s) - along;
+        if (ahead <= 0 || ahead > 60) continue;
+        if (stageStrength(o.road.attrs, plan.finishKind, plan.punchy) < mine - 3) continue;
+        if (hash01(`counter:${body.riderId}:${o.id}:${brain.seed}`) >= 0.7) continue;
+        const left = Math.max(0, move.lenM - (roadAlong(plan, o.s) - move.fromAlong));
+        brain.surges.set(r.id, { kind: 'counter', fromAlong: along, lenM: left + 10 * Math.max(4, r.v), factor: move.factor });
+        r.mode = 'attack';
+        r.targetPower = pace * move.factor * r.mass;
+        say('follows');
+        return;
+      }
     }
   }
 
-  if (remaining < 180 && remaining > 0 && plan.finishKind !== 'sprint') {
-    r.mode = 'sprint';
-    r.targetPower = pace * (1.04 + Math.max(0, body.attrs.sprint - 70) / 120) * r.mass;
+  // One-day races: the best puncheur tries once from a hill in the middle of the race.
+  if (!opening && !body.teammate && plan.oneDay && !finale && progress > 0.38 && progress < 0.72 && grade > 0.03 && remaining > 1800
+    && mine >= frontPeer - 2 && reserve >= 0.7 && energy >= 0.4 && r.phase > 60 && !brain.climbMoves.has(r.id) && brain.surges.size === 0) {
+    startSurge(brain, r, 'punch', along, 40, 1.2);
+    brain.climbMoves.set(r.id, 0);
+    r.mode = 'attack';
+    r.targetPower = pace * 1.2 * r.mass;
+    say('attacks');
     return;
   }
 
-  // Earlier climbs stay together unless someone is far off the pace. The last climb
-  // splits into groups: low stamina and a weaker climbing rating each open a gap.
-  if (!opening && onLast) {
-    const drop = lastClimbDrop(Math.max(0, peer - mine), energy);
-    if (drop > 0.045) {
-      r.mode = 'cracked';
-      r.targetPower = pace * (1 - drop) * r.mass;
-      return;
-    }
-  } else if (!opening && grade >= 0.05) {
-    const gap = peer - mine;
-    if (gap > 12) {
-      const ease = 1 - Math.min(0.1, (gap - 12) / 140);
-      const tired = energy < 0.35 ? 0.94 : 1;
-      r.mode = 'cracked';
-      r.targetPower = pace * ease * tired * r.mass;
-      return;
-    }
-  }
-  if (energy < 0.22 && grade >= 0.03) {
+  // Cracked: the reserve is gone on a climb. The rider rides just under the slider until the reserve
+  // is back to 30%, so they drift back through the group instead of holding the front, then the slider again.
+  if (!opening && ((grade >= 0.03 && (reserve <= 0.02 || energy < 0.15)) || (r.mode === 'cracked' && grade >= 0.02 && reserve < 0.3))) {
     r.mode = 'cracked';
-    r.targetPower = pace * 0.9 * r.mass;
+    r.targetPower = pace * CRACKED_SHARE * r.mass;
     return;
   }
 
   r.mode = 'follow';
   r.targetPower = eased * r.mass;
+}
+
+/** Smallest bunch that sends an early break up the road. */
+const BREAK_FIELD = 20;
+
+/** A rider the bunch would let into the early break: not a leader for today, fresh, and not riding for a teammate. */
+function breakCandidate(r: RoadActor, field: RoadActor[], plan: RoadPlan, brain: RaceBrain, fieldBest: number): boolean {
+  if (r.isPlayer || !r.road || r.road.teammate || r.finishTime != null || r.mode !== 'follow') return false;
+  if (brain.surges.has(r.id) || brain.members.has(r.id) || brain.sitUp.has(r.id)) return false;
+  if ((r.energy ?? 1) < 0.7 || (r.reserve ?? 1) < 0.6 || r.road.attrs.flat < 60) return false;
+  if (r.road.gcRank != null && r.road.gcRank < 10) return false;
+  if (stageStrength(r.road.attrs, plan.finishKind, plan.punchy) >= fieldBest - 6) return false;
+  return !isProtectedRider(r, field, plan);
+}
+
+/**
+ * Whole-race decisions, made from the biggest group: attempts to form the early break, riders
+ * bridging across to it, and the odd attack on a descent. Riders carry the moves out in decideRoad.
+ */
+function directRace(
+  field: RoadActor[],
+  plan: RoadPlan,
+  brain: RaceBrain,
+  main: RoadActor[],
+  along: (s: number) => number,
+  slope: (s: number) => number,
+  fieldBest: number,
+): void {
+  const nose = main[0];
+  const noseAlong = along(nose.s);
+  if (noseAlong - brain.lastDirect < 10) return;
+  brain.lastDirect = noseAlong;
+  const rng = brain.rng;
+  const pick = (count: number, kind: SurgeKind, seconds: () => number, factor: () => number): RoadActor[] => {
+    const pool = main
+      .filter((r) => breakCandidate(r, field, plan, brain, fieldBest))
+      .map((r) => ({ r, score: (r.road!.attrs.flat + r.road!.attrs.stamina) / 2 + rng() * 30 }))
+      .sort((x, y) => y.score - x.score);
+    const teams = new Set<string>();
+    const out: RoadActor[] = [];
+    for (const { r } of pool) {
+      if (out.length >= count) break;
+      if (teams.has(r.road!.teamId)) continue;
+      teams.add(r.road!.teamId);
+      startSurge(brain, r, kind, along(r.s), seconds(), factor());
+      out.push(r);
+    }
+    return out;
+  };
+
+  // If the break has been caught while the window is still open, the attacking starts again.
+  if ((brain.breakState === 'forming' || brain.breakState === 'gone') && noseAlong < brain.breakTo + 1500) {
+    let live = 0;
+    for (const r of field) if (brain.members.has(r.id) && r.finishTime == null) live++;
+    if (!live) {
+      brain.breakState = 'open';
+      brain.stickAt = brain.attempts + 1 + Math.floor(rng() * 2);
+    }
+  }
+  // An early break needs a bunch to get away from. A small field rides together.
+  if (brain.breakState === 'open' && main.length < BREAK_FIELD) brain.breakState = 'none';
+  if (brain.breakState === 'open') {
+    if (noseAlong > brain.breakTo) brain.breakState = 'none';
+    else if (slope(nose.s) < -0.01) brain.nextAttemptAt = Math.max(brain.nextAttemptAt, noseAlong + 100);
+    else if (noseAlong >= brain.nextAttemptAt) {
+      brain.attempts++;
+      const sticks = brain.attempts === brain.stickAt;
+      // The move that sticks goes with most of its riders; one or two more bridge across while the gap is small.
+      const count = sticks ? Math.max(2, brain.breakTarget - Math.floor(rng() * 3)) : 1 + Math.floor(rng() * 3);
+      const went = pick(count, 'attempt', () => 25 + rng() * 15, () => 1.25 + rng() * 0.1);
+      if (sticks && went.length) {
+        for (const r of went) brain.members.add(r.id);
+        brain.breakState = 'forming';
+        brain.nextBridgeAt = noseAlong + 150 + rng() * 250;
+      } else if (sticks) brain.stickAt++;
+      brain.nextAttemptAt = noseAlong + 600 + rng() * 600;
+    }
+  } else if (brain.breakState === 'forming') {
+    let front = -Infinity;
+    let live = 0;
+    for (const r of field) {
+      if (!brain.members.has(r.id) || r.finishTime != null) continue;
+      live++;
+      front = Math.max(front, along(r.s));
+    }
+    const gap = (front - noseAlong) / Math.max(2, nose.v);
+    if (!live) brain.breakState = 'none';
+    else if (brain.members.size >= brain.breakTarget || gap > 12 || noseAlong > brain.breakTo + 1500) brain.breakState = 'gone';
+    else if (noseAlong >= brain.nextBridgeAt) {
+      pick(1, 'bridge', () => 60, () => 1.45);
+      brain.nextBridgeAt = noseAlong + 200 + rng() * 300;
+    }
+  }
+
+  // A good descender who is fresh may try to ride away on a long descent in the second half.
+  const grade = slope(nose.s);
+  if (main.length >= BREAK_FIELD / 2 && grade < -0.04 && noseAlong > brain.span * 0.4 && brain.span - noseAlong > 2000 && brain.descentAttacks < 2 && noseAlong - brain.descentSeen > 3000) {
+    brain.descentSeen = noseAlong;
+    if (rng() < 0.35) {
+      let best: RoadActor | null = null;
+      let bestSkill = 0.005;
+      for (const r of main) {
+        if (r.isPlayer || !r.road || r.road.teammate || r.mode !== 'follow' || brain.surges.has(r.id)) continue;
+        if ((r.energy ?? 1) < 0.45 || (r.reserve ?? 1) < 0.6) continue;
+        const skill = descentSkill(r.road.riderId);
+        if (skill > bestSkill) {
+          best = r;
+          bestSkill = skill;
+        }
+      }
+      if (best) {
+        brain.surges.set(best.id, { kind: 'descent', fromAlong: along(best.s), lenM: 4000, factor: 1.6 });
+        brain.descentAttacks++;
+      }
+    }
+  }
 }
 
 export function shapeRoad(
@@ -780,27 +1021,109 @@ export function shapeRoad(
     else group.push(r);
   }
   const tempo = teamTempoRank(field, plan.finishKind, plan.punchy);
+  const span = Math.abs(plan.finishS - plan.startS);
+  const brain = brainFor(field, span);
+  for (const r of field) r.effort = undefined;
   const main = groups.reduce<RoadActor[] | null>((best, group) => (!best || group.length > best.length ? group : best), null);
+  const frontGroup = groups.find((group) => group.length >= 2) ?? null;
+  if (brain.finaleAlong === undefined) {
+    brain.finaleAlong = plan.finishKind === 'sprint' ? null : finaleStart(span, (a) => slope(plan.startS + dir * a));
+  }
+  const climbStart = finaleAlong(plan, brain);
+  let fieldBest = 0;
+  for (const r of field) {
+    if (r.isPlayer || !r.road || r.finishTime != null) continue;
+    fieldBest = Math.max(fieldBest, stageStrength(r.road.attrs, plan.finishKind, plan.punchy));
+  }
+
+  // The front of the race ahead of the biggest group: the break, or a lone attacker.
   let gapSec = 0;
+  let breakLead: RoadActor | null = null;
+  let breakDangerous = false;
   if (main && main.length) {
     const noseAlong = along(main[0].s);
-    let back = Infinity;
-    for (const rider of field) {
-      if (rider.isPlayer || rider.finishTime != null || rider.mode !== 'attack') continue;
-      const pos = along(rider.s);
-      if (pos > noseAlong + 8) back = Math.min(back, pos);
+    const ahead = field
+      .filter((r) => !r.isPlayer && r.finishTime == null && r.road && r.mode === 'attack' && along(r.s) > noseAlong + 8)
+      .sort((x, y) => along(y.s) - along(x.s));
+    if (ahead.length) {
+      breakLead = ahead[0];
+      gapSec = (along(breakLead.s) - noseAlong) / Math.max(2, main[0].v);
+      // A break the bunch lets go has none of the riders who can win today. Anything else is chased now.
+      let prev = along(breakLead.s);
+      for (const r of ahead) {
+        if (prev - along(r.s) > 16) break;
+        prev = along(r.s);
+        const strong = stageStrength(r.road!.attrs, plan.finishKind, plan.punchy) >= fieldBest - 6 || (r.road!.gcRank != null && r.road!.gcRank < 5);
+        const joining = brain.surges.get(r.id)?.kind === 'bridge';
+        if ((!brain.members.has(r.id) && !joining) || strong) breakDangerous = true;
+      }
     }
-    if (back < Infinity) gapSec = (back - noseAlong) / Math.max(2, main[0].v);
+    directRace(field, plan, brain, main, along, slope, fieldBest);
   }
-  groups.forEach((group) => {
+
+  /** How hard the biggest group rides to hold or close the break, as a multiple of the slider. */
+  const chaseFactor = (nose: RoadActor, wkg: number, grade: number, group: RoadActor[]): number => {
+    if (!breakLead || gapSec <= 1) return 1;
+    const remainingNose = roadRemaining(plan, nose.s);
+    const kmToCatch = (remainingNose - catchRemaining(span, plan.finishKind, climbStart)) / 1000;
+    const vBreak = Math.max(2, breakLead.v);
+    let pullers = 0;
+    let pullEnergy = 0;
+    for (const r of group) {
+      if (isProtectedRider(r, field, plan)) continue;
+      pullers++;
+      pullEnergy += r.energy ?? 1;
+    }
+    const cap = chaseCap(brain.chaseCommit, pullers ? pullEnergy / pullers : 1, grade);
+    let target: number;
+    if (breakDangerous) target = chaseSpeedNeeded(vBreak, gapSec, Math.max(0.8, gapSec / 8));
+    else if (kmToCatch <= gapSec / 5) target = chaseSpeedNeeded(vBreak, gapSec, Math.max(0.3, kmToCatch));
+    else if (gapSec >= brain.gapCap) target = vBreak;
+    else return 1;
+    return factorForSpeed(target, wkg, nose.mass, grade, nose.bike, altAt(nose.s), cap);
+  };
+
+  groups.forEach((group, gi) => {
     if (group.length < 2) return;
     const current = [...group].sort((a, b) => along(b.s) - along(a.s));
     const nose = current[0];
     const grade = slope(nose.s);
+    const noseAlong = along(nose.s);
+    const remainingNose = roadRemaining(plan, nose.s);
     const ask = ordersAt(plan, orders, player?.s ?? nose.s, grade);
-    const opening = along(nose.s) < 500;
-    const eased = opening ? terrainWkg(plan, grade) : racePace(plan, grade, roadRemaining(plan, nose.s));
-    const factor = group === main ? flatRunIn(plan, roadRemaining(plan, nose.s), gapSec, grade) : 1;
+    const opening = noseAlong < 500;
+    const eased = opening ? terrainWkg(plan, grade) : racePace(plan, grade, remainingNose);
+    let factor = 1;
+    if (!opening) {
+      if (group === main) factor = Math.max(factor, chaseFactor(nose, eased, grade, group));
+      // A group behind another group closes on the flat, the way a split bunch comes back together.
+      // Not on the run-in to a climb finish, where the splits are the race.
+      const ahead = gi > 0 ? groups[gi - 1] : null;
+      const regroup = plan.finishKind === 'sprint' || climbStart == null || noseAlong < climbStart - 300;
+      // In the finale the leaders' teams bring back anyone ahead who is not attacking.
+      if (ahead && !regroup && group === main) {
+        const gap = (along(ahead[ahead.length - 1].s) - noseAlong) / Math.max(2, nose.v);
+        if (gap > 0.5 && gap < 30) factor = Math.max(factor, grade >= 0.03 ? 1.08 : 1.2);
+      }
+      if (ahead && regroup) {
+        const gap = (along(ahead[ahead.length - 1].s) - noseAlong) / Math.max(2, nose.v);
+        if (grade < 0.03 && gap > 0.5 && gap < 45) factor = Math.max(factor, 1.2);
+        else if (grade >= 0.03 && gap > 0.5 && gap < 15) factor = Math.max(factor, 1.05);
+      }
+      // The last climb: the leaders' teams set a tempo on the bunch from 30% of the way up.
+      if (group === main && climbStart != null && noseAlong >= climbStart && grade >= 0.02) {
+        const frac = (noseAlong - climbStart) / Math.max(200, span - climbStart);
+        const mountain = plan.finishKind === 'mountain';
+        if (frac >= 0.7) factor = Math.max(factor, mountain ? 1.08 : 1.06);
+        else if (frac >= 0.3) factor = Math.max(factor, mountain ? 1.05 : 1.04);
+      }
+      if (group === frontGroup || group === main) factor = Math.max(factor, flatRunIn(plan, remainingNose, gapSec, grade));
+      // In the finale a few riders who slipped ahead of the bunch without attacking do not ride away from it.
+      const mainNose = main && main.length ? along(main[0].s) : -Infinity;
+      if (group !== main && group.length < 10 && climbStart != null && noseAlong >= climbStart - FINALE_LEAD_M && noseAlong > mainNose) {
+        factor = 0.97;
+      }
+    }
     // Descents use the real slope. The pedalling comes from terrainWkg, which tapers with the slope
     // (descentWkg), so a gentle descent is still ridden near the flat effort and a steep one is a tuck.
     const rollGrade = grade;
@@ -818,15 +1141,22 @@ export function shapeRoad(
       tempoOrder(group, tempo, plan.finishKind, plan.punchy, (rider) => along(rider.s)),
       field,
       plan,
-      along(nose.s),
+      noseAlong,
       tempo,
     );
-    if (factor > 1 && !matesLead) {
-      for (let i = 0; i < Math.min(LINE_LENGTH, ordered.length); i++) {
-        const rider = ordered[i];
-        if (isProtectedRider(rider, field, plan) || (rider.energy ?? 1) < 0.3) continue;
-        rider.targetPower = plan.flatWkg * factor * rider.mass;
-      }
+    // What it costs to hold this group. The riders in the wind pay the multiple; in the wheels most of it is hidden on the flat.
+    const wind = new Set<RoadActor>();
+    for (let i = 0; i < Math.min(LINE_LENGTH, ordered.length); i++) {
+      const rider = ordered[i];
+      if (isProtectedRider(rider, field, plan) || (rider.energy ?? 1) < 0.3) continue;
+      wind.add(rider);
+      if (factor > 1 && !matesLead) rider.targetPower = eased * factor * rider.mass;
+    }
+    for (const rider of current) {
+      const f = matesLead ? ask.paceWkg / Math.max(0.5, eased) : factor;
+      if (wind.has(rider)) rider.effort = eased * f;
+      else if (grade < 0.03) rider.effort = eased * 0.8 * (1 + (f - 1) * 0.5);
+      else rider.effort = eased * f * 0.98;
     }
     const lead = ordered[0];
     const slot = new Map(ordered.map((rider, index) => [rider, index]));
@@ -841,7 +1171,7 @@ export function shapeRoad(
       const want = slot.get(rider) ?? 0;
       // The line at the front is evenly spaced; the spread bunch behind is staggered so it does not look gridded.
       const stagger = want < LINE_LENGTH ? 0 : (rider.id % 5) * 0.17;
-      const wantAlong = along(nose.s) - slotOffset(want) - stagger;
+      const wantAlong = noseAlong - slotOffset(want) - stagger;
       let drift = 0;
       if (!opening && !orderedOn) {
         if (rider === lead && rider !== nose) drift = 0.3;
@@ -887,11 +1217,18 @@ export function shapeRoad(
   }
   // Attack and sprint watts stay capped. On a descent that cap is the real slope,
   // so a move cannot fall slower than the coasting bunch, and it cannot exceed its own power.
+  // Off the bunch, a good descender gains a little on a descent and a poor one loses a little.
+  const mainSpeed = main && main.length ? main[0].v : 0;
   for (const r of field) {
     if (r.isPlayer || r.finishTime != null || (r.mode !== 'attack' && r.mode !== 'sprint')) continue;
     const grade = slope(r.s);
     const powered = steadySpeed(Math.max(0, r.targetPower), grade, r.bike, altAt(r.s), 0);
     r.v = Math.min(r.v, powered);
+    if (grade < -0.02 && r.road && r.mode === 'attack') {
+      const skill = descentSkill(r.road.riderId);
+      r.v *= 1 + skill;
+      if (brain.surges.get(r.id)?.kind === 'descent') r.v = Math.max(r.v, mainSpeed * (1.02 + Math.max(0, skill)));
+    }
   }
   if (!player || orders.released) return;
   for (const r of field) {

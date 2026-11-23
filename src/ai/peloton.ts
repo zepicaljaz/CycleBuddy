@@ -2,7 +2,7 @@ import { BRAKE_DECEL, draftFromGap, makeBikeParams, steadySpeed, stepSpeed, type
 import type { Route } from '../routes/route';
 import { clamp, mulberry32, randRange, smoothstep } from '../util/math';
 import type { RiderColors } from '../world/riders';
-import { assignWindSlots, awardRoadFeatures, climbDrain, climbPeers, climbRating, decideRoad, FILE_SPACING, FILE_WIDTH, isProtectedRider, sealGroupTimes, shapeRoad, stageStrength, staminaPlace, teamTempoRank, terrainWkg, tickEnergy, trialFactor, TT_GAP, ttStartOrder, type EnergyPlace, type RoadBody, type RoadOrders, type RoadPlan, type RoadStarter, type WindSlot } from './road';
+import { assignWindSlots, awardRoadFeatures, climbDrain, climbPeers, climbRating, decideRoad, FILE_SPACING, FILE_WIDTH, isProtectedRider, sealGroupTimes, shapeRoad, stageStrength, staminaPlace, teamTempoRank, terrainWkg, tickEnergy, tickRoadReserve, trialFactor, TT_GAP, ttStartOrder, type EnergyPlace, type RoadBody, type RoadOrders, type RoadPlan, type RoadStarter, type WindSlot } from './road';
 import { climbEffortWatts, hillClimbWattsPerKilo } from './climbers';
 import { NATIONS, TEAMS, teamColors } from './names';
 import { bestClimbers, riderName } from '../career/roster';
@@ -68,6 +68,10 @@ export interface Racer {
   told: boolean;
   /** Fraction of the stamina bar still left. 1 is full. Road races only. */
   energy: number;
+  /** Surge reserve, 0 to 1: what is left for attacks and for following them. Road races only. */
+  reserve: number;
+  /** W/kg it costs to hold the group this step. Set by the road shaping; undefined out of a group. */
+  effort?: number;
   /** Race-clock second this rider is allowed to leave the line. 0 in a road race. */
   ttStart: number;
 }
@@ -235,6 +239,7 @@ export class RideSim {
       komPts: 0,
       told: false,
       energy: 1,
+      reserve: 1,
       ttStart: 0,
     };
   }
@@ -1028,6 +1033,7 @@ export class RideSim {
     const peer = (this.peerAt ??= climbPeers(this.racers, plan.punchy))(grade);
     const tax = climbDrain(climbRating(attrs, grade, plan.punchy), peer, grade);
     r.energy = tickEnergy(r.energy, attrs, r.power / Math.max(40, r.mass), tempo, this.energyPlace(r), dt, tax);
+    r.reserve = tickRoadReserve(r, plan, this.route.gradeAt(r.s) * r.direction, this.racers, dt);
   }
 
   private decide(r: Racer) {
