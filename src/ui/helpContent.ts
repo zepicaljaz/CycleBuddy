@@ -108,6 +108,7 @@ export const HELP_SECTIONS: HelpSection[] = [
   <tr><td><kbd>Esc</kbd></td><td>Pause menu (resume / finish / discard)</td></tr>
   <tr><td><kbd>C</kbd></td><td>Change camera (chase / close / aerial / helicopter / first person) and recentre the view</td></tr>
   <tr><td>Mouse</td><td>Hold the left button and drag to look around. Chase, close and aerial cameras orbit the rider through a full circle, so the cyclist stays in view. The helicopter flies itself and does not follow the mouse. The view stays there until you press <kbd>C</kbd>.</td></tr>
+  <tr><td><kbd>L</kbd></td><td>Hold to look behind you. Let go and the view returns to where it was. Works with the chase, close, aerial and first person cameras, and together with the mouse.</td></tr>
   <tr><td><kbd>H</kbd></td><td>Hide / show the HUD</td></tr>
   <tr><td><kbd>M</kbd></td><td>Switch the map: nearby road, wider road, then the full loop</td></tr>
   <tr><td><kbd>T</kbd></td><td>Cycle time of day</td></tr>

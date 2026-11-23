@@ -252,6 +252,8 @@ export class App {
   private braking = false;
   private lookYaw = 0;
   private lookPitch = 0;
+  /** Held key (L): the view swings half a turn to look behind, then returns when it is released. */
+  private lookBack = false;
   private draggingLook = false;
   private lookPointer = -1;
   /** Clicks before this time are the tail of a press already handled, including after a confirm dialog. */
@@ -388,8 +390,12 @@ export class App {
         this.brakeKey = false;
         this.applyBrake();
       }
+      if (e.key.toLowerCase() === 'l') this.setLookBack(false);
     });
-    window.addEventListener('blur', () => this.releaseBrake());
+    window.addEventListener('blur', () => {
+      this.releaseBrake();
+      this.setLookBack(false);
+    });
     // The ride view used to keep the pointer, so a press on the pause dialog
     // never reached the button. While a dialog is open, the press is handled
     // here, before the canvas can take it.
@@ -406,7 +412,10 @@ export class App {
       this.lookPointer = -1;
     });
     document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState !== 'visible') this.releaseBrake();
+      if (document.visibilityState !== 'visible') {
+        this.releaseBrake();
+        this.setLookBack(false);
+      }
       if (document.visibilityState === 'visible' && this.session) void this.requestWakeLock();
     });
     window.addEventListener('popstate', () => this.onPlayPath());
@@ -3441,12 +3450,20 @@ export class App {
     const pitch = locked ? this.lookPitch - dy * 1.4 : this.dragPitch - dy * 1.4;
     this.lookYaw = ((yaw + Math.PI) % tau + tau) % tau - Math.PI;
     this.lookPitch = Math.max(-0.42, Math.min(0.48, pitch));
-    this.world.setMouseLook(this.lookYaw, this.lookPitch);
+    this.world.setMouseLook(this.lookYaw + (this.lookBack ? Math.PI : 0), this.lookPitch);
+  }
+
+  /** Hold L to look behind. The mouse look stays as it was and comes back on release. */
+  private setLookBack(on: boolean): void {
+    if (this.lookBack === on) return;
+    this.lookBack = on;
+    this.world?.setMouseLook(this.lookYaw + (on ? Math.PI : 0), this.lookPitch);
   }
 
   private resetLook(): void {
     this.lookYaw = 0;
     this.lookPitch = 0;
+    this.lookBack = false;
     this.releaseLook();
     this.world?.setMouseLook(0, 0);
   }
@@ -3496,6 +3513,8 @@ export class App {
       this.cycleMap();
     } else if (key === 't' && this.world) {
       this.cycleTime();
+    } else if (key === 'l' && s && this.world && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      if (!this.uiBlocksLook()) this.setLookBack(true);
     } else if (key === 'b') {
       this.brakeKey = true;
       this.applyBrake();
