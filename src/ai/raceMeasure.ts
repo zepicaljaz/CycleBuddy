@@ -65,13 +65,20 @@ export function listStages(): StageSpec[] {
   return out;
 }
 
-/** One road stage per terrain band, the one closest to the length a Career stage usually has. */
+/** The finish each terrain band usually has: a flat stage ends in a sprint, a mountain stage on a mountain. */
+const TYPICAL_FINISH: Record<TerrainBand, StageSpec['finish']> = { flat: 'sprint', hilly: 'hill', medium: 'hill', mountain: 'mountain' };
+
+/**
+ * One road stage per terrain band, with the finish that band usually has, the one closest to the
+ * length a Career stage usually has. A band with no such stage takes its closest stage of any finish.
+ */
 export function defaultStages(targetKm = 22): StageSpec[] {
   const all = listStages().filter((spec) => spec.kind === 'road' && spec.km > 5);
   const bands: TerrainBand[] = ['flat', 'hilly', 'medium', 'mountain'];
   const picked: StageSpec[] = [];
   for (const band of bands) {
-    const inBand = all.filter((spec) => spec.band === band);
+    const typical = all.filter((spec) => spec.band === band && spec.finish === TYPICAL_FINISH[band]);
+    const inBand = typical.length ? typical : all.filter((spec) => spec.band === band);
     inBand.sort((a, b) => Math.abs(a.km - targetKm) - Math.abs(b.km - targetKm));
     if (inBand[0]) picked.push(inBand[0]);
   }
@@ -119,7 +126,7 @@ export interface Sample {
   front: number;
   /** Front rider of the biggest group, in metres from the start. */
   nose: number;
-  /** Seconds the front break is ahead of the bunch. 0 when there is no break. */
+  /** Seconds since the front of the race passed the point where the bunch's nose is now. 0 when no break is ahead. */
   gapSec: number;
   /** Riders in groups of BREAK_MAX or fewer that are ahead of the bunch. */
   breakSize: number;
@@ -278,6 +285,8 @@ export function measureStage(spec: StageSpec, seed: number, options: MeasureOpti
   const breakCandidates = new Set<number>();
   let peakAttackRatio = 0;
   let peakFinishWkg = 0;
+  // Race clock when the front of the race first passed each 25 m mark, so a gap is timed at a point on the road.
+  const passed: number[] = [];
   let t = 0;
   let nextSample = 1;
   while (t < maxSeconds && ai().some((r) => r.finishTime === null)) {
@@ -292,9 +301,8 @@ export function measureStage(spec: StageSpec, seed: number, options: MeasureOpti
     const rows = racing.map((r) => ({ id: r.id, along: along(r) }));
     const groups = clusterGroups(rows);
     const main = mainGroup(groups)!;
-    const mainIds = new Set(main.riders.map((row) => row.id));
-    const mainSpeed = median(racing.filter((r) => mainIds.has(r.id)).map((r) => r.v));
     const front = groups[0].nose;
+    for (let mark = passed.length; mark * 25 <= front; mark++) passed.push(t);
     const ahead = groups.filter((g) => g.nose > main.nose);
     const small = ahead.filter((g) => g.riders.length <= BREAK_MAX);
     const big = ahead.filter((g) => g.riders.length > BREAK_MAX);
@@ -311,7 +319,7 @@ export function measureStage(spec: StageSpec, seed: number, options: MeasureOpti
       t,
       front,
       nose: main.nose,
-      gapSec: small.length ? (small[0].nose - main.nose) / Math.max(2, mainSpeed) : 0,
+      gapSec: small.length ? Math.max(0, t - (passed[Math.floor(Math.max(0, main.nose) / 25)] ?? t)) : 0,
       breakSize,
       splitSize: big.reduce((sum, g) => sum + g.riders.length, 0),
       mainSize: main.riders.length,
@@ -342,7 +350,9 @@ export function measureStage(spec: StageSpec, seed: number, options: MeasureOpti
   let maxGapAt = 0;
   let maxBreak = 0;
   let maxSplit = 0;
+  // Break and split numbers stop at 85% of the stage, so the attacks of the finale do not count as a break.
   samples.forEach((sample, i) => {
+    if (sample.nose > span * 0.85) return;
     maxBreak = Math.max(maxBreak, sample.breakSize);
     maxSplit = Math.max(maxSplit, sample.splitSize);
     if (sample.gapSec > maxGapSec) {
