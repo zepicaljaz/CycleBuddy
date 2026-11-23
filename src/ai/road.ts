@@ -409,13 +409,63 @@ export function terrainKind(grade: number): 'flat' | 'hill' | 'medium' | 'mounta
   return 'mountain';
 }
 
+/**
+ * Share of the flat W/kg the bunch pedals at on a descent, by slope: [grade, share].
+ * Gentle descents stay close to the flat effort. Steep ones taper to a tuck with no pedalling,
+ * where gravity sets the speed and the riders recover. Linear between the points, so there is
+ * no step at any slope.
+ */
+const DESCENT_SHARE: ReadonlyArray<readonly [number, number]> = [
+  [-0.01, 1],
+  [-0.015, 0.9],
+  [-0.02, 0.8],
+  [-0.03, 0.6],
+  [-0.04, 0.45],
+  [-0.05, 0.3],
+  [-0.06, 0.2],
+  [-0.08, 0.1],
+  [-0.1, 0],
+];
+
+export function descentShare(grade: number): number {
+  if (grade >= DESCENT_SHARE[0][0]) return 1;
+  const last = DESCENT_SHARE[DESCENT_SHARE.length - 1];
+  if (grade <= last[0]) return last[1];
+  for (let i = 1; i < DESCENT_SHARE.length; i++) {
+    const [g1, s1] = DESCENT_SHARE[i];
+    if (grade >= g1) {
+      const [g0, s0] = DESCENT_SHARE[i - 1];
+      return s0 + (s1 - s0) * ((g0 - grade) / (g0 - g1));
+    }
+  }
+  return last[1];
+}
+
+/** W/kg the bunch holds on a descent. It follows the flat slider, so a higher flat setting lifts it too. */
+export function descentWkg(flatWkg: number, grade: number): number {
+  return flatWkg * descentShare(grade);
+}
+
+/** Eases from one value to the next between two slopes, with no corner at either end. */
+function blendBetween(from: number, to: number, grade: number, lo: number, hi: number): number {
+  if (grade <= lo) return from;
+  if (grade >= hi) return to;
+  const x = (grade - lo) / (hi - lo);
+  return from + (to - from) * x * x * (3 - 2 * x);
+}
+
+/**
+ * W/kg the bunch rides at this slope. The three sliders meet in ramps one percent wide around
+ * 3%, 5% and 7%, so the target never jumps when the road tips up. Descents follow descentWkg.
+ */
 export function terrainWkg(plan: RoadPlan, grade: number): number {
-  const kind = terrainKind(Math.max(0, grade));
-  if (plan.punchy && kind !== 'flat') return plan.hillWkg;
-  if (kind === 'flat') return plan.flatWkg;
-  if (kind === 'hill') return plan.hillWkg;
-  if (kind === 'medium') return (plan.hillWkg + plan.mountainWkg) / 2;
-  return plan.mountainWkg;
+  if (grade < 0) return descentWkg(plan.flatWkg, grade);
+  const hill = plan.hillWkg;
+  const medium = plan.punchy ? hill : (hill + plan.mountainWkg) / 2;
+  const mountain = plan.punchy ? hill : plan.mountainWkg;
+  let wkg = blendBetween(plan.flatWkg, hill, grade, 0.025, 0.035);
+  wkg = blendBetween(wkg, medium, grade, 0.045, 0.055);
+  return blendBetween(wkg, mountain, grade, 0.065, 0.075);
 }
 
 /** Attack watts. Harder than the pace you set, and never more than twice that pace. */
@@ -751,11 +801,10 @@ export function shapeRoad(
     const opening = along(nose.s) < 500;
     const eased = opening ? terrainWkg(plan, grade) : racePace(plan, grade, roadRemaining(plan, nose.s));
     const factor = group === main ? flatRunIn(plan, roadRemaining(plan, nose.s), gapSec, grade) : 1;
-    // Descents use the real slope and a light pedal, so a rider who stops pedalling
-    // does not roll away from a bunch that was being held to a gentle downhill.
-    const descending = grade < -0.015;
-    const rollGrade = descending ? grade : Math.max(grade, -0.02);
-    const bunch = steadySpeed(Math.max(0, (descending ? Math.min(eased, 1.15) : eased) * nose.mass), rollGrade, nose.bike, altAt(nose.s), 0);
+    // Descents use the real slope. The pedalling comes from terrainWkg, which tapers with the slope
+    // (descentWkg), so a gentle descent is still ridden near the flat effort and a steep one is a tuck.
+    const rollGrade = grade;
+    const bunch = steadySpeed(Math.max(0, eased * nose.mass), rollGrade, nose.bike, altAt(nose.s), 0);
     const mates = current.filter((r) => r.road?.teammate);
     const others = current.filter((r) => !r.road?.teammate);
     // The slider applies to the group only once the teammates are the riders at the front.
@@ -764,8 +813,7 @@ export function shapeRoad(
     const foremostOther = others.length ? Math.max(...others.map((r) => along(r.s))) : -Infinity;
     const matesLead = orderedOn && rearmostMate >= foremostOther - 2.5;
     const groupWkg = matesLead ? ask.paceWkg : eased * factor;
-    const rollWkg = descending && !matesLead ? Math.min(groupWkg, 1.15) : groupWkg;
-    const pace = steadySpeed(Math.max(0, rollWkg * nose.mass), rollGrade, nose.bike, altAt(nose.s), 0);
+    const pace = steadySpeed(Math.max(0, groupWkg * nose.mass), rollGrade, nose.bike, altAt(nose.s), 0);
     const ordered = orderPull(
       tempoOrder(group, tempo, plan.finishKind, plan.punchy, (rider) => along(rider.s)),
       field,
