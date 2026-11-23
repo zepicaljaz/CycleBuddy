@@ -3450,14 +3450,14 @@ export class App {
     const pitch = locked ? this.lookPitch - dy * 1.4 : this.dragPitch - dy * 1.4;
     this.lookYaw = ((yaw + Math.PI) % tau + tau) % tau - Math.PI;
     this.lookPitch = Math.max(-0.42, Math.min(0.48, pitch));
-    this.world.setMouseLook(this.lookYaw + (this.lookBack ? Math.PI : 0), this.lookPitch);
+    this.world.setMouseLook(this.lookYaw, this.lookPitch);
   }
 
-  /** Hold L to look behind. The mouse look stays as it was and comes back on release. */
+  /** Hold L to look behind. The turn is eased in the world; the mouse look stays as it was and comes back on release. */
   private setLookBack(on: boolean): void {
     if (this.lookBack === on) return;
     this.lookBack = on;
-    this.world?.setMouseLook(this.lookYaw + (on ? Math.PI : 0), this.lookPitch);
+    this.world?.setLookBack(on);
   }
 
   private resetLook(): void {
@@ -3465,6 +3465,7 @@ export class App {
     this.lookPitch = 0;
     this.lookBack = false;
     this.releaseLook();
+    this.world?.setLookBack(false);
     this.world?.setMouseLook(0, 0);
   }
 
