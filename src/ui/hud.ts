@@ -29,7 +29,7 @@ export class Hud {
   private chart: ProfileChart;
   private map: Minimap;
   private lastStandings = 0;
-  private tools: { camera: () => void; time: () => void; map: () => void; reverse: () => void; brake: (held: boolean) => void } | null = null;
+  private tools: { camera: () => void; time: () => void; map: () => void; reverse: () => void; brake: (held: boolean) => void; lookBack: (held: boolean) => void } | null = null;
   private onOrder: ((kind: 'pace' | 'wait' | 'wkg', value?: number) => void) | null = null;
 
   constructor(host: HTMLElement) {
@@ -75,6 +75,7 @@ export class Hud {
         <button type="button" data-tool="time"><kbd>T</kbd><span id="h-tool-time">Golden hour</span></button>
         <button type="button" data-tool="map"><kbd>M</kbd><span id="h-tool-map">Nearby road</span></button>
         <button type="button" data-tool="reverse" class="is-dim"><kbd>R</kbd><span id="h-tool-reverse">Turn around</span></button>
+        <button type="button" data-tool="lookback"><kbd>L</kbd><span id="h-tool-lookback">Look back</span></button>
         <button type="button" data-tool="brake"><kbd>B</kbd><span id="h-tool-brake">Brake</span></button>
       </div>
       <div class="hud-bottom glass">
@@ -98,21 +99,26 @@ export class Hud {
       else if (tool === 'map') this.tools?.map();
       else if (tool === 'reverse') this.tools?.reverse();
     });
-    const brake = this.root.querySelector<HTMLButtonElement>('[data-tool="brake"]');
-    let holding = false;
-    const holdBrake = (held: boolean) => {
-      if (holding === held) return;
-      holding = held;
-      this.tools?.brake(held);
+    // Brake and Look back are held for as long as the row is pressed.
+    const holdRow = (tool: 'brake' | 'lookback', action: (held: boolean) => void) => {
+      const row = this.root.querySelector<HTMLButtonElement>(`[data-tool="${tool}"]`);
+      let holding = false;
+      const hold = (held: boolean) => {
+        if (holding === held) return;
+        holding = held;
+        action(held);
+      };
+      row?.addEventListener('pointerdown', (event) => {
+        if (event.button !== 0) return;
+        event.preventDefault();
+        hold(true);
+      });
+      const release = () => hold(false);
+      window.addEventListener('pointerup', release);
+      window.addEventListener('pointercancel', release);
     };
-    brake?.addEventListener('pointerdown', (event) => {
-      if (event.button !== 0) return;
-      event.preventDefault();
-      holdBrake(true);
-    });
-    const release = () => holdBrake(false);
-    window.addEventListener('pointerup', release);
-    window.addEventListener('pointercancel', release);
+    holdRow('brake', (held) => this.tools?.brake(held));
+    holdRow('lookback', (held) => this.tools?.lookBack(held));
     this.root.querySelector('#h-orders')?.addEventListener('click', (event) => {
       const kind = (event.target as HTMLElement).closest('button')?.dataset.order;
       if (kind === 'pace' || kind === 'wait') this.onOrder?.(kind);
@@ -139,7 +145,7 @@ export class Hud {
     if (slider && document.activeElement !== slider && slider.value !== wkg.toFixed(1)) slider.value = wkg.toFixed(1);
   }
 
-  /** Clicks on the camera, time and map rows. Brake is held for as long as the row is pressed. */
+  /** Clicks on the camera, time and map rows. Brake and Look back are held for as long as the row is pressed. */
   bindTools(tools: { camera: () => void; time: () => void; map: () => void; reverse: () => void; brake: (held: boolean) => void }): void {
     this.tools = tools;
   }
@@ -162,6 +168,11 @@ export class Hud {
   /** Highlights the Brake row while the bike is slowing. */
   setBrake(on: boolean): void {
     this.root.querySelector('[data-tool="brake"]')?.classList.toggle('is-on', on);
+  }
+
+  /** Highlights the Look back row while the view is turned. */
+  setLookBack(on: boolean): void {
+    this.root.querySelector('[data-tool="lookback"]')?.classList.toggle('is-on', on);
   }
 
   /** R is hidden in a race, and faded until the bike is stopped. */

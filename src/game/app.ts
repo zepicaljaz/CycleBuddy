@@ -368,6 +368,9 @@ export class App {
         this.brakePointer = held;
         this.applyBrake();
       },
+      lookBack: (held) => {
+        if (!held || (this.session && this.world && !this.uiBlocksLook())) this.setLookBack(held);
+      },
     });
     this.hud.bindOrders((kind, value) => this.onTeamOrder(kind, value));
     this.hud.show(false);
@@ -3458,12 +3461,14 @@ export class App {
     if (this.lookBack === on) return;
     this.lookBack = on;
     this.world?.setLookBack(on);
+    this.hud.setLookBack(on);
   }
 
   private resetLook(): void {
     this.lookYaw = 0;
     this.lookPitch = 0;
     this.lookBack = false;
+    this.hud.setLookBack(false);
     this.releaseLook();
     this.world?.setLookBack(false);
     this.world?.setMouseLook(0, 0);
