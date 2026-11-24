@@ -288,7 +288,9 @@ There is no Easy/Normal/Hard setting in Career today, so nothing scales the spri
   fast descents. The AI's W/kg never rose at the top: measured, it falls from about 3.2 on the climb to
   2.5 at the top and under 0.3 on a 10% descent.
 - **Over the top: the speed** (`Racer.free`, `PHYSICS_SLACK`, `MOMENTUM_M_S` in `RideSim.step`). The player
-  rides pure physics. The AI also have a pace lock that sets every rider to the steady speed for the
+  and the AI use the same physics (`stepSpeed`, `steadySpeed` and `makeBikeParams` in
+  `src/physics/cycling.ts`: mass, air drag, rolling resistance, gravity, draft); the player rides pure
+  physics. The AI also have a pace lock that sets every rider to the steady speed for the
   slope, and it let them reach it faster than physics: 0.55 m/s² extra on the summit and 1.8 m/s² on the
   descent, and then 0.6 m/s² of extra braking at the bottom. A player at the same power could not close
   on the descent, then rode away at the bottom and had to wait. Now:
@@ -391,7 +393,12 @@ These are five races per stage. Read the shares as "always", "mostly", "sometime
 3. **Speed jumps at the top of steep descents** were 7-9 km/h in a second. That was the 1.8 m/s² allowance
    in the speed lock; fixed (see "Over the top: the speed" under Descents), now about 3.5 km/h.
 4. **The sprint team's leader goes from deep** because riders cannot move up through a file. Same fix as 1.
-5. **Not played.** Everything here was measured headless. Nothing has been ridden on a trainer, and the
+5. **The bunch stretches over summits.** The front crosses the top first and goes faster, so groups of
+   5-20 riders can sit 1.5-3 s ahead until the road flattens (14-17% of samples on Ardenne Peak, 8-11%
+   before). Real bunches do this too, but it is not yet tuned against real data. The rule that keeps
+   riders on their own physics is limited to summits and descents; on the flat and on climbs it split the
+   bunch.
+6. **Not played.** Everything here was measured headless. Nothing has been ridden on a trainer, and the
    numbers that matter most for the player (tempo phases, sprint power) need a playtest.
 
 ## Where this differs from what we agreed
