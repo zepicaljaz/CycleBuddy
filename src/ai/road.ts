@@ -631,6 +631,12 @@ function finaleAlong(plan: RoadPlan, brain: RaceBrain): number | null {
   return last;
 }
 
+/**
+ * Share of the slider a rider holds after a failed attempt, until the bunch is back. Low enough that
+ * they are swallowed within half a minute instead of hanging a second or two ahead like a small break.
+ */
+const SIT_UP_SHARE = 0.65;
+
 /** Share of the slider a cracked rider holds on a climb. */
 export const CRACKED_SHARE = 0.97;
 
@@ -834,7 +840,7 @@ export function decideRoad(r: RoadActor, plan: RoadPlan, orders: RoadOrders, gra
   if (brain.sitUp.has(r.id)) {
     if (pack < along - 12) {
       r.mode = 'cracked';
-      r.targetPower = pace * 0.8 * r.mass;
+      r.targetPower = pace * SIT_UP_SHARE * r.mass;
       return;
     }
     brain.sitUp.delete(r.id);
