@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { makeBikeParams, steadySpeed } from '../physics/cycling';
-import { descentShare, descentWkg, terrainWkg, type RoadPlan } from './road';
+import { descentShare, descentWkg, overTheTop, paceWkgAt, prepareCrests, terrainWkg, type RoadPlan } from './road';
 
 function plan(over: Partial<RoadPlan> = {}): RoadPlan {
   return {
@@ -144,5 +144,36 @@ describe('terrain W/kg', () => {
   it('keeps the descent curve below the flat slider', () => {
     expect(terrainWkg(p, -0.03)).toBeCloseTo(descentWkg(2.8, -0.03), 10);
     expect(terrainWkg(p, -0.03)).toBeLessThan(terrainWkg(p, 0));
+  });
+});
+
+describe('over the top of a climb', () => {
+  // 1 km at 8%, 200 m of summit at 0.5%, 1 km of descent at -6%, then flat.
+  const gradeAt = (s: number) => (s < 1000 ? 0.08 : s < 1200 ? 0.005 : s < 2200 ? -0.06 : 0);
+  const course = () => {
+    const p = plan({ startS: 0, finishS: 4000 });
+    prepareCrests(p, gradeAt);
+    return p;
+  };
+
+  it('carries the effort of the climb over the summit instead of dropping to the flat slider', () => {
+    const p = course();
+    const climb = terrainWkg(p, 0.08);
+    expect(paceWkgAt(p, 1100, 0.005)).toBeCloseTo(climb, 5);
+    expect(terrainWkg(p, 0.005)).toBeLessThan(climb);
+  });
+
+  it('eases the carried effort with the slope of the descent', () => {
+    const p = course();
+    expect(paceWkgAt(p, 1500, -0.06)).toBeCloseTo(terrainWkg(p, 0.08) * descentShare(-0.06), 5);
+    expect(paceWkgAt(p, 1500, -0.06)).toBeLessThan(paceWkgAt(p, 1100, 0.005));
+  });
+
+  it('rides the flat slider again once the road has been level for a while after the descent', () => {
+    const p = course();
+    expect(overTheTop(p, 2300)).toBe(true);
+    expect(overTheTop(p, 2700)).toBe(false);
+    expect(paceWkgAt(p, 2700, 0)).toBeCloseTo(p.flatWkg, 5);
+    expect(overTheTop(p, 500)).toBe(false);
   });
 });

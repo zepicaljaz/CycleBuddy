@@ -307,3 +307,63 @@ describe('over the top of a climb', () => {
     expect(median(gained)).toBeLessThan(median(physics) + 0.1);
   });
 });
+
+describe('over the top and at the bottom', () => {
+  // North Week, stage 3 (Slenaken): three walls with 12% descents. The pace lock used to launch the bunch
+  // over each summit 0.9 m/s² faster than physics, and brake it 0.3 m/s² harder than physics at the bottom,
+  // so a player at the same power could not close on the descent and then rode away at the bottom.
+  it('lets the bunch change speed over a summit and at the bottom of a descent only as physics does', () => {
+    const race = RACES.find((r) => r.id === 'north-week')!;
+    const stage = race.stages[2];
+    const course = stageCourse(stage);
+    const plan = planFor(race, stage, { flatWkg: 2.8, hillWkg: 3.2, mountainWkg: 3.5, ttWkg: 3 });
+    const sim = new RideSim(course.route, {
+      startS: course.from, finishS: course.to, aiCount: 0, seed: 1, road: plan,
+      roadField: startersFor(race), player: { name: 'Test', massKg: 72, ftp: 250, colors: teamKit(teamById('atlas')!) },
+    });
+    sim.started = true;
+    const along = (s: number) => (s - plan.startS) * course.dir;
+    const elev = (a: number) => course.route.elevationAt(plan.startS + course.dir * a);
+    // Summits and the bottoms after them, from the profile: a rise or a drop of 25 m.
+    const summits: number[] = [];
+    const bottoms: number[] = [];
+    let low = elev(0), lowAt = 0, high = 0, highAt = 0, climbing = false;
+    for (let a = 0; a <= 9000; a += 10) {
+      const e = elev(a);
+      if (!climbing && e - low > 25) {
+        if (summits.length) bottoms.push(lowAt);
+        climbing = true;
+        high = e;
+        highAt = a;
+      }
+      if (climbing) {
+        if (e > high) { high = e; highAt = a; }
+        if (high - e > 25) { summits.push(highAt); climbing = false; low = e; lowAt = a; }
+      } else if (e < low) { low = e; lowAt = a; }
+    }
+    const before = new Map<number, number>();
+    const over: number[] = [];
+    const bottom: number[] = [];
+    for (let t = 0; t < 1200; t += 0.25) {
+      sim.step(0.25, terrainWkg(plan, course.route.gradeAt(sim.player.s) * course.dir) * sim.player.mass, 90);
+      for (const r of sim.racers) {
+        const v0 = before.get(r.id);
+        before.set(r.id, r.v);
+        if (r.isPlayer || r.mode !== 'follow' || v0 == null) continue;
+        const a = along(r.s);
+        const grade = course.route.gradeAt(r.s) * r.direction;
+        const physics = (stepSpeed(v0, r.power, grade, r.bike, 0.25, course.route.elevationAt(r.s), r.draft, 0) - v0) / 0.25;
+        const extra = (r.v - v0) / 0.25 - physics;
+        if (summits.some((x) => a >= x && a < x + 100)) over.push(extra);
+        if (bottoms.some((x) => a >= x && a < x + 100)) bottom.push(extra);
+      }
+    }
+    const mean = (xs: number[]) => xs.reduce((sum, x) => sum + x, 0) / xs.length;
+    expect(summits.length).toBeGreaterThanOrEqual(3);
+    expect(over.length).toBeGreaterThan(1000);
+    expect(bottom.length).toBeGreaterThan(1000);
+    // Before: +0.90 m/s² over the summit, -0.29 m/s² after the bottom.
+    expect(mean(over)).toBeLessThan(0.25);
+    expect(mean(bottom)).toBeGreaterThan(-0.15);
+  });
+});

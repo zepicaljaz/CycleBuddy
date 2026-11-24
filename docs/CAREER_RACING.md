@@ -279,18 +279,45 @@ There is no Easy/Normal/Hard setting in Career today, so nothing scales the spri
   fresh descender in the bunch attacks. Never the race leader or anyone in the top 5 overall. He gains about 2% plus his skill on the bunch speed while the
   road falls, then rides as a lone attacker, and the chase director chases him at once.
 - The reserve refills on descents, so climbs can be raced again.
-- **Speed over the top.** The pace lock sets every rider of a group to the steady speed for the slope,
-  which on a descent is the speed at the bottom, not the speed they carry over the top. It used to let
-  them close that gap 1.8 m/s² faster than physics, so on Slenaken's 12% descents the bunch sped up at
-  2.36 m/s² against 0.62 from physics, overshot the speed the slope holds, and rode away from a player
-  holding the same power (in a playtest video: 3rd to 37th of 140 down one descent at a steady 140 W).
-  Now each rider on a descent keeps the speed their own power, draft and the slope would have given them
-  since the road tipped down (`Racer.free`), and stays within 0.5 m/s of it (`DESCENT_SLACK`). The bunch
-  speeds up as fast as physics does (0.70 against 0.70 m/s² on Slenaken); riders behind close up through
-  the draft, as the player does. The biggest one-second change of the bunch speed fell from 8-9 km/h to
-  about 3.5 km/h. Test: `over the top of a climb` in `raceMeasure.test.ts`. What is left is real racing:
-  the riders ahead come over the top first and keep pushing for a second or two, so a rider at the
-  bunch's power can still lose a few places on the way down.
+- **Over the top: the effort carried** (`prepareCrests`, `paceWkgAt`). Riders carry the effort they
+  climbed at over the summit (the mean of the climb's last 300 m) instead of falling back to the flat
+  slider at the top, then ease off by the slope of the descent (`descentShare` of that effort: 100% to
+  -1%, 60% at -3%, 30% at -5%, nothing from -10%), and ride the flat slider again once the road has been
+  level for 300 m. No published table gives W/kg per descent gradient; this one is the one we agreed,
+  and it matches the general finding that power falls with the gradient and riders stop pedalling on
+  fast descents. The AI's W/kg never rose at the top: measured, it falls from about 3.2 on the climb to
+  2.5 at the top and under 0.3 on a 10% descent.
+- **Over the top: the speed** (`Racer.free`, `PHYSICS_SLACK`, `MOMENTUM_M_S` in `RideSim.step`). The player
+  rides pure physics. The AI also have a pace lock that sets every rider to the steady speed for the
+  slope, and it let them reach it faster than physics: 0.55 m/s² extra on the summit and 1.8 m/s² on the
+  descent, and then 0.6 m/s² of extra braking at the bottom. A player at the same power could not close
+  on the descent, then rode away at the bottom and had to wait. Now:
+  - from the top of a climb until the road levels out after the descent, and on any descent, each rider
+    stays within 0.5 m/s of the speed their own power, draft and the slope give them;
+  - a rider more than 1 m/s faster than the pace lock wants, whom physics is already slowing, loses that
+    speed to the slope and the air only, not to the extra brake;
+  - a group chasing another group on a descent pedals at the flat effort times the chase factor while
+    below 60 km/h, as real riders do to close a gap there.
+
+  Measured on four stages (AI speed change minus physics, mean over all bunch riders):
+
+  | Where | Original | Now |
+  |---|---|---|
+  | First 100 m after a summit | +0.90 m/s² | +0.10 |
+  | Last 100 m before a summit | +0.16 | +0.12 |
+  | Last 100 m before the bottom | -0.32 | -0.24 |
+  | First 100 m after the bottom | -0.29 | -0.08 |
+
+  On Slenaken's 12% descents the bunch now speeds up as fast as physics (0.70 against 0.70 m/s²; it was
+  2.36), and the biggest one-second change of the bunch speed fell from 8-9 km/h to about 3.5 km/h.
+  Tests: `over the top of a climb` and `over the top and at the bottom` in `raceMeasure.test.ts`, and
+  `over the top of a climb` in `terrain.test.ts`.
+
+  What is left: the front of the bunch crosses the top first and is already going faster, so on long
+  descents the bunch stretches and groups of 5-20 riders can sit 1.5-3 s ahead until the flat (riders
+  ahead of the bunch 14-17% of the time on Ardenne Peak, 8-11% before). That is how a real bunch looks
+  over a summit. The rule is only for summits and descents: on the flat and on climbs it split the bunch
+  (riders without a wheel cannot hold the pace on physics alone), so there the pace lock is unchanged.
 
 ## Day form
 
@@ -362,7 +389,7 @@ These are five races per stage. Read the shares as "always", "mostly", "sometime
    than the 2-3 km aimed at (on average 4-10 km out). A shared-wind rate for break groups in
    `staminaPlace` would let breaks last longer. On a 20 km stage only 20-60% of breaks reach 20 s.
 3. **Speed jumps at the top of steep descents** were 7-9 km/h in a second. That was the 1.8 m/s² allowance
-   in the speed lock; fixed (see "Speed over the top" under Descents), now about 3.5 km/h.
+   in the speed lock; fixed (see "Over the top: the speed" under Descents), now about 3.5 km/h.
 4. **The sprint team's leader goes from deep** because riders cannot move up through a file. Same fix as 1.
 5. **Not played.** Everything here was measured headless. Nothing has been ridden on a trainer, and the
    numbers that matter most for the player (tempo phases, sprint power) need a playtest.
@@ -395,7 +422,9 @@ These are five races per stage. Read the shares as "always", "mostly", "sometime
 | Moving up through the bunch | `ENGINE_LIFT`, `WIND_LIFT` | 8 and 20 places |
 | Failed attempt eases to | `SIT_UP_SHARE` | 0.65 |
 | Same group | `ROAD_GROUP_M` | 16 m (AI and HUD) |
-| Speed lock beyond physics | `EXTRA_ACCEL`, `DESCENT_SLACK` | 0.55 m/s² on flat and climbs; on a descent within 0.5 m/s of own physics |
+| Speed lock beyond physics | `EXTRA_ACCEL`, `PHYSICS_SLACK`, `MOMENTUM_M_S` | 0.55 m/s² on flat and climbs; over the top and on descents within 0.5 m/s of own physics; no extra brake when carrying 1 m/s+ |
+| Effort carried over a summit | `prepareCrests` (`CREST_*`) | mean of the climb's last 300 m, until 300 m of level road after the descent |
+| Chasing on a descent | `SPIN_OUT` | flat effort x chase factor below 60 km/h |
 | Lead-out | `flatRunIn`, `sprintRampFrom` | 1.15 / 1.28 / 1.38 |
 | Sprint peak, hold, jump | `sprintPeakWkg`, `sprintHold`, `launchDistance` | 4.7 x for the best, 9-12 s, 120-380 m |
 | Uphill kick | `kickPeakWkg` | 2.4 x for the best |

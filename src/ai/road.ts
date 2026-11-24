@@ -144,6 +144,9 @@ const HOLD = 78;
 /** Speed (m/s) at which the group's slot drift is at full strength. Slower than this it shrinks with the speed. */
 const DRIFT_PACE = 9;
 
+/** Above this speed (60 km/h) pedalling on a descent no longer adds much; riders chasing on a descent pedal below it. */
+const SPIN_OUT = 60 / 3.6;
+
 /** Riders closer than this to the rider ahead ride in the same group. The gap bar in the HUD uses it too. */
 export const ROAD_GROUP_M = 16;
 
@@ -534,9 +537,108 @@ export function roadRemaining(plan: RoadPlan, s: number): number {
 }
 
 /** The peloton rides the watts you set. Attacks and the sprint are the only surges. */
-export function racePace(plan: RoadPlan, grade: number, remaining: number): number {
+export function racePace(plan: RoadPlan, grade: number, remaining: number, s?: number): number {
   void remaining;
-  return terrainWkg(plan, grade);
+  return s == null ? terrainWkg(plan, grade) : paceWkgAt(plan, s, grade);
+}
+
+/** A climb must climb this much (averaged over the last 100 m) to count, and be this long, for its effort to be carried over the top. */
+const CREST_CLIMB = 0.025;
+const CREST_MIN_M = 200;
+/** The effort carried is the mean of the climb's last this many metres. */
+const CREST_TAIL_M = 300;
+/** Over the top the carried effort ends this far after the road levels out at the bottom, or after this much road with no descent at all. */
+const CREST_FLAT_M = 300;
+const CREST_PLATEAU_M = 400;
+const CREST_STEP_M = 10;
+
+/** Per stage: from each point along the road, the effort carried over the top of the climb just ridden, or NaN. */
+const crests = new WeakMap<RoadPlan, Float32Array>();
+
+/**
+ * Riders carry the effort they climbed at over the top, then ease off by the slope of the descent
+ * (descentShare) and ride the flat slider again once the road levels out at the bottom. Without this
+ * the summit fell back to the flat slider and the descent eased from that. Called once per stage.
+ */
+export function prepareCrests(plan: RoadPlan, gradeAt: (s: number) => number): void {
+  if (plan.timeTrial || crests.has(plan)) return;
+  const dir = raceDir(plan);
+  const span = Math.abs(plan.finishS - plan.startS);
+  const n = Math.floor(span / CREST_STEP_M) + 1;
+  const out = new Float32Array(n).fill(NaN);
+  const grade = (i: number) => gradeAt(plan.startS + dir * i * CREST_STEP_M) * dir;
+  const window = Math.round(100 / CREST_STEP_M);
+  const tailN = Math.round(CREST_TAIL_M / CREST_STEP_M);
+  let sum = 0;
+  let state: 'none' | 'climb' | 'over' = 'none';
+  let climbM = 0;
+  const tail: number[] = [];
+  let carry = NaN;
+  let descended = false;
+  let levelM = 0;
+  let overM = 0;
+  for (let i = 0; i < n; i++) {
+    const g = grade(i);
+    sum += g;
+    if (i >= window) sum -= grade(i - window);
+    const climbing = sum / Math.min(i + 1, window) >= CREST_CLIMB;
+    if (climbing) {
+      if (state !== 'climb') {
+        state = 'climb';
+        climbM = 0;
+        tail.length = 0;
+      }
+      climbM += CREST_STEP_M;
+      // Only the points that really climb: the level top already counts as climbing in the 100 m average.
+      if (g >= CREST_CLIMB) {
+        tail.push(terrainWkg(plan, g));
+        if (tail.length > tailN) tail.shift();
+      }
+      continue;
+    }
+    if (state === 'climb') {
+      if (climbM >= CREST_MIN_M) {
+        state = 'over';
+        carry = tail.length ? tail.reduce((a, b) => a + b, 0) / tail.length : terrainWkg(plan, CREST_CLIMB);
+        descended = false;
+        levelM = 0;
+        overM = 0;
+      } else state = 'none';
+    }
+    if (state !== 'over') continue;
+    overM += CREST_STEP_M;
+    if (g < -0.01) {
+      descended = true;
+      levelM = 0;
+    } else if (descended) levelM += CREST_STEP_M;
+    if ((descended && levelM > CREST_FLAT_M) || (!descended && overM > CREST_PLATEAU_M)) {
+      state = 'none';
+      continue;
+    }
+    out[i] = carry;
+  }
+  crests.set(plan, out);
+}
+
+/** True from the top of a climb until the road levels out after the descent. */
+export function overTheTop(plan: RoadPlan, s: number): boolean {
+  const table = crests.get(plan);
+  if (!table) return false;
+  const i = Math.round(roadAlong(plan, s) / CREST_STEP_M);
+  return i >= 0 && i < table.length && !Number.isNaN(table[i]);
+}
+
+/**
+ * W/kg the bunch rides at this point of the stage. Over the top of a climb: the effort carried from
+ * the climb, eased by the slope of the descent. Everywhere else: terrainWkg.
+ */
+export function paceWkgAt(plan: RoadPlan, s: number, grade: number): number {
+  const table = crests.get(plan);
+  if (!table || grade >= CREST_CLIMB) return terrainWkg(plan, grade);
+  const i = Math.round(roadAlong(plan, s) / CREST_STEP_M);
+  const carry = i >= 0 && i < table.length ? table[i] : NaN;
+  if (Number.isNaN(carry)) return terrainWkg(plan, grade);
+  return grade < 0 ? carry * descentShare(grade) : carry;
 }
 
 function ordersAt(plan: RoadPlan, orders: RoadOrders, s: number, grade: number): RoadOrders {
@@ -545,7 +647,7 @@ function ordersAt(plan: RoadPlan, orders: RoadOrders, s: number, grade: number):
   const next: RoadOrders = { ...orders, paceOn: false };
   if (plan.tactic === 'control' && remaining > 800) {
     next.paceOn = true;
-    next.paceWkg = terrainWkg(plan, grade);
+    next.paceWkg = paceWkgAt(plan, s, grade);
   } else if (plan.tactic === 'climb' && plan.lastClimbS != null && roadAlong(plan, s) >= roadAlong(plan, plan.lastClimbS) && remaining > 450) {
     next.paceOn = true;
     next.paceWkg = plan.mountainWkg * 0.97;
@@ -736,8 +838,8 @@ export function decideRoad(r: RoadActor, plan: RoadPlan, orders: RoadOrders, gra
   }
 
   const ask = ordersAt(plan, orders, r.s, grade);
-  const pace = terrainWkg(plan, grade);
-  const eased = racePace(plan, grade, remaining);
+  const pace = paceWkgAt(plan, r.s, grade);
+  const eased = racePace(plan, grade, remaining, r.s);
   const opening = !plan.timeTrial && along < 500;
 
   if (ask.waitOn && body.teammate && !ask.released) {
@@ -1192,7 +1294,7 @@ export function shapeRoad(
     const remainingNose = roadRemaining(plan, nose.s);
     const ask = ordersAt(plan, orders, player?.s ?? nose.s, grade);
     const opening = noseAlong < 500;
-    const eased = opening ? terrainWkg(plan, grade) : racePace(plan, grade, remainingNose);
+    const eased = opening ? terrainWkg(plan, grade) : racePace(plan, grade, remainingNose, nose.s);
     let factor = 1;
     if (!opening) {
       if (group === main) factor = Math.max(factor, chaseFactor(nose, eased, grade, group));
@@ -1254,7 +1356,11 @@ export function shapeRoad(
       const rider = ordered[i];
       if (isProtectedRider(rider, field, plan) || (rider.energy ?? 1) < 0.3 || (rider.climbShare ?? 1) < 1) continue;
       wind.add(rider);
-      if (factor > 1 && !matesLead) rider.targetPower = eased * factor * rider.mass;
+      if (factor > 1 && !matesLead) {
+        // Closing a gap on a descent takes pedalling, as long as pedalling still adds speed.
+        const closing = grade < 0 && rider.v < SPIN_OUT ? plan.flatWkg : 0;
+        rider.targetPower = Math.max(eased, closing) * factor * rider.mass;
+      }
     }
     for (const rider of current) {
       const f = matesLead ? ask.paceWkg / Math.max(0.5, eased) : factor;
@@ -1281,7 +1387,7 @@ export function shapeRoad(
       let base = pace;
       if (!matesLead && rider !== nose) {
         const rg = slope(rider.s);
-        const ew = opening ? terrainWkg(plan, rg) : racePace(plan, rg, roadRemaining(plan, rider.s));
+        const ew = opening ? terrainWkg(plan, rg) : racePace(plan, rg, roadRemaining(plan, rider.s), rider.s);
         base = steadySpeed(Math.max(0, ew * factor * share * nose.mass), rg, nose.bike, altAt(rider.s), 0);
       } else if (share < 1) {
         base = steadySpeed(Math.max(0, groupWkg * share * nose.mass), rollGrade, nose.bike, altAt(nose.s), 0);
