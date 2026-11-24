@@ -4,7 +4,7 @@ import {
   brainFor, breakPace, catchRemaining, chaseCap, chaseSpeedNeeded, criticalRatio, dayForm, descentSkill, factorForSpeed,
   finaleStart, gapCap, kickPeakWkg, launchDistance, reserveBudget, sprintCurve, sprintHold, sprintPeakWkg, tickReserve,
 } from './raceBrain';
-import { roadPlaces } from './road';
+import { isProtectedRider, leadsRace, roadPlaces, type RoadBody, type RoadPlan } from './road';
 
 describe('surge reserve', () => {
   it('lets the best rider in the field hold about 9% over the slider, and weaker riders less', () => {
@@ -234,5 +234,26 @@ describe('places in the bunch', () => {
     const slot = new Map([['a', 0], ['d', 1], ['b', 2], ['c', 3]]);
     const place = roadPlaces(['a', 'd', 'b', 'c'], slot);
     expect([place.get('a'), place.get('d'), place.get('b'), place.get('c')]).toEqual([0, 1, 2, 3]);
+  });
+});
+
+describe('the leader of the race', () => {
+  const attrs = { flat: 60, hills: 60, medium: 60, mountain: 60, tt: 60, sprint: 60, recovery: 60, endurance: 60, stamina: 60 };
+  const body = (extra: Partial<RoadBody>): RoadBody => ({ riderId: 'r', teamId: 't', age: 27, teammate: false, attrs, kit: {} as RoadBody['kit'], ...extra });
+  const plan = { finishKind: 'sprint', punchy: false } as RoadPlan;
+
+  it('is first overall or wears a leader\'s jersey', () => {
+    expect(leadsRace(body({ gcRank: 0 }))).toBe(true);
+    expect(leadsRace(body({ badge: 'Y' }))).toBe(true);
+    expect(leadsRace(body({ badge: 'P' }))).toBe(true);
+    expect(leadsRace(body({ gcRank: 1 }))).toBe(false);
+    expect(leadsRace(body({ badge: 'S' }))).toBe(false);
+  });
+
+  it('stays out of the wind even when they are not the best rider on the team for the finish', () => {
+    const leader = { road: body({ gcRank: 0 }) };
+    const mate = { road: body({ riderId: 'm', attrs: { ...attrs, sprint: 85, flat: 85 } }) };
+    expect(isProtectedRider(leader, [leader, mate], plan)).toBe(true);
+    expect(isProtectedRider({ road: body({ gcRank: 3 }) }, [mate], plan)).toBe(false);
   });
 });

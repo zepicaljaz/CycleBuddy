@@ -321,9 +321,16 @@ export function staminaPlace(mode: string, draft: number, energy: number, slot: 
   return 'draft';
 }
 
-/** The best rider on a team for this finish stays out of the wind. */
+/** The leader of the race: first overall, or in a leader's jersey. They ride in the bunch, not in early moves. */
+export function leadsRace(body: RoadBody | null | undefined): boolean {
+  if (!body) return false;
+  return body.gcRank === 0 || body.badge === 'Y' || body.badge === 'P' || body.badge === 'R';
+}
+
+/** The best rider on a team for this finish stays out of the wind, and so does the leader of the race. */
 export function isProtectedRider(rider: { road: RoadBody | null }, field: { road: RoadBody | null }[], plan: RoadPlan): boolean {
   if (!rider.road) return false;
+  if (leadsRace(rider.road)) return true;
   const own = stageStrength(rider.road.attrs, plan.finishKind, plan.punchy);
   let best = own;
   for (const other of field) {
@@ -934,6 +941,7 @@ function breakCandidate(r: RoadActor, field: RoadActor[], plan: RoadPlan, brain:
   if (brain.surges.has(r.id) || brain.members.has(r.id) || brain.sitUp.has(r.id)) return false;
   if ((r.energy ?? 1) < 0.7 || (r.reserve ?? 1) < 0.6 || r.road.attrs.flat < 60) return false;
   if (r.road.gcRank != null && r.road.gcRank < 10) return false;
+  if (leadsRace(r.road)) return false;
   if (stageStrength(r.road.attrs, plan.finishKind, plan.punchy) >= fieldBest - 6) return false;
   return !isProtectedRider(r, field, plan);
 }
@@ -1027,6 +1035,8 @@ function directRace(
       for (const r of main) {
         if (r.isPlayer || !r.road || r.road.teammate || r.mode !== 'follow' || brain.surges.has(r.id)) continue;
         if ((r.energy ?? 1) < 0.45 || (r.reserve ?? 1) < 0.6) continue;
+        // The race leader and the riders close to them overall ride the descent in the bunch.
+        if (leadsRace(r.road) || (r.road.gcRank != null && r.road.gcRank < 5)) continue;
         const skill = descentSkill(r.road.riderId);
         if (skill > bestSkill) {
           best = r;
