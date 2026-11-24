@@ -690,6 +690,9 @@ describe('career season', () => {
     const mate = sim.racers.find((r) => r.road?.riderId === 'mate')!;
     const others = sim.racers.filter((r) => r.road && !r.road.teammate);
     mate.s = Math.min(...others.map((r) => r.s)) - 8;
+    // The order is for the player's group, so the player rides in it.
+    sim.player.s = Math.min(...others.map((r) => r.s)) - 1;
+    sim.player.v = others[0].v;
     sim.manual = true;
     sim.paceOn = true;
     sim.paceWkg = 4.2;
@@ -701,6 +704,41 @@ describe('career season', () => {
     for (let t = 0; t < 6; t += 0.05) sim.step(0.05, 160, 85);
     const lifted = others.reduce((sum, r) => sum + r.v, 0) / others.length;
     expect(lifted).toBeGreaterThan(bunch + 1.2);
+  });
+
+  it('keeps teammates on the front of the player\'s group when the player is off the back', () => {
+    const route = getRoute(getRouteDef('lowlands'));
+    const start = route.sectionStart[1] + 400;
+    const body = (id: string, teammate: boolean): RoadBody => ({
+      riderId: id, teamId: 'sprint', age: 27, teammate,
+      attrs: { ...attrs(74), sprint: 80, flat: 76 },
+      kit: DEFAULT_COLORS,
+    });
+    const field = [body('mate', true), body('a', false), body('b', false)].map((item) => ({
+      name: item.riderId, country: 'FRA', team: 'Sprint', mass: 74, colors: DEFAULT_COLORS, body: item,
+    }));
+    const sim = new RideSim(route, {
+      startS: start, finishS: start + 8000, aiCount: 0, seed: 4,
+      road: {
+        flatWkg: 2.2, hillWkg: 3, mountainWkg: 3.6, oneDay: true, timeTrial: false,
+        startS: start, finishS: start + 8000, lastClimbS: null, firstClimbS: start, finishKind: 'sprint', tactic: 'control', features: [],
+      },
+      roadField: field,
+      player: { name: 'Me', massKg: 74, ftp: 163, colors: DEFAULT_COLORS },
+    });
+    sim.started = true;
+    for (let t = 0; t < 90; t += 0.05) sim.step(0.05, 160, 85);
+    const mate = sim.racers.find((r) => r.road?.riderId === 'mate')!;
+    const others = sim.racers.filter((r) => r.road && !r.road.teammate);
+    // The player is far off the back of the other riders; the teammate is with the player.
+    sim.player.s = Math.min(...others.map((r) => r.s)) - 60;
+    mate.s = sim.player.s + 4;
+    sim.manual = true;
+    sim.paceOn = true;
+    sim.paceWkg = 4.2;
+    for (let t = 0; t < 20; t += 0.05) sim.step(0.05, 160, 85);
+    // The teammate pulls the player at the front of the player's group instead of riding off up the road.
+    expect(mate.s - sim.player.s).toBeLessThan(14);
   });
 
   it('spends stamina in the wind and holds it in the wheels', () => {

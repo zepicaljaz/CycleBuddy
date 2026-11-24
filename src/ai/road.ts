@@ -751,7 +751,9 @@ export function decideRoad(r: RoadActor, plan: RoadPlan, orders: RoadOrders, gra
 
   r.climbShare = undefined;
   const kicking = plan.finishKind === 'sprint' && remaining < 800 && remaining > 0 && grade < 0.035;
-  if (ask.paceOn && body.teammate && !kicking) {
+  // A teammate who is spent on a climb drops out of the line instead of pulling on empty.
+  const spent = !opening && ((grade >= 0.03 && ((r.reserve ?? 1) <= 0.02 || energy < 0.15)) || (r.mode === 'cracked' && grade >= 0.01));
+  if (ask.paceOn && body.teammate && !kicking && !spent) {
     r.mode = 'pace';
     r.targetPower = Math.max(0.8, ask.paceWkg) * r.mass;
     return;
@@ -1232,7 +1234,10 @@ export function shapeRoad(
     const orderedOn = ask.manual && ask.paceOn && mates.length > 0;
     const rearmostMate = mates.length ? Math.min(...mates.map((r) => along(r.s))) : -Infinity;
     const foremostOther = others.length ? Math.max(...others.map((r) => along(r.s))) : -Infinity;
-    const matesLead = orderedOn && rearmostMate >= foremostOther - 2.5;
+    // The order is for the player's group: once the player is off the back, this group rides its own pace.
+    const playerAlong = player ? along(player.s) : -Infinity;
+    const withPlayer = playerAlong >= along(current[current.length - 1].s) - ROAD_GROUP_M && playerAlong <= noseAlong + ROAD_GROUP_M;
+    const matesLead = orderedOn && withPlayer && rearmostMate >= foremostOther - 2.5;
     const groupWkg = matesLead ? ask.paceWkg : eased * factor;
     const pace = steadySpeed(Math.max(0, groupWkg * nose.mass), rollGrade, nose.bike, altAt(nose.s), 0);
     const ordered = orderPull(
@@ -1289,7 +1294,8 @@ export function shapeRoad(
       // past the wheel ahead, and only that one wheel eases. The group does not surge or sit up.
       const wantAlong = head - placeBehind(rider);
       let drift = 0;
-      if (!opening && !orderedOn) {
+      // Teammates under orders ride their own effort; everyone else keeps their place in the group.
+      if (!opening && !(orderedOn && rider.road?.teammate)) {
         if (rider === lead && rider !== nose) drift = 0.3;
         else if (rider === nose && rider !== lead) drift = -0.18;
         else if (rider !== nose) drift = clamp((wantAlong - along(rider.s)) * 0.08, -0.2, 0.3);
@@ -1351,11 +1357,27 @@ export function shapeRoad(
     }
   }
   if (!player || orders.released) return;
+  // Teammates on the front pull the group the player is in, one line ahead of it at most. They do not
+  // ride away from it: if the player cannot hold their effort, they ride the player's pace.
+  let groupFront = along(player.s);
+  let frontSpeed = player.v;
+  if (orders.paceOn) {
+    const order = field.filter((o) => o.finishTime == null && !o.road?.teammate).sort((a, b) => along(b.s) - along(a.s));
+    for (let i = order.indexOf(player) - 1; i >= 0; i--) {
+      if (along(order[i].s) - along(order[i + 1].s) > ROAD_GROUP_M) break;
+      groupFront = along(order[i].s);
+      frontSpeed = order[i].v;
+    }
+  }
+  const lineAhead = LINE_LENGTH * FILE_SPACING;
   for (const r of field) {
     if (!r.road?.teammate || r.finishTime != null || r.mode === 'sprint' || r.mode === 'finished') continue;
     const ahead = along(r.s) - along(player.s);
     if (orders.waitOn && ahead > 18) r.v = Math.min(r.v, 1.8);
     else if (!orders.paceOn && ahead > 16) r.v = Math.min(r.v, Math.max(1.2, player.v * 0.98));
+    else if (orders.paceOn && along(r.s) - groupFront > lineAhead) {
+      r.v = Math.min(r.v, Math.max(1.2, frontSpeed - clamp((along(r.s) - groupFront - lineAhead) * 0.1, 0, 1)));
+    }
   }
 }
 
