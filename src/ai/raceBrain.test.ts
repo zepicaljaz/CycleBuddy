@@ -4,6 +4,7 @@ import {
   brainFor, breakPace, catchRemaining, chaseCap, chaseSpeedNeeded, criticalRatio, dayForm, descentSkill, factorForSpeed,
   finaleStart, gapCap, kickPeakWkg, launchDistance, reserveBudget, sprintCurve, sprintHold, sprintPeakWkg, tickReserve,
 } from './raceBrain';
+import { roadPlaces } from './road';
 
 describe('surge reserve', () => {
   it('lets the best rider in the field hold about 9% over the slider, and weaker riders less', () => {
@@ -214,5 +215,24 @@ describe('race brain', () => {
       expect(brain.breakTo).toBeLessThanOrEqual(6000);
       expect(brain.breakTo).toBeGreaterThan(brain.breakFrom);
     }
+  });
+});
+
+describe('places in the bunch', () => {
+  it('leaves no empty place for a rider who is still coming up from further back', () => {
+    // On the road from the front: a, b, c, d. d should be second (slot 1) but is still at the back.
+    const slot = new Map([['a', 0], ['d', 1], ['b', 2], ['c', 3]]);
+    const place = roadPlaces(['a', 'b', 'c', 'd'], slot);
+    expect(place.get('a')).toBe(0);
+    expect(place.get('b')).toBe(1);
+    expect(place.get('c')).toBe(2);
+    // d wants to be behind a only, so it comes forward past b and c.
+    expect(place.get('d')).toBe(1);
+  });
+
+  it('moves a rider back one place once a rider who should be ahead has come past', () => {
+    const slot = new Map([['a', 0], ['d', 1], ['b', 2], ['c', 3]]);
+    const place = roadPlaces(['a', 'd', 'b', 'c'], slot);
+    expect([place.get('a'), place.get('d'), place.get('b'), place.get('c')]).toEqual([0, 1, 2, 3]);
   });
 });

@@ -157,6 +157,24 @@ export function slotOffset(slot: number): number {
   return (LINE_LENGTH - 1) * FILE_SPACING + (slot - LINE_LENGTH + 1) * SPREAD_STEP;
 }
 
+/**
+ * Where each rider of a group rides, counted from the front: the riders who should be ahead of them
+ * (a lower slot) and already are. `bySDesc` is the group from the front of the road back.
+ */
+export function roadPlaces<T>(bySDesc: T[], slot: Map<T, number>): Map<T, number> {
+  const size = bySDesc.length;
+  const tree = new Array<number>(size + 1).fill(0);
+  const out = new Map<T, number>();
+  for (const rider of bySDesc) {
+    const own = slot.get(rider) ?? 0;
+    let count = 0;
+    for (let i = Math.min(own, size); i > 0; i -= i & -i) count += tree[i];
+    out.set(rider, count);
+    for (let i = own + 1; i <= size; i += i & -i) tree[i]++;
+  }
+  return out;
+}
+
 /** A flat time trial uses the time-trial rating. A mountain time trial uses that and the mountains, equally. */
 export function trialRating(attrs: Pick<RaceAttrs, 'tt' | 'mountain'>, finish: RoadFinish): number {
   return finish === 'mountain' ? (attrs.tt + attrs.mountain) / 2 : attrs.tt;
@@ -316,8 +334,19 @@ export function isProtectedRider(rider: { road: RoadBody | null }, field: { road
 const PULL_M = 1600;
 
 /**
+ * A rider who should be further forward works this many places ahead of where they ride. The places
+ * in between each move back one step, so the bunch never holds an empty place open for someone
+ * still stuck behind other riders: an empty place at the front is a hole the riders behind line up
+ * behind, and from behind that looks like a small break.
+ */
+const ENGINE_LIFT = 8;
+/** The next riders to take the wind come up through the bunch this many places at a time. */
+const WIND_LIFT = 20;
+
+/**
  * A few riders take the wind, then the next few. On a sprint finish that is the sprint teams
  * and, unless the order is to climb, the player's helpers. The protected rider does not pull.
+ * A rider whose turn it is but who is further back comes up through the bunch first.
  */
 export function orderPull(
   ordered: RoadActor[],
@@ -325,6 +354,7 @@ export function orderPull(
   plan: RoadPlan,
   alongM: number,
   rank: Map<string, number>,
+  ahead: (rider: RoadActor) => number = (rider) => rider.s,
 ): RoadActor[] {
   const bestTeam = ordered.reduce((best, rider) => Math.max(best, rank.get(rider.road?.teamId ?? '') ?? 0), 0);
   const pullers = ordered.filter((rider) => {
@@ -338,18 +368,25 @@ export function orderPull(
     return helping || (team >= bestTeam - 8 && own >= team - 14 && own >= 54);
   });
   if (!pullers.length) return ordered;
+  // A fixed order, so the turn changes only when the pull is over, not when riders swap places.
+  pullers.sort((a, b) => a.id - b.id);
   const turn = Math.floor(Math.max(0, alongM) / PULL_M) % pullers.length;
-  const used = new Set<RoadActor>();
   const wind: RoadActor[] = [];
   for (let i = 0; i < Math.min(LINE_LENGTH, pullers.length); i++) {
     const rider = pullers[(turn + i) % pullers.length];
-    if (used.has(rider)) continue;
-    wind.push(rider);
-    used.add(rider);
+    if (!wind.includes(rider)) wind.push(rider);
   }
-  return [...wind, ...ordered.filter((rider) => !used.has(rider))];
+  void ahead;
+  const coming = new Set(wind);
+  const place = new Map(ordered.map((rider, index) => [rider, index]));
+  const key = (rider: RoadActor) => place.get(rider)! - (coming.has(rider) ? WIND_LIFT : 0);
+  return [...ordered].sort((a, b) => key(a) - key(b) || place.get(a)! - place.get(b)!);
 }
 
+/**
+ * The order of a group from the front: where the riders are, with the riders of the teams that set
+ * the tempo working their way towards the front a few places at a time.
+ */
 export function tempoOrder(
   group: RoadActor[],
   rank: Map<string, number>,
@@ -358,24 +395,16 @@ export function tempoOrder(
   ahead: (rider: RoadActor) => number = (rider) => rider.s,
 ): RoadActor[] {
   const bestTeam = group.reduce((best, rider) => Math.max(best, rank.get(rider.road?.teamId ?? '') ?? 0), 0);
-  const engine: RoadActor[] = [];
-  const rest: RoadActor[] = [];
-  for (const rider of group) {
+  const physical = [...group].sort((a, b) => ahead(b) - ahead(a));
+  const key = new Map<RoadActor, number>();
+  physical.forEach((rider, index) => {
     const team = rank.get(rider.road?.teamId ?? '') ?? 0;
     const own = rider.road ? stageStrength(rider.road.attrs, finish, punchy) : 0;
-    if (team >= bestTeam - 8 && own >= team - 14 && own >= 54) engine.push(rider);
-    else rest.push(rider);
-  }
-  engine.sort((a, b) => {
-    const teamA = rank.get(a.road?.teamId ?? '') ?? 0;
-    const teamB = rank.get(b.road?.teamId ?? '') ?? 0;
-    if (teamB !== teamA) return teamB - teamA;
-    const ownA = a.road ? stageStrength(a.road.attrs, finish, punchy) : 0;
-    const ownB = b.road ? stageStrength(b.road.attrs, finish, punchy) : 0;
-    return ownA - ownB;
+    const engine = team >= bestTeam - 8 && own >= team - 14 && own >= 54;
+    key.set(rider, index - (engine ? ENGINE_LIFT : 0));
   });
-  rest.sort((a, b) => ahead(b) - ahead(a));
-  return [...engine, ...rest];
+  const index = new Map(physical.map((rider, i) => [rider, i]));
+  return physical.sort((a, b) => key.get(a)! - key.get(b)! || index.get(a)! - index.get(b)!);
 }
 
 export function shareFinishTimes(times: number[], gapSec = 1): number[] {
@@ -1146,6 +1175,7 @@ export function shapeRoad(
       plan,
       noseAlong,
       tempo,
+      (rider) => along(rider.s),
     );
     // What it costs to hold this group. The riders in the wind pay the multiple; in the wheels most of it is hidden on the flat.
     const wind = new Set<RoadActor>();
@@ -1163,6 +1193,16 @@ export function shapeRoad(
     }
     const lead = ordered[0];
     const slot = new Map(ordered.map((rider, index) => [rider, index]));
+    // A rider's place counts only the riders ordered ahead of them who are already ahead on the road.
+    // A rider still coming up from further back takes no room until they get there, so no empty
+    // place opens behind the front rider while they come through.
+    const place = roadPlaces(current, slot);
+    // The line at the front is evenly spaced; the spread bunch behind is staggered so it does not look gridded.
+    const placeBehind = (rider: RoadActor) => {
+      const at = place.get(rider) ?? 0;
+      return slotOffset(at) + (at < LINE_LENGTH ? 0 : (rider.id % 5) * 0.17);
+    };
+    const head = noseAlong;
     for (const rider of current) {
       let base = pace;
       if (!matesLead && rider !== nose) {
@@ -1176,10 +1216,7 @@ export function shapeRoad(
       }
       // Hold the pace you set. Only the rider who should be leading creeps
       // past the wheel ahead, and only that one wheel eases. The group does not surge or sit up.
-      const want = slot.get(rider) ?? 0;
-      // The line at the front is evenly spaced; the spread bunch behind is staggered so it does not look gridded.
-      const stagger = want < LINE_LENGTH ? 0 : (rider.id % 5) * 0.17;
-      const wantAlong = noseAlong - slotOffset(want) - stagger;
+      const wantAlong = head - placeBehind(rider);
       let drift = 0;
       if (!opening && !orderedOn) {
         if (rider === lead && rider !== nose) drift = 0.3;
