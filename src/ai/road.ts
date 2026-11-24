@@ -142,6 +142,9 @@ const HOLD = 78;
 /** Speed (m/s) at which the group's slot drift is at full strength. Slower than this it shrinks with the speed. */
 const DRIFT_PACE = 9;
 
+/** Riders closer than this to the rider ahead ride in the same group. The gap bar in the HUD uses it too. */
+export const ROAD_GROUP_M = 16;
+
 /** Wheel to wheel along one file of riders. A bike is about 1.7 m long, so this leaves a small gap. */
 export const FILE_SPACING = 2.2;
 /** Riders closer than this sideways are in the same file and must keep FILE_SPACING. */
@@ -302,7 +305,7 @@ export function assignWindSlots<T extends { s: number }>(riders: T[], along: (s:
   };
   for (const rider of sorted) {
     const prev = group[group.length - 1];
-    if (prev && along(prev.s) - along(rider.s) > 16) stamp();
+    if (prev && along(prev.s) - along(rider.s) > ROAD_GROUP_M) stamp();
     group.push(rider);
   }
   if (group.length) stamp();
@@ -1055,7 +1058,7 @@ export function shapeRoad(
   const groups: RoadActor[][] = [];
   for (const r of active) {
     const group = groups[groups.length - 1];
-    if (!group || along(group[group.length - 1].s) - along(r.s) > 16) groups.push([r]);
+    if (!group || along(group[group.length - 1].s) - along(r.s) > ROAD_GROUP_M) groups.push([r]);
     else group.push(r);
   }
   const tempo = teamTempoRank(field, plan.finishKind, plan.punchy);
@@ -1089,7 +1092,7 @@ export function shapeRoad(
       // A break the bunch lets go has none of the riders who can win today. Anything else is chased now.
       let prev = along(breakLead.s);
       for (const r of ahead) {
-        if (prev - along(r.s) > 16) break;
+        if (prev - along(r.s) > ROAD_GROUP_M) break;
         prev = along(r.s);
         const strong = stageStrength(r.road!.attrs, plan.finishKind, plan.punchy) >= fieldBest - 6 || (r.road!.gcRank != null && r.road!.gcRank < 5);
         const joining = brain.surges.get(r.id)?.kind === 'bridge';
@@ -1250,7 +1253,7 @@ export function shapeRoad(
   const escape: RoadActor[][] = [];
   for (const r of breaks) {
     const group = escape[escape.length - 1];
-    if (!group || along(group[group.length - 1].s) - along(r.s) > 16) escape.push([r]);
+    if (!group || along(group[group.length - 1].s) - along(r.s) > ROAD_GROUP_M) escape.push([r]);
     else group.push(r);
   }
   for (const group of escape) {

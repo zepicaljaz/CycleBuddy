@@ -17,10 +17,10 @@ import { punchyStage, RACES, risesOnCourse, segmentFinish, segmentKind, stageCou
 import { aiField } from '../career/squad';
 import { teamById, teamKit } from '../career/teams';
 import { RideSim, type Racer } from './peloton';
-import { stageStrength, terrainWkg, type RoadPlan, type RoadStarter } from './road';
+import { ROAD_GROUP_M, stageStrength, terrainWkg, type RoadPlan, type RoadStarter } from './road';
 
 /** Riders closer than this to the rider ahead are in the same group. The same value the AI uses. */
-export const GROUP_GAP_M = 16;
+export const GROUP_GAP_M = ROAD_GROUP_M;
 
 /** A group ahead of the bunch with this many riders or fewer is a break. A bigger one is the bunch splitting in two. */
 export const BREAK_MAX = 20;

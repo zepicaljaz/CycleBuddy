@@ -2,7 +2,7 @@ import { BRAKE_DECEL, draftFromGap, makeBikeParams, steadySpeed, stepSpeed, type
 import type { Route } from '../routes/route';
 import { clamp, mulberry32, randRange, smoothstep } from '../util/math';
 import type { RiderColors } from '../world/riders';
-import { assignWindSlots, awardRoadFeatures, climbDrain, climbPeers, climbRating, decideRoad, FILE_SPACING, FILE_WIDTH, isProtectedRider, sealGroupTimes, shapeRoad, stageStrength, staminaPlace, teamTempoRank, terrainWkg, tickEnergy, tickRoadReserve, trialFactor, TT_GAP, ttStartOrder, type EnergyPlace, type RoadBody, type RoadOrders, type RoadPlan, type RoadStarter, type WindSlot } from './road';
+import { assignWindSlots, awardRoadFeatures, climbDrain, climbPeers, climbRating, decideRoad, FILE_SPACING, FILE_WIDTH, isProtectedRider, ROAD_GROUP_M, sealGroupTimes, shapeRoad, stageStrength, staminaPlace, teamTempoRank, terrainWkg, tickEnergy, tickRoadReserve, trialFactor, TT_GAP, ttStartOrder, type EnergyPlace, type RoadBody, type RoadOrders, type RoadPlan, type RoadStarter, type WindSlot } from './road';
 import { climbEffortWatts, hillClimbWattsPerKilo } from './climbers';
 import { NATIONS, TEAMS, teamColors } from './names';
 import { bestClimbers, riderName } from '../career/roster';
@@ -451,7 +451,7 @@ export class RideSim {
     const groups: Racer[][] = [];
     for (const r of active) {
       const group = groups[groups.length - 1];
-      if (!group || along(group[group.length - 1].s) - along(r.s) > 16) groups.push([r]);
+      if (!group || along(group[group.length - 1].s) - along(r.s) > ROAD_GROUP_M) groups.push([r]);
       else group.push(r);
     }
     for (const group of groups) {

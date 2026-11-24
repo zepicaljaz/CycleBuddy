@@ -1,3 +1,4 @@
+import { ROAD_GROUP_M } from '../ai/road';
 import type { DeviceManager } from '../ble/devices';
 import type { RideSession } from '../game/session';
 import type { RideCamera, RideMap } from '../storage/types';
@@ -611,7 +612,7 @@ function liveGap(leader: StandingRider, rider: StandingRider, dir: 1 | -1 = 1): 
   return seconds < 1 ? '<i>s.t.</i>' : `+${formatDuration(seconds)}`;
 }
 
-/** Every group's time gap to the player. The player's own group is marked. */
+/** Every group's time gap to the player. The player's own group is marked. Groups are split the way the AI splits them. */
 function groupGaps(session: RideSession): string {
   const dir: 1 | -1 = session.player.direction < 0 ? -1 : 1;
   const riders = session.sim.racers.filter((r) => r.finishTime == null).sort((a, b) => (b.s - a.s) * dir);
@@ -620,7 +621,7 @@ function groupGaps(session: RideSession): string {
   for (const r of riders) {
     const badge = r.road?.badge ?? '';
     const group = groups[groups.length - 1];
-    if (!group || (group.back - r.s) * dir > 8) groups.push({ count: 1, front: r.s, back: r.s, v: Math.max(2, r.v), mine: r.isPlayer, badges: badge ? [badge] : [] });
+    if (!group || (group.back - r.s) * dir > ROAD_GROUP_M) groups.push({ count: 1, front: r.s, back: r.s, v: Math.max(2, r.v), mine: r.isPlayer, badges: badge ? [badge] : [] });
     else {
       group.count += 1;
       group.back = r.s;
