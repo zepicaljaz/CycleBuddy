@@ -120,6 +120,43 @@ Before, any two groups more than 16 m apart rode the same pace forever, so a spl
 Now a group that is behind another group closes on it: at 1.20 x on the flat (gap under 45 s) and
 at 1.05 x on a climb (gap under 15 s). Not in the finale of a climb finish, where the splits are the race.
 
+## The front of the bunch
+
+Found in a Harbour Race screenshot: on a descent the first 10-15 riders rode a few metres apart, with gaps
+of one or two seconds that looked like a small break, while the rest of the bunch was fine.
+
+**Why.** Every rider in a group has a place (a slot) behind the front. The places just behind the front
+were given to riders who should be there, the next riders to pull and the riders of the strongest teams,
+even when they were 20-140 m back in the bunch. They move up at about 0.3 m/s, so those places stayed
+empty for minutes, and the riders really at the front lined up behind the empty places.
+
+**Now** (`shapeRoad`, `roadPlaces`, `tempoOrder`, `orderPull`):
+
+- A rider's place counts only the riders ordered ahead of them who are already ahead on the road. A rider
+  still coming up takes no room until they get there, so no empty place opens behind the front rider.
+- The riders of the teams that set the tempo work 8 places ahead of where they ride, and the next pullers
+  20, so they come up through the bunch a few places at a time instead of being given the front at once.
+- The pull rotation uses a fixed rider order, so it changes only when a pull ends.
+- A rider whose attempt failed eases to 65% of the slider (was 80%) until the bunch is back.
+- The gap bar in the HUD splits groups at 16 m, like the AI (`ROAD_GROUP_M`). It used 8 m, so a 10 m hole
+  inside the bunch showed up as a separate group with its own time.
+- The race leader (first overall, or in a leader's jersey) is never in the early move, never in a descent
+  attack (nor is anyone in the top 5 overall), and never takes a turn in the wind (`leadsRace`).
+
+Gaps over 8 m among the first 15 riders, share of samples from 1.5 km to the last climb, seeds 1 and 2:
+
+| Stage | Before | Now |
+|---|---|---|
+| Harbour Race | 64-83% | 2-5% |
+| Regional Tour, stage 3 (flat) | 14-46% | 1% |
+| South Week, Colle di Vino | 55-61% | 0-1% |
+| Autumn Classic | 23-31% | 11-13% |
+| Ardenne Peak | 26-27% | 9% |
+| North Week, Slenaken | 28-60% | 11-13% |
+
+What is left happens on 9-12% walls and steep descents, where riders lose and close wheels; at 20 m/s a
+10 m gap is half a second. Test: `Harbour Race, from the bunch to the last climb` in `raceMeasure.test.ts`.
+
 ## The final climb
 
 **Finding it.** `finaleStart` walks back from the line while the road keeps climbing (200 m
@@ -130,16 +167,56 @@ the first wall. If the last 300 m do not climb, it uses the plan's last climb.
 
 | From | What happens |
 |---|---|
+| foot | Every rider decides whether they race this climb (see below). The others ride it easy. |
 | 0% | The bunch rides the slider. Riders in the reserve's red start to crack. |
-| 30% | The leaders' teams set a tempo on the bunch: 1.05 x on a mountain finish, 1.04 on a hill finish. |
-| 42-90% | Planned attacks. A contender (within 8 points of the best rider still in reach, and one of the ten best of them) attacks once, the very best twice, at 1.16-1.28 x for 30-60 s, at a point of their own. At most three attacks at the same time. |
+| 30% | The leaders' teams set a tempo on the bunch: 1.06 x on a mountain finish, 1.05 on a hill finish. |
+| 42-90% | Planned attacks. A contender (within 8 points of the best rider still in reach, and one of the ten best of them) attacks once, the very best twice, at 1.16-1.28 x for 40-90 s, at a point of their own. At most three attacks at the same time. |
 | with an attack | Counters: a rival within 3 points of the attacker, with reserve left, goes with the move (seven times in ten). Only real attacks are countered, at most five moves at once. |
-| after an attack | A rider who got clear rides the pace they can hold: their critical ratio, a little more while the reserve lasts. Otherwise they sit back in. |
-| 70% | Tempo 1.08 x (mountain) or 1.06 x (hill). Riders whose reserve is gone crack and drift back. |
+| after an attack | A rider who got clear rides the pace they can hold: their critical ratio, 0.05 more while the reserve lasts, at most 1.2 x. Otherwise they sit back in. |
+| 70% | Tempo 1.10 x (mountain) or 1.08 x (hill). Riders whose reserve is gone crack and drop back. |
 | last 300 m (hill) or 220 m (mountain) | The kick: everyone still near the front (within 60 m) and within 10 points of the best goes at up to 2.4 x the climb slider. |
 
 In the finale, a few riders who slipped ahead without attacking do not ride away: their group rides
 97% of the slider and the bunch brings them back.
+
+**Riding it easy** (`climbEaseShare`). At the foot of the last climb each rider is placed in the day's
+field for this finish, between the best and the worst rating. The top 30% ride the whole climb. The rest
+know they will not win here and ride between 80% and just under 100% of the slider: the further down the field, the easier, and
+easier still for a rider whose strengths are the flat and the sprint (0.6% less per point their flat or
+sprint rating is above their climbing). The share is decided once, at the foot. They ride their own speed
+inside the group, do not pull, and a rider who is racing goes round them. The player's teammates do not
+ease; they follow the team orders.
+
+**Cracking.** A rider whose reserve is empty on a climb falls to 88% of the slider, sinking to 80% over
+the next 300 m (`crackedShare`), and stays cracked to the top of the climb. Before, they rode 97% and
+were back at the full slider as soon as the reserve was at 30%, so they never really lost the wheel.
+
+Harbour Race (21 km, the last 4.6 km at 7%), sliders 2.8 / 3.2 / 3.5, seeds 1 and 2:
+
+| | Before | Now |
+|---|---|---|
+| Riders within 30 s of the front at 1 km to go | 124-128 | 20-26 |
+| 10th rider at the finish | +10-13 s | +5-26 s |
+| 40th | +33-35 s | +44-55 s |
+| 100th | +49-50 s | +2:43 to +3:05 |
+| Last | +1:28 to +1:30 | +5:11 to +5:12 |
+
+On Ardenne Peak (mountain finish) the last riders now lose 6-7 minutes, and 22-23 riders are within 30 s at
+1 km to go (was 95-99). On Harbour Race about 100 riders ride the climb easy and about 20 race it. Flat
+stages that end in a sprint are unchanged.
+
+## Team orders
+
+"Teammates to the front" is an order for the player's group.
+
+- The group rides the teammates' effort only while the player is in it. Once the player is off the back,
+  that group rides its own pace again.
+- Teammates on the front stay at most one line (11 m) ahead of the front of the player's group. If the
+  player cannot hold their effort, they ride the player's pace. Before, they rode their effort and hovered
+  about 16 m ahead of the group, or rode with a group the player was not in.
+- Every other rider in the group keeps their place while the order is on. Before, nobody did, so a gap
+  in the bunch never closed.
+- A teammate who is spent on a climb cracks and drops out of the line instead of pulling on empty.
 
 ## The foot of a wall
 
@@ -199,7 +276,7 @@ There is no Easy/Normal/Hard setting in Career today, so nothing scales the spri
   for riders off the bunch (a break, an attacker) on a descent, so the bunch stays compact.
 - **Descent attacks.** After 40% of the stage, on a descent steeper than -4% with more than 2 km
   to go, the race checks once per descent (at most twice per race): about one time in three, the best
-  fresh descender in the bunch attacks. He gains about 2% plus his skill on the bunch speed while the
+  fresh descender in the bunch attacks. Never the race leader or anyone in the top 5 overall. He gains about 2% plus his skill on the bunch speed while the
   road falls, then rides as a lone attacker, and the chase director chases him at once.
 - The reserve refills on descents, so climbs can be raced again.
 
@@ -280,10 +357,9 @@ These are five races per stage. Read the shares as "always", "mostly", "sometime
 
 ## Where this differs from what we agreed
 
-- **Cracked riders ride 97% of the slider on a climb**, until their reserve is back to 30%, then the full
-  slider. With the full slider a rider who cracked at the front of the bunch stayed there: same power as the
-  bunch, and the speed he carried into the climb. They then won finishes they should not have. 3% for the
-  rest of that climb is the smallest change that lets them drift back. Everywhere else they ride the slider.
+- **Cracked riders ride 88% of the slider on a climb, sinking to 80%**, to the top of the climb. This was
+  97% until the reserve was back to 30%; that let them drift back but not lose the group, and the whole
+  field finished a climb within a minute or so.
 - **Sprint power is measured against today's best sprinter**, not a fixed rating: the best gets 4.7 x the
   flat slider. With fixed ratings every Continental sprinter got nearly the same peak, and the sprint was a lottery.
 - **The surge reserve is measured against today's field** for the same reason: with a fixed rating, a whole
@@ -300,9 +376,13 @@ These are five races per stage. Read the shares as "always", "mostly", "sometime
 | Catch point | `catchRemaining` | 13% of the stage out (1.5-3.5 km), or 40% up the last climb |
 | Break power | `breakPace` | 1.16 group, 1.10 alone, 1.03 climbing, fades to 86% |
 | Critical ratio, reserve size | `criticalRatio`, `reserveBudget` | 1.09 for the best, 1/120 per point; 10-17.5 |
-| Final-climb tempo | `shapeRoad` (frac 0.3 and 0.7) | 1.04/1.05, then 1.06/1.08 |
-| Attack power, length | `decideRoad` (finale) | 1.16-1.28 x, 30-60 s |
-| Cracked share on a climb | `CRACKED_SHARE` | 0.97 |
+| Final-climb tempo | `shapeRoad` (frac 0.3 and 0.7) | 1.05/1.06, then 1.08/1.10 |
+| Attack power, length | `decideRoad` (finale) | 1.16-1.28 x, 40-90 s; clear rider up to 1.2 x |
+| Cracked share on a climb | `CRACKED_SHARE`, `CRACKED_FLOOR`, `CRACK_SINK_M` | 0.88, sinking to 0.80 over 300 m |
+| Easy pace on the last climb | `climbEaseShare` (`EASE_FROM`, `EASE_FLOOR`) | top 30% race it; the rest 0.80 to just under 1 |
+| Moving up through the bunch | `ENGINE_LIFT`, `WIND_LIFT` | 8 and 20 places |
+| Failed attempt eases to | `SIT_UP_SHARE` | 0.65 |
+| Same group | `ROAD_GROUP_M` | 16 m (AI and HUD) |
 | Lead-out | `flatRunIn`, `sprintRampFrom` | 1.15 / 1.28 / 1.38 |
 | Sprint peak, hold, jump | `sprintPeakWkg`, `sprintHold`, `launchDistance` | 4.7 x for the best, 9-12 s, 120-380 m |
 | Uphill kick | `kickPeakWkg` | 2.4 x for the best |
