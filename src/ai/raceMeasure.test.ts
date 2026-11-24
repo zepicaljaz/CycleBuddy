@@ -3,6 +3,7 @@ import { RACES, stageCourse } from '../career/calendar';
 import { teamById, teamKit } from '../career/teams';
 import { RideSim } from './peloton';
 import { terrainWkg } from './road';
+import { stepSpeed } from '../physics/cycling';
 import { BREAK_MAX, clusterGroups, defaultStages, formatSummary, listStages, mainGroup, measureMany, measureStage, planFor, startersFor, summarise, type StageReport } from './raceMeasure';
 
 /**
@@ -265,5 +266,44 @@ describe('Harbour Race, from the bunch to the last climb', () => {
     // Before: 128 riders within 30 s of the front at 1 km to go, and the 100th rider 50 s behind the winner.
     expect(result.within30AtOneKm).toBeLessThan(60);
     expect(result.hundredthBehind).toBeGreaterThan(90);
+  });
+});
+
+describe('over the top of a climb', () => {
+  // North Week, stage 3 (Slenaken): 12% descents off the walls. The bunch used to be allowed 1.8 m/s² more
+  // than physics on a descent, so it sped up nearly four times as fast as a player holding the same power.
+  it('lets the bunch speed up on a descent only as fast as physics does', () => {
+    const race = RACES.find((r) => r.id === 'north-week')!;
+    const stage = race.stages[2];
+    const course = stageCourse(stage);
+    const plan = planFor(race, stage, { flatWkg: 2.8, hillWkg: 3.2, mountainWkg: 3.5, ttWkg: 3 });
+    const sim = new RideSim(course.route, {
+      startS: course.from,
+      finishS: course.to,
+      aiCount: 0,
+      seed: 1,
+      road: plan,
+      roadField: startersFor(race),
+      player: { name: 'Test', massKg: 72, ftp: 250, colors: teamKit(teamById('atlas')!) },
+    });
+    sim.started = true;
+    const before = new Map<number, number>();
+    const gained: number[] = [];
+    const physics: number[] = [];
+    for (let t = 0; t < 900; t += 0.25) {
+      sim.step(0.25, terrainWkg(plan, course.route.gradeAt(sim.player.s) * course.dir) * sim.player.mass, 90);
+      for (const r of sim.racers) {
+        const v0 = before.get(r.id);
+        before.set(r.id, r.v);
+        const grade = course.route.gradeAt(r.s) * r.direction;
+        if (r.isPlayer || r.mode !== 'follow' || v0 == null || grade > -0.06 || v0 > 15) continue;
+        gained.push((r.v - v0) / 0.25);
+        physics.push((stepSpeed(v0, r.power, grade, r.bike, 0.25, course.route.elevationAt(r.s), r.draft, 0) - v0) / 0.25);
+      }
+    }
+    const median = (a: number[]) => [...a].sort((x, y) => x - y)[a.length >> 1];
+    expect(gained.length).toBeGreaterThan(500);
+    // Before: 2.36 m/s² against 0.62 m/s² from physics.
+    expect(median(gained)).toBeLessThan(median(physics) + 0.1);
   });
 });

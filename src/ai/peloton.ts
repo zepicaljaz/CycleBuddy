@@ -54,6 +54,11 @@ export interface Racer {
   homeLat: number;
   /** Speed this rider's power would hold here, even while a wheel ahead is holding them back. */
   urge: number;
+  /**
+   * On a descent: the speed this rider's own power, draft and the slope would have given them since the
+   * road tipped down. A pace-locked rider stays within DESCENT_SLACK of it. Undefined off a descent.
+   */
+  free?: number;
   /** Same speed with no draft, so a teammate sitting in the wheels is not treated as faster. */
   open: number;
   /** Free-ride pacer who stays just ahead of the player. */
@@ -152,6 +157,21 @@ const BUDDY_WARMUP = 16;
 const EXTRA_BRAKE = 0.6;
 /** The same on a climb. Gravity already slows a rider hard there, and more would throw away the speed carried into the wall. */
 const CLIMB_BRAKE = 0.2;
+/**
+ * m/s² a pace-locked rider may speed up beyond what their own power, draft and the slope give, on the
+ * flat and on climbs. Lets the field roll out from the start and riders close up to a wheel.
+ */
+const EXTRA_ACCEL = 0.55;
+/**
+ * On a descent a pace-locked rider rides at most this much (m/s) faster than their own physics would have
+ * taken them since the top (Racer.free), however long the descent. Riders behind close up through the
+ * draft, as the player does. With a flat 1.8 m/s² extra here the bunch sped up nearly four times as fast
+ * as physics over the top of a climb, overshot the speed the slope holds, and rode away from a player
+ * holding the same power.
+ */
+const DESCENT_SLACK = 0.5;
+/** A descent for that rule: steeper than this. Flat roads with a tenth of a percent down are not. */
+const DESCENT_FROM = -0.01;
 
 /** Simulates all riders (player included) with the same physics. */
 export class RideSim {
@@ -808,7 +828,13 @@ export class RideSim {
       const grade = this.route.gradeAt(r.s) * dir;
       const alt = this.route.elevationAt(r.s);
       if (held || this.holdingStart(r)) r.v = 0;
-      else r.v = stepSpeed(r.v, r.power, grade, r.bike, dt, alt, r.draft, r.isPlayer && braking ? BRAKE_DECEL : 0);
+      else {
+        if (this.opts.road && !r.isPlayer && grade < DESCENT_FROM) {
+          const from = Math.min(r.free ?? r.v, r.v + DESCENT_SLACK);
+          r.free = stepSpeed(from, r.power, grade, r.bike, dt, alt, r.draft, 0);
+        } else r.free = undefined;
+        r.v = stepSpeed(r.v, r.power, grade, r.bike, dt, alt, r.draft, r.isPlayer && braking ? BRAKE_DECEL : 0);
+      }
       if (!held && this.openRoad()) this.keepClear(r);
     }
     let rolled: number[] | null = null;
@@ -821,14 +847,16 @@ export class RideSim {
     if (this.opts.road && !holding) {
       shapeRoad(this.racers, this.opts.road, this.roadOrders(), (s) => this.route.gradeAt(s), (s) => this.route.elevationAt(s));
       if (!this.opts.road.timeTrial) this.formRoadPack();
-      // The pace lock wants the steady speed straight away. From a standing start that
-      // is a catapult, so speed is only allowed to climb about as fast as a real rollout.
+      // The pace lock wants the steady speed straight away. From a standing start that is a catapult,
+      // and over the top of a climb the steady speed of the descent is far above what the riders carry.
+      // So speed may climb only a little faster than physics allows, and on a descent not at all.
       for (let i = 0; i < this.racers.length; i++) {
         const r = this.racers[i];
         if (r.isPlayer || r.finishTime != null || !rolled || this.holdingStart(r)) continue;
         const g = this.route.gradeAt(r.s) * r.direction;
-        const accel = g < -0.02 ? 1.8 : 0.55;
-        r.v = clamp(r.v, rolled[i] - (g > 0.03 ? CLIMB_BRAKE : EXTRA_BRAKE) * dt, rolled[i] + accel * dt);
+        let top = rolled[i] + EXTRA_ACCEL * dt;
+        if (r.free != null) top = Math.min(top, r.free + DESCENT_SLACK);
+        r.v = clamp(r.v, rolled[i] - (g > 0.03 ? CLIMB_BRAKE : EXTRA_BRAKE) * dt, top);
       }
     }
     for (const r of this.racers) {

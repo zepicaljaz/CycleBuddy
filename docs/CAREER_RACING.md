@@ -279,6 +279,18 @@ There is no Easy/Normal/Hard setting in Career today, so nothing scales the spri
   fresh descender in the bunch attacks. Never the race leader or anyone in the top 5 overall. He gains about 2% plus his skill on the bunch speed while the
   road falls, then rides as a lone attacker, and the chase director chases him at once.
 - The reserve refills on descents, so climbs can be raced again.
+- **Speed over the top.** The pace lock sets every rider of a group to the steady speed for the slope,
+  which on a descent is the speed at the bottom, not the speed they carry over the top. It used to let
+  them close that gap 1.8 m/s² faster than physics, so on Slenaken's 12% descents the bunch sped up at
+  2.36 m/s² against 0.62 from physics, overshot the speed the slope holds, and rode away from a player
+  holding the same power (in a playtest video: 3rd to 37th of 140 down one descent at a steady 140 W).
+  Now each rider on a descent keeps the speed their own power, draft and the slope would have given them
+  since the road tipped down (`Racer.free`), and stays within 0.5 m/s of it (`DESCENT_SLACK`). The bunch
+  speeds up as fast as physics does (0.70 against 0.70 m/s² on Slenaken); riders behind close up through
+  the draft, as the player does. The biggest one-second change of the bunch speed fell from 8-9 km/h to
+  about 3.5 km/h. Test: `over the top of a climb` in `raceMeasure.test.ts`. What is left is real racing:
+  the riders ahead come over the top first and keep pushing for a second or two, so a rider at the
+  bunch's power can still lose a few places on the way down.
 
 ## Day form
 
@@ -349,8 +361,8 @@ These are five races per stage. Read the shares as "always", "mostly", "sometime
    the bar every 10 minutes, so a break that goes early fades in 15-20 minutes and is caught further out
    than the 2-3 km aimed at (on average 4-10 km out). A shared-wind rate for break groups in
    `staminaPlace` would let breaks last longer. On a 20 km stage only 20-60% of breaks reach 20 s.
-3. **Speed jumps at the top of steep descents** are 7-9 km/h in a second, unchanged by this work. A likely
-   cause is the 1.8 m/s² allowance in the speed lock in `RideSim.step`; not checked.
+3. **Speed jumps at the top of steep descents** were 7-9 km/h in a second. That was the 1.8 m/s² allowance
+   in the speed lock; fixed (see "Speed over the top" under Descents), now about 3.5 km/h.
 4. **The sprint team's leader goes from deep** because riders cannot move up through a file. Same fix as 1.
 5. **Not played.** Everything here was measured headless. Nothing has been ridden on a trainer, and the
    numbers that matter most for the player (tempo phases, sprint power) need a playtest.
@@ -383,6 +395,7 @@ These are five races per stage. Read the shares as "always", "mostly", "sometime
 | Moving up through the bunch | `ENGINE_LIFT`, `WIND_LIFT` | 8 and 20 places |
 | Failed attempt eases to | `SIT_UP_SHARE` | 0.65 |
 | Same group | `ROAD_GROUP_M` | 16 m (AI and HUD) |
+| Speed lock beyond physics | `EXTRA_ACCEL`, `DESCENT_SLACK` | 0.55 m/s² on flat and climbs; on a descent within 0.5 m/s of own physics |
 | Lead-out | `flatRunIn`, `sprintRampFrom` | 1.15 / 1.28 / 1.38 |
 | Sprint peak, hold, jump | `sprintPeakWkg`, `sprintHold`, `launchDistance` | 4.7 x for the best, 9-12 s, 120-380 m |
 | Uphill kick | `kickPeakWkg` | 2.4 x for the best |
