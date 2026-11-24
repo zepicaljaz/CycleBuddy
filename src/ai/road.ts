@@ -135,6 +135,8 @@ export interface RoadActor {
   reserve?: number;
   /** W/kg it costs to hold the group this step, set by shapeRoad. Undefined when the rider is not in a group. */
   effort?: number;
+  /** On the last climb, the share of the bunch pace this rider rides when they are not racing for the win. Set by decideRoad. */
+  climbShare?: number;
 }
 
 const HOLD = 78;
@@ -369,7 +371,7 @@ export function orderPull(
   const bestTeam = ordered.reduce((best, rider) => Math.max(best, rank.get(rider.road?.teamId ?? '') ?? 0), 0);
   const pullers = ordered.filter((rider) => {
     if (rider.isPlayer || !rider.road || isProtectedRider(rider, field, plan)) return false;
-    if ((rider.energy ?? 1) < 0.3) return false;
+    if ((rider.energy ?? 1) < 0.3 || (rider.climbShare ?? 1) < 1) return false;
     if (plan.finishKind !== 'sprint') return true;
     if (rider.road.teammate && plan.tactic === 'climb') return false;
     const helping = rider.road.teammate && plan.tactic !== 'climb';
@@ -647,8 +649,34 @@ function finaleAlong(plan: RoadPlan, brain: RaceBrain): number | null {
  */
 const SIT_UP_SHARE = 0.65;
 
-/** Share of the slider a cracked rider holds on a climb. */
-export const CRACKED_SHARE = 0.97;
+/** Share of the slider a rider holds right after cracking on a climb. */
+export const CRACKED_SHARE = 0.88;
+/** What it sinks to as the climb goes on, over CRACK_SINK_M. */
+export const CRACKED_FLOOR = 0.8;
+const CRACK_SINK_M = 300;
+
+/** Share of the slider a cracked rider holds, this many metres after cracking. */
+export function crackedShare(metresSince: number): number {
+  return CRACKED_SHARE - (CRACKED_SHARE - CRACKED_FLOOR) * clamp(metresSince / CRACK_SINK_M, 0, 1);
+}
+
+/** The top share of the day's field for the finish (between the best and the worst) rides the whole last climb at full pace. */
+const EASE_FROM = 0.3;
+/** Lowest share of the slider a rider who is not racing for the win rides on the last climb. */
+const EASE_FLOOR = 0.8;
+
+/**
+ * Share of the slider a rider rides on the last climb. A rider close to the best in reach (a
+ * contender, a climber working for one) rides it all. The rest know they will not win here and ride
+ * their own easier pace: the further down the day's field, the easier, and easier still for a rider
+ * whose strengths are the flat and the sprint. `best` and `worst` are the day's ratings for this finish.
+ */
+export function climbEaseShare(mine: number, best: number, worst: number, flat: number, sprint: number): number {
+  const down = (best - mine) / Math.max(6, best - worst);
+  if (down <= EASE_FROM) return 1;
+  const specialist = Math.max(0, Math.max(flat, sprint) - mine);
+  return clamp(1 - 0.25 * (down - EASE_FROM) / (1 - EASE_FROM) - 0.006 * specialist, EASE_FLOOR, 1);
+}
 
 /** Start the last climb this far before its foot, so the tempo is on when the road tips up. */
 const FINALE_LEAD_M = 100;
@@ -721,6 +749,7 @@ export function decideRoad(r: RoadActor, plan: RoadPlan, orders: RoadOrders, gra
     }
   }
 
+  r.climbShare = undefined;
   const kicking = plan.finishKind === 'sprint' && remaining < 800 && remaining > 0 && grade < 0.035;
   if (ask.paceOn && body.teammate && !kicking) {
     r.mode = 'pace';
@@ -733,6 +762,7 @@ export function decideRoad(r: RoadActor, plan: RoadPlan, orders: RoadOrders, gra
   const form = dayForm(body.riderId, brain.seed);
   const reserve = r.reserve ?? 1;
   const already = r.mode === 'attack';
+  if (r.mode !== 'cracked') brain.crackedAt.delete(r.id);
   const mine = stageStrength(body.attrs, plan.finishKind, plan.punchy);
   const say = (verb: string) => {
     if (r.told) return;
@@ -860,7 +890,7 @@ export function decideRoad(r: RoadActor, plan: RoadPlan, orders: RoadOrders, gra
   if (already && clear) {
     r.mode = 'attack';
     if (finale && grade >= 0.02) {
-      const hold = Math.min(criticalRatio(slopeRating(body.attrs, grade, plan.punchy), slopePeer(brain, field, grade, plan.punchy), form) + (reserve > 0.3 ? 0.03 : 0), 1.14);
+      const hold = Math.min(criticalRatio(slopeRating(body.attrs, grade, plan.punchy), slopePeer(brain, field, grade, plan.punchy), form) + (reserve > 0.3 ? 0.05 : 0), 1.2);
       r.targetPower = pace * Math.max(1, hold) * r.mass;
     } else {
       r.targetPower = pace * breakPace(energy, grade, 1) * r.mass;
@@ -880,7 +910,7 @@ export function decideRoad(r: RoadActor, plan: RoadPlan, orders: RoadOrders, gra
       const at = [0, 1].map((k) => 0.42 + 0.48 * hash01(`climb:${body.riderId}:${k}:${brain.seed}`)).sort((a, b) => a - b);
       if (climbFrac >= at[moves]) {
         const factor = clamp(1.16 + (mine - (frontPeer - 8)) / 80, 1.16, 1.28) * (1 + (form - 1) * 0.5);
-        const seconds = 30 + 30 * hash01(`climb-len:${body.riderId}:${moves}:${brain.seed}`);
+        const seconds = 40 + 50 * hash01(`climb-len:${body.riderId}:${moves}:${brain.seed}`);
         startSurge(brain, r, 'climb', along, seconds, factor);
         brain.climbMoves.set(r.id, moves + 1);
         r.mode = 'attack';
@@ -920,16 +950,33 @@ export function decideRoad(r: RoadActor, plan: RoadPlan, orders: RoadOrders, gra
     return;
   }
 
-  // Cracked: the reserve is gone on a climb. The rider rides just under the slider until the reserve
-  // is back to 30%, so they drift back through the group instead of holding the front, then the slider again.
-  if (!opening && ((grade >= 0.03 && (reserve <= 0.02 || energy < 0.15)) || (r.mode === 'cracked' && grade >= 0.02 && reserve < 0.3))) {
+  // Cracked: the reserve is gone on a climb. The rider falls well under the slider, and further the
+  // longer the climb goes on, and stays cracked to the top: they lose the wheel and do not come back
+  // on the climb. Over the top they ride with whoever they are with again.
+  const cracking = grade >= 0.03 && (reserve <= 0.02 || energy < 0.15);
+  const stillCracked = r.mode === 'cracked' && brain.crackedAt.has(r.id) && grade >= 0.01;
+  if (!opening && (cracking || stillCracked)) {
+    if (!brain.crackedAt.has(r.id)) brain.crackedAt.set(r.id, along);
     r.mode = 'cracked';
-    r.targetPower = pace * CRACKED_SHARE * r.mass;
+    r.targetPower = pace * crackedShare(along - brain.crackedAt.get(r.id)!) * r.mass;
     return;
+  }
+  brain.crackedAt.delete(r.id);
+
+  // The last climb: a rider who is not racing for the win rides their own easy pace.
+  if (!opening && finale && grade >= 0.02) {
+    let share = brain.climbEase.get(r.id);
+    if (share === undefined) {
+      let worst = mine;
+      for (const o of field) if (o.road && !o.isPlayer) worst = Math.min(worst, stageStrength(o.road.attrs, plan.finishKind, plan.punchy));
+      share = body.teammate ? 1 : climbEaseShare(mine, frontPeer, worst, body.attrs.flat, body.attrs.sprint);
+      brain.climbEase.set(r.id, share);
+    }
+    if (share < 1) r.climbShare = share;
   }
 
   r.mode = 'follow';
-  r.targetPower = eased * r.mass;
+  r.targetPower = eased * (r.climbShare ?? 1) * r.mass;
 }
 
 /** Smallest bunch that sends an early break up the road. */
@@ -1165,8 +1212,8 @@ export function shapeRoad(
       if (group === main && climbStart != null && noseAlong >= climbStart && grade >= 0.02) {
         const frac = (noseAlong - climbStart) / Math.max(200, span - climbStart);
         const mountain = plan.finishKind === 'mountain';
-        if (frac >= 0.7) factor = Math.max(factor, mountain ? 1.08 : 1.06);
-        else if (frac >= 0.3) factor = Math.max(factor, mountain ? 1.05 : 1.04);
+        if (frac >= 0.7) factor = Math.max(factor, mountain ? 1.1 : 1.08);
+        else if (frac >= 0.3) factor = Math.max(factor, mountain ? 1.06 : 1.05);
       }
       if (group === frontGroup || group === main) factor = Math.max(factor, flatRunIn(plan, remainingNose, gapSec, grade));
       // In the finale a few riders who slipped ahead of the bunch without attacking do not ride away from it.
@@ -1200,7 +1247,7 @@ export function shapeRoad(
     const wind = new Set<RoadActor>();
     for (let i = 0; i < Math.min(LINE_LENGTH, ordered.length); i++) {
       const rider = ordered[i];
-      if (isProtectedRider(rider, field, plan) || (rider.energy ?? 1) < 0.3) continue;
+      if (isProtectedRider(rider, field, plan) || (rider.energy ?? 1) < 0.3 || (rider.climbShare ?? 1) < 1) continue;
       wind.add(rider);
       if (factor > 1 && !matesLead) rider.targetPower = eased * factor * rider.mass;
     }
@@ -1209,6 +1256,7 @@ export function shapeRoad(
       if (wind.has(rider)) rider.effort = eased * f;
       else if (grade < 0.03) rider.effort = eased * 0.8 * (1 + (f - 1) * 0.5);
       else rider.effort = eased * f * 0.98;
+      rider.effort *= rider.climbShare ?? 1;
     }
     const lead = ordered[0];
     const slot = new Map(ordered.map((rider, index) => [rider, index]));
@@ -1223,11 +1271,15 @@ export function shapeRoad(
     };
     const head = noseAlong;
     for (const rider of current) {
+      // A rider easing up the last climb rides their own share of the pace, whoever's wheel they are on.
+      const share = rider.climbShare ?? 1;
       let base = pace;
       if (!matesLead && rider !== nose) {
         const rg = slope(rider.s);
         const ew = opening ? terrainWkg(plan, rg) : racePace(plan, rg, roadRemaining(plan, rider.s));
-        base = steadySpeed(Math.max(0, ew * factor * nose.mass), rg, nose.bike, altAt(rider.s), 0);
+        base = steadySpeed(Math.max(0, ew * factor * share * nose.mass), rg, nose.bike, altAt(rider.s), 0);
+      } else if (share < 1) {
+        base = steadySpeed(Math.max(0, groupWkg * share * nose.mass), rollGrade, nose.bike, altAt(nose.s), 0);
       }
       if (!opening && orderedOn && rider.road?.teammate && !matesLead) {
         const own = steadySpeed(Math.max(0, ask.paceWkg * rider.mass), rollGrade, rider.bike, altAt(rider.s), 0);
@@ -1254,6 +1306,8 @@ export function shapeRoad(
         const gap = along(ahead.s) - along(rider.s);
         if (gap > FILE_SPACING) break;
         if (Math.abs(ahead.lat - rider.lat) >= FILE_WIDTH) continue;
+        // A rider who is racing goes round one who is easing up the last climb.
+        if ((ahead.climbShare ?? 1) < (rider.climbShare ?? 1) - 0.02) break;
         rider.v = Math.max(0.4, Math.min(rider.v, ahead.v - (FILE_SPACING - gap) * 0.3));
         break;
       }

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { RACES, stageCourse } from '../career/calendar';
 import { teamById, teamKit } from '../career/teams';
 import { RideSim } from './peloton';
+import { terrainWkg } from './road';
 import { BREAK_MAX, clusterGroups, defaultStages, formatSummary, listStages, mainGroup, measureMany, measureStage, planFor, startersFor, summarise, type StageReport } from './raceMeasure';
 
 /**
@@ -206,5 +207,63 @@ describe('a rider holding steady power at the foot of a wall', () => {
       expect(passedBetween(seed, 33300, 33700)).toBeLessThan(10);
       expect(passedBetween(seed, 34400, 34800)).toBeLessThan(10);
     }
+  });
+});
+
+describe('Harbour Race, from the bunch to the last climb', () => {
+  // One whole race (21 km, a 4.6 km climb at 7% to the finish), seed 1, sliders 2.8 / 3.2 / 3.5.
+  // The player rides the slider for the terrain, like a rider holding a steady effort.
+  function ride() {
+    const race = RACES.find((r) => r.id === 'harbour-race')!;
+    const stage = race.stages[0];
+    const course = stageCourse(stage);
+    const plan = planFor(race, stage, { flatWkg: 2.8, hillWkg: 3.2, mountainWkg: 3.5, ttWkg: 3 });
+    const sim = new RideSim(course.route, {
+      startS: course.from,
+      finishS: course.to,
+      aiCount: 0,
+      seed: 1,
+      road: plan,
+      roadField: startersFor(race),
+      player: { name: 'Test', massKg: 72, ftp: 250, colors: teamKit(teamById('atlas')!) },
+    });
+    sim.started = true;
+    const span = Math.abs(plan.finishS - plan.startS);
+    const along = (s: number) => (s - plan.startS) * course.dir;
+    const lastClimb = along(plan.lastClimbS!);
+    let samples = 0;
+    let holes = 0;
+    let within30AtOneKm = -1;
+    let next = 0;
+    for (let t = 0; t < 3 * 3600; t += 0.25) {
+      sim.step(0.25, terrainWkg(plan, course.route.gradeAt(sim.player.s) * course.dir) * sim.player.mass, 90);
+      const ai = sim.racers.filter((r) => !r.isPlayer);
+      if (ai.every((r) => r.finishTime !== null)) break;
+      if (t < next) continue;
+      next = t + 2;
+      const racing = ai.filter((r) => r.finishTime === null).sort((a, b) => along(b.s) - along(a.s));
+      const front = along(racing[0].s);
+      if (within30AtOneKm < 0 && span - front <= 1000) {
+        within30AtOneKm = racing.filter((r) => (front - along(r.s)) / Math.max(3, racing[0].v) <= 30).length;
+      }
+      if (front < 1500 || front > lastClimb - 200) continue;
+      // The front of the biggest group: no rider in its first 16 more than 8 m behind the one ahead.
+      const bunch = [...racing, sim.player].filter((r) => r.isPlayer || r.mode === 'follow' || r.mode === 'pace').sort((a, b) => along(b.s) - along(a.s));
+      const groups = clusterGroups(bunch.map((r) => ({ id: r.id, along: along(r.s) })));
+      const main = mainGroup(groups)!.riders.slice(0, 16);
+      samples++;
+      if (main.some((row, i) => i > 0 && main[i - 1].along - row.along > 8)) holes++;
+    }
+    const finish = sim.racers.filter((r) => !r.isPlayer && r.finishTime !== null).map((r) => r.finishTime!).sort((a, b) => a - b);
+    return { holeShare: holes / Math.max(1, samples), within30AtOneKm, hundredthBehind: finish[99] - finish[0] };
+  }
+
+  it('keeps the front of the bunch together and splits the field on the last climb', () => {
+    const result = ride();
+    // Before: a gap of more than 8 m in the first 16 riders 64% of the time, which looked like a small break.
+    expect(result.holeShare).toBeLessThan(0.1);
+    // Before: 128 riders within 30 s of the front at 1 km to go, and the 100th rider 50 s behind the winner.
+    expect(result.within30AtOneKm).toBeLessThan(60);
+    expect(result.hundredthBehind).toBeGreaterThan(90);
   });
 });

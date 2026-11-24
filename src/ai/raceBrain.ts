@@ -49,6 +49,10 @@ export interface RaceBrain {
   surges: Map<number, Surge>;
   /** Final-climb attacks already made, per rider. */
   climbMoves: Map<number, number>;
+  /** Share of the slider each rider rides on the last climb, decided at its foot. Below 1 they are not racing for the win. */
+  climbEase: Map<number, number>;
+  /** Metres along where each cracked rider cracked. */
+  crackedAt: Map<number, number>;
   /** Metres along where each sprinter jumped. */
   launchedAt: Map<number, number>;
   /** 0 to 1: how much the sprint teams will commit to the chase today. Low means the break may survive. */
@@ -101,6 +105,8 @@ export function brainFor(field: readonly { phase: number }[], span: number): Rac
     sitUp: new Set(),
     surges: new Map(),
     climbMoves: new Map(),
+    climbEase: new Map(),
+    crackedAt: new Map(),
     launchedAt: new Map(),
     chaseCommit: rng(),
     gapCap: gapCap(span / 1000, rng()),
