@@ -1,5 +1,8 @@
 # Career mode UI: what is there, and the plan
 
+> **What was actually built, the decisions and what is still open: `docs/CAREER_UI.md`.**
+> This file is the original audit and plan, kept as it was written.
+
 Branch: `feature/career-mode-UI`. Goal: a rider opens Career and knows in five seconds
 **where they are in the season, what the next race is worth, and how close they are to
 moving up a division.** Nothing in the race engine changes; this is screens and a few small
