@@ -3018,7 +3018,8 @@ export class App {
       const dir = s.sim.raceDir();
       const trial = !!s.config.career?.road.timeTrial;
       for (const r of s.sim.racers) {
-        if (r.finishTime != null) continue;
+        // You get no guessed time: leaving before the line is a race you did not finish.
+        if (r.finishTime != null || r.isPlayer) continue;
         const left = Math.max(0, (s.sim.finishLine - r.s) * dir);
         const arrival = s.sim.time + left / 7 + 30;
         r.finishTime = trial ? Math.max(1, arrival - r.ttStart) : clock + left / 7 + 30;
