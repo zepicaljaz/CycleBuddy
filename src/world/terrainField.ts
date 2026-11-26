@@ -1,7 +1,7 @@
 import { ROUTE_DS } from '../routes/route';
 import { lerp, smoothstep } from '../util/math';
 import { Noise2D } from '../util/noise';
-import type { DemGrid, MapPolygon, SceneryDef, TrackPlaces } from '../routes/types';
+import type { CoverGrid, DemGrid, MapPolygon, SceneryDef, TrackPlaces } from '../routes/types';
 
 export const ROAD_HALF_WIDTH = 3.8;
 
@@ -18,6 +18,8 @@ export interface FieldInput {
   clear?: Float32Array;
   /** Real height grids around a real road, fine first. Outside them the terrain is generated. */
   dem?: DemGrid[] | null;
+  /** Land-cover classes (LandCover) on the same grids as `dem`, fine first. Null keeps the generated look. */
+  cover?: CoverGrid[] | null;
   /**
    * Shelves cut into the mesh so a paved terrace is not pierced by a coarse
    * triangle. Each pad is 12 floats: ax, az, bx, bz, ox, oz, a0, a1, b0, b1,
@@ -172,6 +174,7 @@ export class TerrainField {
   private clearData: Float32Array | null = null;
   private readonly dem: DemGrid[] | null;
   private readonly demOut = { h: 0, w: 0 };
+  private readonly cover: CoverGrid[] | null;
   private readonly clearHash = new Map<number, number[]>();
   /** A small island in a lakeshore route, or null. */
   private island: LakeIsland | null = null;
@@ -186,6 +189,7 @@ export class TerrainField {
   constructor(input: FieldInput) {
     this.town = input.town ?? null;
     this.dem = input.dem?.length ? input.dem : null;
+    this.cover = input.cover?.length ? input.cover : null;
     this.pads = input.pads ?? null;
     for (const lake of input.places?.lakes ?? []) this.lakes.push(compileArea(lake));
     for (const lot of input.places?.lots ?? []) this.lots.push(compileArea(lot));
@@ -928,7 +932,7 @@ export class TerrainField {
       const tz = fz - gz;
       const d = g.data;
       const W = g.w;
-      const v = lerp(lerp(d[gz * W + gx], d[gz * W + gx + 1], tx), lerp(d[(gz + 1) * W + gx], d[(gz + 1) * W + gx + 1], tx), tz);
+      const v = lerp(lerp(d[gz * W + gx], d[gz * W + gx + 1], tx), lerp(d[(gz + 1) * W + gx], d[(gz + 1) * W + gx + 1], tx), tz) * (g.scale ?? 1);
       if (w === 0) {
         h = v;
         w = t;
@@ -940,6 +944,107 @@ export class TerrainField {
     out.h = h;
     out.w = w;
     return out;
+  }
+
+  /** True when this road has real ground heights. */
+  get hasDem(): boolean {
+    return this.dem !== null;
+  }
+
+  /** True when this road has a land-cover map. */
+  get hasCover(): boolean {
+    return this.cover !== null;
+  }
+
+  /**
+   * Steepness of the real ground, as the up component of its normal (1 flat,
+   * 0.7 about 45°), and how much real ground there is here (0..1, as demAt).
+   * Taken from the DEM 12.5 m either side of the point, so it is the same
+   * whatever the mesh cell is (8 m beside the rider, 64 m on the far tiles),
+   * and the invented facets and bumps on top of the DEM never flip it.
+   * Road banks are not in the DEM either: a bank takes the colour of the slope
+   * it was cut into. Returns w = 0 without a DEM.
+   */
+  demNormalY(x: number, z: number): { ny: number; w: number } {
+    const out = this.demNyOut;
+    out.ny = 1;
+    out.w = 0;
+    if (!this.dem) return out;
+    const s = 12.5;
+    const c = this.demAt(x, z);
+    const w = c.w;
+    if (w <= 0) return out;
+    const e = this.demAt(x + s, z).h;
+    const wv = this.demAt(x - s, z).h;
+    const so = this.demAt(x, z + s).h;
+    const no = this.demAt(x, z - s).h;
+    const gx = (e - wv) / (2 * s);
+    const gz = (so - no) / (2 * s);
+    out.ny = 1 / Math.sqrt(1 + gx * gx + gz * gz);
+    out.w = w;
+    return out;
+  }
+  private readonly demNyOut = { ny: 1, w: 0 };
+
+  /**
+   * Land-cover class at a point (LandCover), or 0. The fine grid wins, then the
+   * far one; inside a grid the nearest node counts (node (i, j) sits exactly at
+   * x0 + i·cell, z0 + j·cell, like the heights). A node with no data (0) falls
+   * through to the coarser grid.
+   */
+  coverAt(x: number, z: number): number {
+    const grids = this.cover;
+    if (!grids) return 0;
+    for (const g of grids) {
+      const i = Math.round((x - g.x0) / g.cell);
+      const j = Math.round((z - g.z0) / g.cell);
+      if (i < 0 || j < 0 || i >= g.w || j >= g.h) continue;
+      const v = g.data[j * g.w + i];
+      if (v !== 0) return v;
+    }
+    return 0;
+  }
+
+  /**
+   * How much of each class is around a point: bilinear weights of the four
+   * surrounding nodes, summed per class into `out` (length 10). Nodes with no
+   * data are left out and the rest rescaled. Returns the weight that was found
+   * (0 when nothing is known here). Used for colour, so a class edge is a short
+   * blend instead of a staircase of 25 m squares.
+   */
+  coverMix(x: number, z: number, out: Float32Array): number {
+    out.fill(0);
+    const grids = this.cover;
+    if (!grids) return 0;
+    for (const g of grids) {
+      const fx = (x - g.x0) / g.cell;
+      const fz = (z - g.z0) / g.cell;
+      if (fx < 0 || fz < 0 || fx > g.w - 1 || fz > g.h - 1) continue;
+      const gx = Math.min(g.w - 2, Math.floor(fx));
+      const gz = Math.min(g.h - 2, Math.floor(fz));
+      const tx = fx - gx;
+      const tz = fz - gz;
+      const d = g.data;
+      const W = g.w;
+      const a = d[gz * W + gx];
+      const b = d[gz * W + gx + 1];
+      const c = d[(gz + 1) * W + gx];
+      const e = d[(gz + 1) * W + gx + 1];
+      let sum = 0;
+      const add = (v: number, wt: number) => {
+        if (v === 0 || v > 9 || wt <= 0) return;
+        out[v] += wt;
+        sum += wt;
+      };
+      add(a, (1 - tx) * (1 - tz));
+      add(b, tx * (1 - tz));
+      add(c, (1 - tx) * tz);
+      add(e, tx * tz);
+      if (sum <= 1e-6) continue;
+      for (let k = 1; k < 10; k++) out[k] /= sum;
+      return 1;
+    }
+    return 0;
   }
 
   heightAt(x: number, z: number): number {

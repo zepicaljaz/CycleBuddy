@@ -32,6 +32,8 @@ export interface RealClimb {
   hairpinsWhere?: 'top' | 'bottom' | 'even' | 'steep';
   description: string;
   famousFor: string;
+  /** Where the scenery hints below come from (treeline, snowline…), with sources. Not used by the game. */
+  sceneryNote?: string;
   /** Scenery hints. Treeline and snowline are real elevations. */
   biome?: Biome;
   treeline?: number;

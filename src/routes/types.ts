@@ -91,8 +91,47 @@ export interface DemGridInfo {
 }
 
 export interface DemGrid extends DemGridInfo {
-  /** Heights in metres, row by row from (x0, z0). */
-  data: Float32Array;
+  /**
+   * Heights row by row from (x0, z0), times `scale` in metres. Real roads keep
+   * the file's unsigned decimetres (scale 0.1): half the memory of metres as
+   * floats, and every terrain worker gets its own copy.
+   */
+  data: Float32Array | Uint16Array;
+  /** Metres per stored unit. Omitted means the data is already in metres. */
+  scale?: number;
+}
+
+/**
+ * Land-cover classes in a real road's `.cover.bin`. One byte per grid node,
+ * same layout as the height grids. 0 means no data there: the generated look
+ * (treeline, forest noise, slope rock) takes over.
+ */
+export const LandCover = {
+  unknown: 0,
+  forest: 1,
+  meadow: 2,
+  /** Scrub, dwarf pine, heath. */
+  scrub: 3,
+  rock: 4,
+  scree: 5,
+  cliff: 6,
+  /** Glacier and permanent snow. */
+  glacier: 7,
+  water: 8,
+  built: 9,
+} as const;
+
+/** One land-cover grid: a class per node, row by row from (x0, z0). Node (i, j) sits at (x0 + i·cell, z0 + j·cell). */
+export interface CoverGrid extends DemGridInfo {
+  data: Uint8Array;
+}
+
+/** Where a real road's land cover lives: same grids as the heights (25 m near, 100 m far). */
+export interface TrackLandCover {
+  /** `<id>.cover.bin` under src/assets/terrain: Uint8 grids back to back. */
+  file: string;
+  grids: DemGridInfo[];
+  sources?: string[];
 }
 
 /** A polygon in the road's local metres (x east, z south). The first point is not repeated. */
@@ -141,7 +180,7 @@ export interface TrackDef {
   /** Published number of hairpins on the climb; the sharpest bends of the real line get the signs. */
   hairpinCount?: number;
   /** Height grids (fine first) in a binary file under src/assets/terrain, loaded when the ride starts. */
-  terrain?: { file: string; grids: DemGridInfo[] };
+  terrain?: { file: string; grids: DemGridInfo[]; cover?: TrackLandCover };
   /** Where the data comes from, for the credits. */
   source?: string;
 }

@@ -45,20 +45,31 @@ const rectDistance = (x0: number, z0: number, size: number, px: number, pz: numb
 /** Same olive as the moor grass, so grassland trees do not read as a brighter green. */
 const MOOR_FOLIAGE = [0x6a7040, 0x746e44, 0x5c6238] as const;
 
+/**
+ * Model for land-cover scrub (prop type PROP_SCRUB = 3): heath, alpenrose,
+ * dwarf pine. A low bush for now. Swap in the dwarf pine model here; nothing
+ * else needs to change.
+ */
+function scrubGeom(biome: Biome): THREE.BufferGeometry {
+  return biome === 'moor' ? shrub(MOOR_FOLIAGE) : shrub([0x4f6a34, 0x5a7238, 0x46602e]);
+}
+
+/** One geometry per prop type: 0 conifer, 1 broadleaf, 2 boulder, 3 scrub. */
 function propGeomsFor(biome: Biome): { detailed: THREE.BufferGeometry[]; simple: THREE.BufferGeometry[] } {
+  const scrub = scrubGeom(biome);
   if (biome === 'desert') {
-    return { detailed: [shrub(), cactus(), rockWarm()], simple: [shrub(), cactus(), rockWarm()] };
+    return { detailed: [shrub(), cactus(), rockWarm(), scrub], simple: [shrub(), cactus(), rockWarm(), scrub] };
   }
   if (biome === 'moor') {
     return {
-      detailed: [shrub(MOOR_FOLIAGE), broadleafDetailed(MOOR_FOLIAGE), rock()],
-      simple: [shrub(MOOR_FOLIAGE), broadleafSimple(MOOR_FOLIAGE[0]), rock()],
+      detailed: [shrub(MOOR_FOLIAGE), broadleafDetailed(MOOR_FOLIAGE), rock(), scrub],
+      simple: [shrub(MOOR_FOLIAGE), broadleafSimple(MOOR_FOLIAGE[0]), rock(), scrub],
     };
   }
   if (biome === 'spruce') {
-    return { detailed: [spruceDetailed(), spruceDetailed(), rock()], simple: [spruceSimple(), spruceSimple(), rock()] };
+    return { detailed: [spruceDetailed(), spruceDetailed(), rock(), scrub], simple: [spruceSimple(), spruceSimple(), rock(), scrub] };
   }
-  return { detailed: [pineDetailed(), broadleafDetailed(), rock()], simple: [pineSimple(), broadleafSimple(), rock()] };
+  return { detailed: [pineDetailed(), broadleafDetailed(), rock(), scrub], simple: [pineSimple(), broadleafSimple(), rock(), scrub] };
 }
 
 const overlaps = (a: ChunkSpec, b: ChunkSpec) =>
@@ -156,7 +167,7 @@ export class TerrainManager {
     const props = res.props;
     const count = props.length / 6;
     if (count > 0) {
-      const byType: number[][] = [[], [], []];
+      const byType: number[][] = [[], [], [], []];
       for (let i = 0; i < count; i++) byType[props[i * 6 + 5]].push(i);
       const geoms = spec.propDetail === 0 ? this.propGeoms.detailed : this.propGeoms.simple;
       const m = new THREE.Matrix4();
