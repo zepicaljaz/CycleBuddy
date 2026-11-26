@@ -28,3 +28,6 @@ videos/
 .DS_Store
 .vercel
 npm-debug.log*
+
+# Local tool caches (screenshots, downloads)
+.cache/
