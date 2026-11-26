@@ -506,6 +506,9 @@ export class ProfileChart {
   private ctx: CanvasRenderingContext2D;
   private cache: HTMLCanvasElement | null = null;
   private cacheKey = '';
+  /** Height range of the cached drawing, padded. */
+  private minY = 0;
+  private maxY = 1;
   private size: CssSize;
 
   constructor(private canvas: HTMLCanvasElement) {
@@ -525,25 +528,27 @@ export class ProfileChart {
     }
     const reverse = options.reverse === true;
     const key = `${route.def.id}:${s0.toFixed(0)}:${s1.toFixed(0)}:${w}x${h}:${reverse ? 1 : 0}`;
-    let minY = Infinity;
-    let maxY = -Infinity;
     const n = 300;
     const span = s1 - s0;
-    const at = (i: number) => (reverse ? s1 - (span * i) / n : s0 + (span * i) / n);
-    const ys: number[] = [];
-    for (let i = 0; i <= n; i++) {
-      const y = route.elevationAt(at(i));
-      ys.push(y);
-      minY = Math.min(minY, y);
-      maxY = Math.max(maxY, y);
-    }
-    const pad = Math.max(20, (maxY - minY) * 0.12);
-    minY -= pad;
-    maxY += pad * 0.6;
     const X = (s: number) => ((s - s0) / (s1 - s0)) * w;
-    const Y = (y: number) => h - ((y - minY) / (maxY - minY)) * h;
+    const Y = (y: number) => h - ((y - this.minY) / (this.maxY - this.minY)) * h;
 
+    // Perf: the 301 height samples are only needed to redraw the cached profile, so they are taken on a
+    // cache miss only. Markers use the height range of the cached drawing, so they sit on its line.
     if (key !== this.cacheKey || !this.cache) {
+      let minY = Infinity;
+      let maxY = -Infinity;
+      const at = (i: number) => (reverse ? s1 - (span * i) / n : s0 + (span * i) / n);
+      const ys: number[] = [];
+      for (let i = 0; i <= n; i++) {
+        const y = route.elevationAt(at(i));
+        ys.push(y);
+        minY = Math.min(minY, y);
+        maxY = Math.max(maxY, y);
+      }
+      const pad = Math.max(20, (maxY - minY) * 0.12);
+      this.minY = minY - pad;
+      this.maxY = maxY + pad * 0.6;
       const off = document.createElement('canvas');
       off.width = w;
       off.height = h;
