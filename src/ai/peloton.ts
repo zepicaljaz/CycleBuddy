@@ -180,6 +180,9 @@ const ROLLOUT_M = 300;
  */
 const MOMENTUM_M_S = 1;
 
+/** Metres between the split times a hill-climb keeps for its live gaps. */
+const SPLIT_M = 20;
+
 /** Simulates all riders (player included) with the same physics. */
 export class RideSim {
   readonly racers: Racer[] = [];
@@ -204,6 +207,8 @@ export class RideSim {
   private windSlot = new Map<Racer, WindSlot>();
   private sheltered = new Set<number>();
   private peerAt: ((grade: number) => number) | null = null;
+  /** Hill-climbs only: each rider's own time at every SPLIT_M past the start line. */
+  private splits = new Map<Racer, number[]>();
   paceOn = false;
   paceWkg = 3.5;
   waitOn = false;
@@ -902,6 +907,7 @@ export class RideSim {
         // Hill-climbs start in rows. Each rider is timed from their own crossing of the start line.
         if (!this.opts.road) r.officialTime = r.finishTime - (r.startTime ?? 0);
       }
+      if (!this.opts.road && isFinite(this.opts.finishS)) this.noteSplits(r, prevAlong, along, finishAlong, dt);
       if (!(holding && (r.isPlayer || r.buddy))) this.steer(r, dt);
     }
     if (this.opts.road) {
@@ -912,6 +918,51 @@ export class RideSim {
       sealGroupTimes(this.racers, this.opts.road.timeTrial);
     }
     if (!holding) this.regroupBuddy(dt);
+  }
+
+  private noteSplits(r: Racer, prevAlong: number, along: number, finishAlong: number, dt: number): void {
+    if (r.startTime === null) return;
+    let marks = this.splits.get(r);
+    if (!marks) this.splits.set(r, (marks = [0]));
+    const end = Math.min(along, finishAlong);
+    for (let mark = marks.length * SPLIT_M; mark <= end; mark += SPLIT_M) {
+      const frac = along > prevAlong ? clamp((mark - prevAlong) / (along - prevAlong), 0, 1) : 1;
+      marks.push(this.time - dt + dt * frac - r.startTime);
+    }
+  }
+
+  /**
+   * Hill-climb time gap: how long `rider` has taken to get where they are, less how long `leader`
+   * took to get to that same point. Both are timed from their own start crossing, as in the result,
+   * so nobody's speed or power at this moment moves it. Negative when the rider got there sooner.
+   * Null until both have crossed the start line.
+   */
+  splitGap(leader: Racer, rider: Racer): number | null {
+    if (leader.officialTime != null && rider.officialTime != null) return rider.officialTime - leader.officialTime;
+    if (leader.startTime === null || rider.startTime === null) return null;
+    const taken = rider.officialTime ?? this.time - rider.startTime;
+    return taken - this.timeAt(leader, this.alongCourse(rider));
+  }
+
+  /** Metres past the start line, stopping at the finish. */
+  private alongCourse(r: Racer): number {
+    const dir = this.raceDir();
+    const finish = (this.opts.finishS - this.opts.startS) * dir;
+    return r.finishTime != null ? finish : clamp((r.s - this.opts.startS) * dir, 0, finish);
+  }
+
+  /** The rider's own time when they were `along` metres up the course, which they have already reached. */
+  private timeAt(r: Racer, along: number): number {
+    const marks = this.splits.get(r) ?? [0];
+    const k = Math.floor(along / SPLIT_M);
+    if (k + 1 < marks.length) return marks[k] + (marks[k + 1] - marks[k]) * (along / SPLIT_M - k);
+    // Past the last split: between it and where the rider is now.
+    const last = marks.length - 1;
+    const from = last * SPLIT_M;
+    const to = this.alongCourse(r);
+    const now = r.officialTime ?? this.time - (r.startTime ?? 0);
+    if (to <= from) return marks[last];
+    return marks[last] + (now - marks[last]) * clamp((along - from) / (to - from), 0, 1);
   }
 
   private updateWBal(r: Racer, dt: number) {

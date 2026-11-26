@@ -114,6 +114,38 @@ describe('AI hill-climb race', () => {
     for (let i = 1; i < st.length; i++) expect(clock(st[i])).toBeGreaterThanOrEqual(clock(st[i - 1]));
   });
 
+  it('gives live gaps from split times, which the power of the moment does not move', () => {
+    const sim = new RideSim(route, {
+      startS: climb.start,
+      finishS: climb.end,
+      aiCount: 10,
+      topWkg: 5,
+      bottomWkg: 3,
+      seed: 4,
+      player: { name: 'Me', massKg: 72, ftp: 250, colors: DEFAULT_COLORS },
+    });
+    sim.started = true;
+    const leader = () => sim.standings()[0];
+    expect(sim.splitGap(leader(), sim.player)).toBeNull();
+    for (let t = 0; t < 400; t += 0.1) sim.step(0.1, 220, 85);
+    const before = sim.splitGap(leader(), sim.player)!;
+    expect(before).toBeGreaterThan(20);
+    // Two seconds flat out: the gap can only move by about the time that passed.
+    for (let t = 0; t < 2; t += 0.1) sim.step(0.1, 700, 100);
+    expect(Math.abs(sim.splitGap(leader(), sim.player)! - before)).toBeLessThan(3);
+    // Stopping loses a second every second.
+    for (let t = 0; t < 60; t += 0.1) sim.step(0.1, 0, 0);
+    const stopped = sim.splitGap(leader(), sim.player)!;
+    for (let t = 0; t < 30; t += 0.1) sim.step(0.1, 0, 0);
+    expect(sim.splitGap(leader(), sim.player)! - stopped).toBeCloseTo(30, 0);
+    // At the line the live gap is the gap in the result.
+    for (let t = 0; t < 3 * 3600 && sim.player.finishTime === null; t += 0.1) sim.step(0.1, 250, 85);
+    expect(sim.player.finishTime).not.toBeNull();
+    const first = leader();
+    expect(first.officialTime).not.toBeNull();
+    expect(sim.splitGap(first, sim.player)).toBeCloseTo(sim.player.officialTime! - first.officialTime!, 6);
+  });
+
   it('rides the buddy at the set power and meets the player at a climb gate', () => {
     const route = new Route(getRouteDef('alpine'));
     const climb = route.climbs[0];

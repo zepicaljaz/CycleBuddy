@@ -1,4 +1,5 @@
 import { ROAD_GROUP_M } from '../ai/road';
+import type { Racer, RideSim } from '../ai/peloton';
 import type { DeviceManager } from '../ble/devices';
 import type { RideSession } from '../game/session';
 import type { RideCamera, RideMap } from '../storage/types';
@@ -465,7 +466,7 @@ export class Hud {
         return `<div class="energy-row"><span>${esc(r.name)}</span><span class="energy-bar ${tone}" title="${left}%"><i style="width:${left}%"></i></span></div>`;
       }).join('')}`
       : '';
-    const board = session.config.career ? '' : standingsBoard(st, me);
+    const board = session.config.career ? '' : standingsBoard(session.sim, st, me);
     const prime = primeBoard(session);
     const still = trial ? session.sim.racers.filter((r) => r.finishTime == null).length : 0;
     const waiting = trial && session.sim.time < session.player.ttStart;
@@ -550,19 +551,8 @@ function jerseyPips(badges: string[]): string {
 /** Riders kept in the live classification besides the pinned leader and last place. */
 const STANDINGS_NEARBY = 11;
 
-interface StandingRider {
-  s: number;
-  v: number;
-  officialTime: number | null;
-  finishTime: number | null;
-  isPlayer: boolean;
-  name: string;
-  country: string;
-  colors: { jersey: string };
-}
-
 /** Leader on the first row, last place on the last row, and the riders around you between them. */
-function standingsBoard(st: StandingRider[], me: number): string {
+function standingsBoard(sim: RideSim, st: Racer[], me: number): string {
   if (me < 0 || st.length === 0) return '';
   const leader = st[0];
   const ranks = standingRanks(st.length, me, nearbyCount());
@@ -570,7 +560,7 @@ function standingsBoard(st: StandingRider[], me: number): string {
   const rows: string[] = [];
   for (const rank of ranks) {
     if (prev >= 0 && rank > prev + 1) rows.push('<div class="skip">···</div>');
-    rows.push(standingRow(st[rank], rank, leader, rank === st.length - 1));
+    rows.push(standingRow(st[rank], rank, liveGap(sim, leader, st[rank]), rank === st.length - 1));
     prev = rank;
   }
   return rows.join('');
@@ -597,30 +587,21 @@ function standingRanks(count: number, me: number, nearby = STANDINGS_NEARBY): nu
   return [...ranks].sort((a, b) => a - b);
 }
 
-function standingRow(rider: StandingRider, rank: number, leader: StandingRider, last: boolean): string {
+function standingRow(rider: Racer, rank: number, gap: string, last: boolean): string {
   const classes = ['row'];
   if (rider.isPlayer) classes.push('me');
   else if (rank === 0 || last) classes.push('pin');
   const jersey = /^#[0-9a-fA-F]{3,8}$/.test(rider.colors.jersey) ? rider.colors.jersey : '#888';
   const country = rider.isPlayer ? '' : esc(rider.country);
-  return `<div class="${classes.join(' ')}"><span class="pos">${rank + 1}</span><span class="dot" style="background:${jersey}"></span><span class="name">${esc(rider.name)}</span><span class="ctry">${country}</span><span class="gap">${liveGap(leader, rider)}</span></div>`;
+  return `<div class="${classes.join(' ')}"><span class="pos">${rank + 1}</span><span class="dot" style="background:${jersey}"></span><span class="name">${esc(rider.name)}</span><span class="ctry">${country}</span><span class="gap">${gap}</span></div>`;
 }
 
-/** Clock gap once both have finished. Otherwise the distance, at the speed of whoever is still riding. */
-function liveGap(leader: StandingRider, rider: StandingRider, dir: 1 | -1 = 1): string {
+/** Time behind the first row, from split times. It does not follow anyone's speed at this moment. */
+function liveGap(sim: RideSim, leader: Racer, rider: Racer): string {
   if (rider === leader) return '';
-  const leaderClock = leader.officialTime ?? leader.finishTime;
-  const clock = rider.officialTime ?? rider.finishTime;
-  if (leaderClock != null && clock != null) {
-    const delta = clock - leaderClock;
-    return delta < 0.5 ? '<i>s.t.</i>' : `+${formatDuration(delta)}`;
-  }
-  const behind = (leader.s - rider.s) * dir;
-  if (behind < 2) return '<i>s.t.</i>';
-  const moving = Math.max(leaderClock == null ? leader.v : 0, rider.v);
-  if (moving < 1) return '<i>s.t.</i>';
-  const seconds = behind / moving;
-  return seconds < 1 ? '<i>s.t.</i>' : `+${formatDuration(seconds)}`;
+  const gap = sim.splitGap(leader, rider);
+  if (gap === null || Math.abs(gap) < 0.5) return '<i>s.t.</i>';
+  return `${gap < 0 ? '−' : '+'}${formatDuration(Math.abs(gap))}`;
 }
 
 /** Every group's time gap to the player. The player's own group is marked. Groups are split the way the AI splits them. */
