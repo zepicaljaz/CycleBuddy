@@ -559,6 +559,29 @@ describe('career season', () => {
     expect(saved?.mountains ?? []).toEqual([]);
   });
 
+  it('gives every starter their overall place and gap to the leader after the first stage', () => {
+    const career = new Career();
+    career.create('slorising', 'SLO', 3.4, 3.8, 4.3);
+    const profile = { name: 'You', weightKg: 70, skin: 'light' };
+    const active = { raceId: 'south-week', stageIndex: 0, gc: [], sprint: [], kom: [], stageWinners: [] };
+    career.state!.active = { ...active };
+    const first = career.launch(profile)!;
+    expect(first.field.every((rider) => rider.body.gcRank === undefined && rider.body.gcGap === undefined)).toBe(true);
+    const [a, b] = first.field;
+    const row = (riderId: string, name: string, value: number) => ({ riderId, name, teamId: 'slorising', country: 'SLO', age: 24, value, places: 1, stages: 1 });
+    career.state!.active = {
+      ...active,
+      stageIndex: 1,
+      startList: first.field.map((rider) => rider.body.riderId),
+      gc: [row(b.body.riderId, b.name, 3600), row('player', 'You', 3630), row(a.body.riderId, a.name, 3684)],
+    };
+    const second = career.launch(profile)!;
+    const find = (id: string) => second.field.find((rider) => rider.body.riderId === id)!.body;
+    expect(find(b.body.riderId)).toMatchObject({ gcRank: 0, gcGap: 0 });
+    expect(find(a.body.riderId)).toMatchObject({ gcRank: 2, gcGap: 84 });
+    expect(second.playerBody).toMatchObject({ gcRank: 1, gcGap: 30 });
+  });
+
   it('pays a one-day climb at the finish for both sprint and mountains', () => {
     const career = new Career();
     career.create('slorising', 'SLO', 3.4, 3.8, 4.3);
