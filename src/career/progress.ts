@@ -25,7 +25,8 @@ export interface ContractProgress {
 
 /**
  * Where the player stands on the way to a contract. The marks are the ones `buildOffers`
- * uses: Pro teams look at 160, World Tour teams at 450, and from 160 on a late offer can come
+ * uses: Pro teams look at PRO_OFFER (300), World Tour teams at WORLD_OFFER (1000), and from
+ * PRO_OFFER on a late offer can come
  * from the same division.
  */
 export function contractProgress(state: CareerState): ContractProgress {

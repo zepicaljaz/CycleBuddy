@@ -1974,3 +1974,22 @@ html.site-reveal .site-nav-actions { opacity: 1; transition: opacity .55s ease .
 .review-marks li.made b { color: var(--accent); }
 .team-row.offer.up { border-color: var(--accent); }
 .team-row-meta strong { color: var(--accent); text-transform: uppercase; letter-spacing: 0.06em; }
+
+/* Teammates: a white mark next to your orange one, in every standings and results table */
+.standings tr.mate td { background: rgba(255, 255, 255, 0.07); }
+.standings tr.mate td:first-child { box-shadow: inset 3px 0 0 rgba(255, 255, 255, 0.75); }
+.race-results .standings tr.mate td { background: rgba(255, 255, 255, 0.08); }
+.race-results .standings tr.mate td:first-child { box-shadow: inset 3px 0 0 rgba(255, 255, 255, 0.75); }
+.rank-table tr.mate .pos, .brief-class tr.mate .pos { color: var(--text); }
+
+/* Brief: your squad with place overall and the gap to the leader */
+.career-brief .squad-list li { align-items: baseline; }
+.career-brief .squad-list li > b { flex: 1 1 auto; }
+.career-brief .squad-list li.me > b { color: var(--accent); }
+.squad-gc { flex: none; min-width: 9.5em; text-align: right; font-variant-numeric: tabular-nums; color: var(--text) !important; font-size: 14px !important; }
+.squad-gc b { display: inline-block; min-width: 3em; font-family: var(--display); }
+.brief-class { font-size: 14px; }
+.brief-class .pos { width: 2.4rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.brief-class .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.brief-class tr.me td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
+.brief-class tr.gap td, .rank-table tr.gap td { padding: 0 6px; border-top: 0; color: var(--muted); line-height: 1; }

@@ -85,7 +85,7 @@ export function careerHtml(career: Career, playerName = 'You'): string {
         : career.tab === 'team' ? teamHtml(career)
           : career.tab === 'riders' ? (opened ? teamRosterHtml(career) : teamsListHtml())
             : career.tab === 'field' ? fieldHtml(career)
-              : briefHtml(career);
+              : briefHtml(career, playerName);
   return `<div class="career">
     <div class="panel-head"><h2>${titles[career.tab] ?? 'Career'}</h2></div>
     <div class="panel-body">${body}</div>
@@ -531,7 +531,8 @@ function rankingsHtml(career: Career, playerName: string): string {
 
 type RankTable = 'cont' | 'cyb' | 'wins' | 'teams';
 
-const RANK_LABEL: Record<RankTable, string> = { cont: 'Continental', cyb: 'CYB', wins: 'Wins', teams: 'Teams' };
+/** In this order on the page: CYB first, then Continental. */
+const RANK_LABEL: Record<RankTable, string> = { cyb: 'CYB', cont: 'Continental', wins: 'Wins', teams: 'Teams' };
 
 /** "18th of 210 · 86 points · 12 behind 10th", or why you are not on it yet. */
 function standingLine(map: Record<string, number> | undefined, unit: string): string {
@@ -552,34 +553,35 @@ function rankingTables(career: Career, playerName: string): string {
   const state = career.state!;
   const team = teamById(state.teamId);
   const division = team?.division ?? 'continental';
-  const table: RankTable = career.rankTable ?? (division === 'world' ? 'cyb' : 'cont');
+  const table: RankTable = career.rankTable ?? 'cyb';
   const own = division === 'world' ? 'cyb' : 'cont';
   const teamBook = own === 'cyb' ? 'CYB' : 'Continental';
   const summary = `<section class="stand-summary" aria-label="Where you stand">
-    <p><span>Continental ranking</span>${standingLine(state.cont, 'points')}</p>
     <p><span>CYB ranking</span>${standingLine(state.cyb, 'points')}</p>
+    <p><span>Continental ranking</span>${standingLine(state.cont, 'points')}</p>
     <p><span>Wins</span>${standingLine(state.wins, 'wins')}</p>
   </section>`;
   const switcher = `<div class="sheet-tabs rank-switch" role="tablist" aria-label="Ranking">${(Object.keys(RANK_LABEL) as RankTable[]).map((key) => `<button type="button" role="tab" aria-selected="${key === table}" data-career="rank-table" data-table="${key}" class="${key === table ? 'on' : ''}">${key === 'teams' ? `${teamBook} teams` : RANK_LABEL[key]}</button>`).join('')}</div>`;
   const about: Record<RankTable, string> = {
-    cont: 'Points from Pro and Continental races. Contract offers count them at 75 %.',
-    cyb: 'Points from World Tour races and the championships. Contract offers count them in full.',
-    wins: 'Race and stage wins this season, in every division.',
+    cont: 'Every rider with a point from Pro and Continental races. Contract offers count them at 75 %.',
+    cyb: 'Every rider with a point from World Tour races and the championships. Contract offers count them in full.',
+    wins: 'Every rider with a race or stage win this season, in every division.',
     teams: own === 'cyb' ? 'World Tour teams, on CYB points.' : 'Pro and Continental teams share one standing.',
   };
-  const body = table === 'teams' ? teamTableHtml(state, own) : riderRankHtml(table === 'cyb' ? state.cyb : table === 'wins' ? state.wins : state.cont ?? {}, table === 'wins' ? '' : 'pts', playerName, team?.name ?? '');
+  const body = table === 'teams' ? teamTableHtml(state, own) : riderRankHtml(table === 'cyb' ? state.cyb : table === 'wins' ? state.wins : state.cont ?? {}, table === 'wins' ? '' : 'pts', playerName, team?.name ?? '', state.teamId);
   return `${summary}${switcher}<p class="muted rank-about">${about[table]}</p>${body}
-    <p class="muted rank-about">Rankings start again each season.</p>`;
+    <p class="muted rank-about">Your row is orange, your teammates' rows are marked white. Rankings start again each season.</p>`;
 }
 
-function riderRankHtml(map: Record<string, number>, unit: string, playerName: string, playerTeam: string): string {
-  const { top, pinned } = rankTop(map, 20);
+function riderRankHtml(map: Record<string, number>, unit: string, playerName: string, playerTeam: string, myTeam: string): string {
+  // Everyone with at least one point, so nothing about the field is hidden.
+  const { top, pinned } = rankTop(map, Number.POSITIVE_INFINITY);
   if (!top.length) return '<p class="muted">No results yet.</p>';
   const line = (row: RankRow) => {
     const rider = row.id === 'player' ? undefined : riderById(row.id);
     const name = row.id === 'player' ? playerName || 'You' : rider ? riderName(rider) : row.id;
     const teamName = row.id === 'player' ? playerTeam : teamById(rider?.teamId ?? '')?.name ?? '';
-    return `<tr class="${row.id === 'player' ? 'me' : ''}"><td class="pos">${row.place}</td><td>${esc(name)}</td><td class="muted">${esc(teamName)}</td><td class="num">${row.value}${unit ? ` <small>${unit}</small>` : ''}</td></tr>`;
+    return `<tr class="${rowTone(row.id, rider?.teamId ?? '', myTeam)}"><td class="pos">${row.place}</td><td>${esc(name)}</td><td class="muted">${esc(teamName)}</td><td class="num">${row.value}${unit ? ` <small>${unit}</small>` : ''}</td></tr>`;
   };
   const gap = pinned ? `<tr class="gap" aria-hidden="true"><td colspan="4">⋮</td></tr>${line(pinned)}` : '';
   return `<table class="standings rank-table"><thead><tr><th class="pos">#</th><th>Rider</th><th>Team</th><th class="num">${unit ? 'Points' : 'Wins'}</th></tr></thead><tbody>${top.map(line).join('')}${gap}</tbody></table>`;
@@ -587,7 +589,7 @@ function riderRankHtml(map: Record<string, number>, unit: string, playerName: st
 
 function teamTableHtml(state: CareerState, book: 'cyb' | 'cont'): string {
   const divisions: Array<'world' | 'pro' | 'continental'> = book === 'cyb' ? ['world'] : ['pro', 'continental'];
-  const rows = teamRanking(state.teamPoints, divisions, 20, state.teamId);
+  const rows = teamRanking(state.teamPoints, divisions, Number.POSITIVE_INFINITY, state.teamId);
   if (!rows.length) return '<p class="muted">No results yet.</p>';
   const body = rows.map((row, index) => {
     const gap = index > 0 && row.place > rows[index - 1].place + 1 ? '<tr class="gap" aria-hidden="true"><td colspan="3">⋮</td></tr>' : '';
@@ -702,11 +704,17 @@ function placeWord(place: number): string {
   return `${place}${suffix}`;
 }
 
-function resultTable(title: string, rows: { riderId: string; name: string; teamId: string; value: number }[], unit: 'time' | 'pts'): string {
+/** "me" for your row, "mate" for a rider on your team. */
+function rowTone(riderId: string, teamId: string, myTeam: string): string {
+  if (riderId === 'player') return 'me';
+  return myTeam && teamId === myTeam ? 'mate' : '';
+}
+
+function resultTable(title: string, rows: { riderId: string; name: string; teamId: string; value: number }[], unit: 'time' | 'pts', myTeam = ''): string {
   if (!rows.length) return '';
   const body = rows.map((row, index) => {
     const value = unit === 'time' ? clock(row.value) : `${row.value} pts`;
-    return `<tr class="${row.riderId === 'player' ? 'me' : ''}"><td>${index + 1}</td><td>${esc(row.name)}</td><td>${esc(teamCode(row.teamId))}</td><td>${value}</td></tr>`;
+    return `<tr class="${rowTone(row.riderId, row.teamId, myTeam)}"><td>${index + 1}</td><td>${esc(row.name)}</td><td>${esc(teamCode(row.teamId))}</td><td>${value}</td></tr>`;
   }).join('');
   return `<section><h3>${title}</h3><table class="standings"><tbody>${body}</tbody></table></section>`;
 }
@@ -720,9 +728,9 @@ function seasonResultsHtml(career: Career): string {
     .sort((a, b) => (order.get(a.raceId) ?? 999) - (order.get(b.raceId) ?? 999) || a.name.localeCompare(b.name));
   if (!held.length) return '<p class="muted">No race has been held yet this season. This page clears when you sign for the next year.</p>';
   const blocks = held.map((race) => {
-    const time = resultTable('Time', race.time ?? [], 'time');
-    const sprint = resultTable('Sprint', race.sprint ?? [], 'pts');
-    const mountains = resultTable('Mountains', race.mountains ?? [], 'pts');
+    const time = resultTable('Time', race.time ?? [], 'time', state.teamId);
+    const sprint = resultTable('Sprint', race.sprint ?? [], 'pts', state.teamId);
+    const mountains = resultTable('Mountains', race.mountains ?? [], 'pts', state.teamId);
     const sheets = time || sprint || mountains
       ? `<div class="rank-grid">${time}${sprint}${mountains}</div>`
       : `<p class="muted">Won by ${esc(race.winnerName)}. The full classification was not kept.</p>`;
@@ -811,7 +819,7 @@ function teamHtml(career: Career): string {
   </div>`;
 }
 
-function briefHtml(career: Career): string {
+function briefHtml(career: Career, playerName = 'You'): string {
   const state = career.state!;
   const active = state.active;
   if (!active) return '<p>Pick a race from the calendar.</p>';
@@ -835,13 +843,13 @@ function briefHtml(career: Career): string {
   const half = Math.ceil(pool.length / 2);
   const mates = picking
     ? [pool.slice(0, half), pool.slice(half)].filter((col) => col.length).map((col) => `<div class="mate-col">${mateHead}${col.map(mateRow).join('')}</div>`).join('')
-    : teammatesFor(state).map((rider) => `<li><b>${esc(rider.name)}</b><span>${esc(rider.program)}</span></li>`).join('');
+    : squadStanding(state, active, playerName);
   const stars = aiField(race, state.teamId, true, active.squad)
     .sort((a, b) => rate(b.rider, race.profile, favoursPunch(race)) - rate(a.rider, race.profile, favoursPunch(race)))
     .slice(0, 8)
     .map((slot) => `<li><b>${esc(riderName(slot.rider))}</b><span>${esc(teamById(slot.rider.teamId)?.name ?? slot.rider.country)}</span></li>`)
     .join('');
-  const standing = (title: string, rows: ClassRow[], unit: 'time' | 'pts') => `<section><h3>${title}</h3><ol>${rows.length ? rows.slice(0, 8).map((row) => `<li>${esc(row.name)} · ${esc(teamCode(row.teamId))} · ${unit === 'time' ? clock(row.value) : `${row.value} pts`}</li>`).join('') : '<li>No points yet</li>'}</ol></section>`;
+  const standing = (title: string, rows: ClassRow[], unit: 'time' | 'pts') => `<section><h3>${title}</h3>${raceStandingTable(rows, unit, state.teamId, playerName)}</section>`;
   const results = active.stageIndex > 0
     ? `<div class="brief-results rank-grid">${standing('Overall', active.gc, 'time')}${standing('Sprint', active.sprint, 'pts')}${standing('Mountains', active.kom, 'pts')}</div>`
     : '';
@@ -899,6 +907,48 @@ function briefHtml(career: Career): string {
       <button class="btn primary big" type="button" data-career="start">Start stage</button>
     </div>
   </div>`;
+}
+
+/** "+1:23" behind the leader, "Leader", or a dash for a rider not on the overall. */
+function gcGap(gc: ClassRow[], riderId: string): { place: number | null; gap: string } {
+  const index = gc.findIndex((row) => row.riderId === riderId);
+  if (index < 0) return { place: null, gap: '–' };
+  if (index === 0) return { place: 1, gap: 'Leader' };
+  const behind = gc[index].value - gc[0].value;
+  return { place: index + 1, gap: behind < 0.5 ? 's.t.' : `+${clock(behind)}` };
+}
+
+/**
+ * The squad on the brief: you first, then your teammates. From stage 2 on each has a place
+ * overall and the time to the leader, and the list is in overall order.
+ */
+function squadStanding(state: CareerState, active: NonNullable<CareerState['active']>, playerName: string): string {
+  const racing = active.stageIndex > 0;
+  const mates = teammatesFor(state).map((rider) => ({ id: rider.id, name: rider.name, note: rider.program, me: false }));
+  const everyone = [{ id: 'player', name: playerName || 'You', note: 'Leader of the team', me: true }, ...mates]
+    .map((rider) => ({ ...rider, ...gcGap(active.gc, rider.id) }));
+  if (racing) everyone.sort((a, b) => (a.place ?? 999) - (b.place ?? 999));
+  return everyone.map((rider) => {
+    const gc = racing ? `<span class="squad-gc"><b>${rider.place ? placeWord(rider.place) : '–'}</b> ${esc(rider.gap)}</span>` : '';
+    return `<li class="${rider.me ? 'me' : 'mate'}"><b>${esc(rider.name)}</b><span>${esc(rider.note)}</span>${gc}</li>`;
+  }).join('');
+}
+
+/** A race classification on the brief: the top 8, then you and your teammates further down, in place. */
+function raceStandingTable(rows: ClassRow[], unit: 'time' | 'pts', myTeam: string, playerName: string): string {
+  if (!rows.length) return '<p class="muted">No points yet</p>';
+  const mine = (row: ClassRow) => row.riderId === 'player' || row.teamId === myTeam;
+  const shown = rows.map((row, index) => ({ row, place: index + 1 })).filter(({ row, place }) => place <= 8 || mine(row));
+  const leader = rows[0].value;
+  const body = shown.map(({ row, place }, index) => {
+    const skipped = index > 0 && place > shown[index - 1].place + 1 ? '<tr class="gap" aria-hidden="true"><td colspan="4">⋮</td></tr>' : '';
+    const name = row.riderId === 'player' ? playerName || 'You' : row.name;
+    const value = unit === 'time'
+      ? (place === 1 ? clock(row.value) : `+${clock(row.value - leader)}`)
+      : `${row.value} pts`;
+    return `${skipped}<tr class="${rowTone(row.riderId, row.teamId, myTeam)}"><td class="pos">${place}</td><td>${esc(name)}</td><td class="muted">${esc(teamCode(row.teamId))}</td><td class="num">${value}</td></tr>`;
+  }).join('');
+  return `<table class="standings brief-class"><tbody>${body}</tbody></table>`;
 }
 
 /** On the brief: where you stand in this race, what it pays, and how far the next contract is. */

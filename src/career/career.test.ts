@@ -275,7 +275,7 @@ describe('career season', () => {
     expect(quiet.length).toBeLessThanOrEqual(5);
     expect(quiet[0].teamId).toBe('slorising');
     expect(quiet.some((offer) => TEAMS.find((t) => t.id === offer.teamId)?.division === 'world')).toBe(false);
-    const promoted = buildOffers(500, 'slorising');
+    const promoted = buildOffers(1100, 'slorising');
     expect(promoted.some((offer) => TEAMS.find((t) => t.id === offer.teamId)?.division === 'world')).toBe(true);
     expect(promoted.some((offer) => TEAMS.find((t) => t.id === offer.teamId)?.division === 'pro')).toBe(true);
   });
@@ -293,11 +293,12 @@ describe('career season', () => {
     };
     expect(divisionOf('slorising')).toBe('continental');
     expect(season(0).some((offer) => divisionOf(offer.teamId) !== 'continental')).toBe(false);
-    // Two Pro one-day wins (2 × 90) are not yet enough; three are.
-    expect(season(180).some((offer) => divisionOf(offer.teamId) === 'pro')).toBe(false);
-    expect(season(270).some((offer) => divisionOf(offer.teamId) === 'pro')).toBe(true);
-    // About seven Pro wins earn a World Tour offer.
-    expect(season(630).some((offer) => divisionOf(offer.teamId) === 'world')).toBe(true);
+    // Four Pro one-day wins (4 × 90 × 0.75 = 270) are not yet enough; five (338) are.
+    expect(season(360).some((offer) => divisionOf(offer.teamId) === 'pro')).toBe(false);
+    expect(season(450).some((offer) => divisionOf(offer.teamId) === 'pro')).toBe(true);
+    // About fifteen Pro wins earn a World Tour offer; fourteen do not.
+    expect(season(1260).some((offer) => divisionOf(offer.teamId) === 'world')).toBe(false);
+    expect(season(1350).some((offer) => divisionOf(offer.teamId) === 'world')).toBe(true);
   });
 
   it('gives one time to a bunch and a new time after a gap', () => {

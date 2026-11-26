@@ -3043,6 +3043,8 @@ export class App {
     if (race) {
       const st = s.sim.standings();
       const me = st.indexOf(s.player);
+      // Your teammates get their own highlight, so you can find them in the lists.
+      const myTeam = s.config.career ? this.career.state?.teamId ?? '' : '';
       const clockOf = (r: (typeof st)[number]) => r.officialTime ?? r.finishTime;
       const winner = clockOf(st[0]) ?? 0;
       const rows = st
@@ -3053,7 +3055,8 @@ export class App {
           const gap = clockOf(r) !== null && i > 0 ? (Math.abs((clockOf(r) ?? 0) - winner) < 0.05 ? 's.t.' : `+${formatDuration((clockOf(r) ?? 0) - winner)}`) : '';
           const side = r.isPlayer ? '' : s.config.career ? teamCode(r.team) : r.country;
           const name = r.isPlayer ? (this.profile.name || r.name) : r.name;
-          return `<tr class="${r === s.player ? 'me' : ''}"><td class="pos">${i + 1}</td><td class="rider" title="${esc(name)}"><span class="dot" style="background:${r.colors.jersey}"></span>${esc(name)}</td><td>${esc(side)}</td><td class="num">${time}</td><td class="num">${gap}</td></tr>`;
+          const mate = !!myTeam && !r.isPlayer && r.team === myTeam;
+          return `<tr class="${r === s.player ? 'me' : mate ? 'mate' : ''}"><td class="pos">${i + 1}</td><td class="rider" title="${esc(name)}"><span class="dot" style="background:${r.colors.jersey}"></span>${esc(name)}</td><td>${esc(side)}</td><td class="num">${time}</td><td class="num">${gap}</td></tr>`;
         })
         .join('');
       const place = s.player.finishTime !== null ? `You finished <b>${me + 1}${ordinal(me + 1)}</b> of ${st.length}` : 'You did not finish';
@@ -3066,7 +3069,8 @@ export class App {
           const value = unit === 'time' ? formatDuration(row.value) : String(row.value);
           const gap = unit === 'time' && i > 0 ? (Math.abs(row.value - leader) < 0.05 ? 's.t.' : `+${formatDuration(row.value - leader)}`) : '';
           const gapCell = unit === 'time' ? `<td class="num">${gap}</td>` : '';
-          return `<tr class="${row.riderId === 'player' ? 'me' : ''}"><td class="pos">${i + 1}</td><td class="rider" title="${esc(row.name)}">${esc(row.name)}</td><td>${esc(teamCode(row.teamId))}</td><td class="num">${value}</td>${gapCell}</tr>`;
+          const rowClass = row.riderId === 'player' ? 'me' : myTeam && row.teamId === myTeam ? 'mate' : '';
+          return `<tr class="${rowClass}"><td class="pos">${i + 1}</td><td class="rider" title="${esc(row.name)}">${esc(row.name)}</td><td>${esc(teamCode(row.teamId))}</td><td class="num">${value}</td>${gapCell}</tr>`;
         }).join('') || `<tr><td class="empty" colspan="${unit === 'time' ? 5 : 4}">No points yet</td></tr>`;
         const gapHead = unit === 'time' ? '<th class="num">Gap</th>' : '';
         return `<section class="race-class"><h3>${title}</h3><div class="race-scroll"><table class="standings ${unit === 'time' ? 'times' : 'points'}"><thead><tr><th class="pos">#</th><th class="rider">Rider</th><th>Team</th><th class="num">${unit === 'time' ? 'Time' : 'Pts'}</th>${gapHead}</tr></thead><tbody>${body}</tbody></table></div></section>`;
