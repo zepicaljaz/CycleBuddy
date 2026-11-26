@@ -69,7 +69,7 @@ npm start               # production server (after a build)
 
 Pro race (six stages modelled on real ones, at 25, 50 or 100 % of the day) is built, and off the play menu for now.
 
-Also on the home screen: **Analytics** (dashboard, all rides, segment analyzer, calendar),
+Also on the home screen: **Analytics** (overview, fitness, power, rides, climbs, calendar),
 **Bike and kit**, **Settings** and **Trainer setup** (help).
 
 - **Real climbs:** `src/routes/real/climbs.json` holds 22 climbs (Stelvio, Alpe d'Huez, Ventoux,
@@ -108,6 +108,7 @@ cyclebuddy/
 ├── docs/REAL_ROADS.md         How real roads are built
 ├── docs/CAREER_RACING.md      How a Career road race is raced: breaks, chase, climbs, sprints
 ├── docs/RACE_MEASURING.md     How to measure Career racing, and the numbers so far
+├── docs/ANALYTICS.md          What the Analytics page shows and how each number is worked out
 ├── README.md                  This file: what is where
 ├── ARCHITECTURE.md            How the parts fit together
 ├── CONTRIBUTING.md            How we work: branches, pull requests, versions (read this first)
@@ -196,7 +197,7 @@ cyclebuddy/
 |---|---|
 | `career/` | `season.ts` (career state, classifications), `calendar.ts` (races, stages, terrain bands), `panel.ts` (career screens incl. the race brief), `simulate.ts` (races you don't ride), `squad.ts`, `roster.ts`, `teams.ts`, `jerseys.ts`, `classify.ts` |
 | `training/` | Plans, workouts, FTP test, progress ticks |
-| `analytics/` | The Analytics page, loaded only when opened: `model.ts` (numbers), `view.ts` (HTML), `charts.ts`, `shape.ts` |
+| `analytics/` | The Analytics page, loaded only when opened: `metrics.ts` (load, fitness/fatigue/form, power curve, zones), `model.ts` (ride lists and totals), `view.ts` (the six pages), `charts.ts` (responsive charts), `shape.ts` (ride profile and power bars). See `docs/ANALYTICS.md` |
 | `storage/` | IndexedDB with a memory fallback, account ride sync, FIT import/export, backups |
 | `site/` | Public homepage, sign-in, training-plans page |
 | `audio/sound.ts` | Wind, freewheel, crowds, music (from `assets/audio/`) |
@@ -331,5 +332,6 @@ A new feature comes with a test for it. A bug fix comes with a test that fails w
 | `CHANGES.md` | What changed in each version |
 | `NEXT_STEPS.md` | What to do next |
 | `docs/REAL_ROADS.md` | Building a real road 1:1 |
+| `docs/ANALYTICS.md` | The Analytics page: metrics, formulas, sources |
 | `ATTRIBUTION.md` | Credits for map, elevation and other data |
 | `data/real-climbs.research.json` | Raw climb research: source segments, notes, references |
