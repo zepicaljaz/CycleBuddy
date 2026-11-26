@@ -339,12 +339,22 @@ export function isProtectedRider(rider: { road: RoadBody | null }, field: { road
   if (!rider.road) return false;
   if (leadsRace(rider.road)) return true;
   const own = stageStrength(rider.road.attrs, plan.finishKind, plan.punchy);
-  let best = own;
-  for (const other of field) {
-    if (other.road?.teamId !== rider.road.teamId) continue;
-    best = Math.max(best, stageStrength(other.road.attrs, plan.finishKind, plan.punchy));
-  }
+  const best = Math.max(own, teamBestCached(field, plan).get(rider.road.teamId) ?? 0);
   return own >= best - 1 && best >= 68;
+}
+
+/**
+ * teamTempoRank, kept per field. Ratings and teams don't change during a race, so it is only rebuilt
+ * when the field grows or the finish changes. isProtectedRider runs for many riders every step.
+ */
+const teamBestCache = new WeakMap<object, { size: number; finish: RoadFinish; punchy: boolean; best: Map<string, number> }>();
+function teamBestCached(field: { road: RoadBody | null }[], plan: RoadPlan): Map<string, number> {
+  const punchy = !!plan.punchy;
+  const hit = teamBestCache.get(field);
+  if (hit && hit.size === field.length && hit.finish === plan.finishKind && hit.punchy === punchy) return hit.best;
+  const best = teamTempoRank(field, plan.finishKind, punchy);
+  teamBestCache.set(field, { size: field.length, finish: plan.finishKind, punchy, best });
+  return best;
 }
 
 /** Metres of one pull before the next riders take the wind. About three minutes at the flat. */

@@ -3620,7 +3620,8 @@ export class App {
   }
 
   private uiBlocksLook(): boolean {
-    return this.overlay.innerHTML.length > 0 || this.session?.state === 'paused' || this.session?.state === 'finished';
+    // Runs every frame: check the state first, and the overlay's children instead of serializing its HTML.
+    return this.session?.state === 'paused' || this.session?.state === 'finished' || this.overlay.firstChild !== null;
   }
 
   // ---------------------------------------------------------------- keyboard
