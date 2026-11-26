@@ -6,6 +6,7 @@ releases.
 
 ## Unreleased
 
+- **Career calendar** opens on the month the season is in and has a key for its colours. On the grid your ticked races are solid, unticked ones an outline, the next race has a ring, and a race you rode shows your place. The race list says what a win pays and shows your place in big type. A "My races only" tick hides the rest.
 - **Career race brief** says what the race pays in contract points (win or overall win, stage win, 10th), your points and what is left to the next offer, and in a stage race your place overall and the gap. Labels on the brief are a little larger.
 - **Career race results** have a season line under the stats: contract points this stage added, the ranking move (41 → 18), the contract meter growing from where it was, and the next race.
 - **Career season page** replaces the eight equal cards. The next race comes first and biggest, with its profile and the contract points a win, a stage win and 10th place pay. Under it a contract meter shows your points against the Pro (160) and World Tour (450) marks and how many you still need; Pro and Continental points count at 75 %, as the offers do. Then the season month by month, one dot per race (ridden, top 10, next, ticked, skipped), with races done, best result, wins and top 10s. In a stage race it shows your place overall and the gap. The other pages are a row of links.

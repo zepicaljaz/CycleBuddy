@@ -38,7 +38,7 @@ import { RideSession, type SessionMode } from './session';
 import { formatDate, raceById, raceDays, stageWindow } from '../career/calendar';
 import { startMateCount } from '../career/squad';
 import { teamCode } from '../career/teams';
-import { careerHtml, seasonUpdateHtml } from '../career/panel';
+import { calendarChipClass, careerHtml, seasonUpdateHtml } from '../career/panel';
 import type { SeasonUpdate } from '../career/progress';
 import { Career, stagePrimes, type CareerLaunch } from '../career/season';
 import type { RaceClassifications, StageResultRow } from '../career/season';
@@ -3332,6 +3332,15 @@ export class App {
         this.panel.querySelectorAll<HTMLInputElement>('[data-career="enter"]').forEach((box) => {
           if (box.dataset.race) box.checked = chosen.has(box.dataset.race);
         });
+        // Ticked, unticked and next on the month grid, without re-rendering (which would close the open race).
+        this.panel.querySelectorAll<HTMLElement>('.race-chip[data-race]').forEach((chip) => {
+          const name = calendarChipClass(chip.dataset.race!, this.career);
+          if (name) chip.className = name;
+        });
+      }
+      if (target.dataset.career === 'cal-mine') {
+        this.career.calendarMine = target.checked;
+        this.render();
       }
       if (target.dataset.career === 'nation') this.career.draftNation = target.value;
       if (target.dataset.career === 'tactic' && target.dataset.tactic) {

@@ -306,6 +306,8 @@ export class Career {
   draftMountain = 4.3;
   /** Month shown on the calendar. Kept in memory so the page stays on the month you opened. */
   calendarMonth: number | null = null;
+  /** Calendar shows only your races: ticked, ridden, skipped and the one in progress. */
+  calendarMine = false;
   /** Team opened from All teams. Null is the list of teams. */
   browseTeam: string | null = null;
   riderSort: { key: string; dir: 1 | -1 } = { key: 'name', dir: 1 };

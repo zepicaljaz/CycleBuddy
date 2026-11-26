@@ -324,7 +324,35 @@ function raceTone(race: RaceDef): string {
   return 'tone-cont';
 }
 
-function monthBoard(year: number, month: number, races: RaceDef[], done: Set<string>, division: 'world' | 'pro' | 'continental'): string {
+type ChipStatus = 'locked' | 'on' | 'off' | 'next' | 'now' | 'ridden' | 'skipped' | 'past';
+
+/** Where a race stands for you: outside your division, ticked, not ticked, next, ridden, skipped, or gone by. */
+function chipStatus(race: RaceDef, career: Career): { status: ChipStatus; place: number | null } {
+  const state = career.state!;
+  const division = teamById(state.teamId)?.division ?? 'continental';
+  if (state.active?.raceId === race.id) return { status: 'now', place: null };
+  if (!canEnter(race.level, division)) return { status: 'locked', place: null };
+  if (state.skipped.includes(race.id)) return { status: 'skipped', place: null };
+  if (state.done.includes(race.id)) {
+    const saved = state.races.find((item) => item.raceId === race.id && item.year === state.year);
+    const rode = saved?.playerPlace != null || (state.stageNotes ?? []).some((note) => note.raceId === race.id && note.year === state.year);
+    return rode ? { status: 'ridden', place: saved?.playerPlace ?? null } : { status: 'past', place: null };
+  }
+  if (!state.active && career.nextEntered()?.id === race.id) return { status: 'next', place: null };
+  return { status: state.entered.includes(race.id) ? 'on' : 'off', place: null };
+}
+
+const MINE: ChipStatus[] = ['on', 'next', 'now', 'ridden', 'skipped'];
+
+/** Class of a race on the month grid. Exported so a tick on the calendar can restyle the grid in place. */
+export function calendarChipClass(raceId: string, career: Career): string {
+  const race = RACES.find((item) => item.id === raceId);
+  if (!race || !career.state) return '';
+  return `race-chip ${raceTone(race)} ${chipStatus(race, career).status}`;
+}
+
+function monthBoard(career: Career, month: number, races: RaceDef[]): string {
+  const year = career.state!.year;
   const first = new Date(year, month - 1, 1);
   const lead = (first.getDay() + 6) % 7;
   const count = new Date(year, month, 0).getDate();
@@ -334,13 +362,27 @@ function monthBoard(year: number, month: number, races: RaceDef[], done: Set<str
     const day = index + 1;
     const here = onDay(day);
     const names = here.map((race) => {
-      const locked = !canEnter(race.level, division);
-      return `<span class="race-chip ${raceTone(race)}${locked ? ' locked' : ''}">${esc(race.name)}</span>`;
+      const { status, place } = chipStatus(race, career);
+      const mark = place ? ` <b>${placeWord(place)}</b>` : '';
+      return `<span class="race-chip ${raceTone(race)} ${status}" data-race="${race.id}">${esc(race.name)}${mark}</span>`;
     }).join('');
-    const finished = here.some((race) => done.has(race.id));
+    const finished = here.some((race) => career.state!.done.includes(race.id));
     return `<div class="day-cell${here.length ? ' has' : ''}${finished ? ' done' : ''}"><b>${day}</b>${names}</div>`;
   }).join('');
   return `<div class="month-grid">${WEEKDAYS.map((name) => `<div class="dow">${name}</div>`).join('')}${blanks}${cells}</div>`;
+}
+
+/** What the colours and the outlines on the month grid mean, drawn with the same chips. */
+function calendarLegend(): string {
+  const chip = (tone: string, status: string, text: string) => `<span class="race-chip ${tone} ${status}">${text}</span>`;
+  return `<div class="cal-legend" aria-label="Calendar key">
+    <div><span class="cal-legend-title">Level</span>
+      ${chip('tone-france', 'on', 'Grand tour')}${chip('tone-world', 'on', 'World Tour')}${chip('tone-pro', 'on', 'Pro')}${chip('tone-cont', 'on', 'Continental')}${chip('tone-world', 'locked', 'Not your division')}
+    </div>
+    <div><span class="cal-legend-title">You</span>
+      ${chip('tone-cont', 'next', 'Next race')}${chip('tone-cont', 'on', 'Riding')}${chip('tone-cont', 'off', 'Not ticked')}${chip('tone-cont', 'ridden', 'Ridden <b>4th</b>')}${chip('tone-cont', 'skipped', 'Skipped')}
+    </div>
+  </div>`;
 }
 
 function stageNote(kind: string, finish: string, climbs: { name: string }[], summitFinish: boolean): string {
@@ -358,13 +400,16 @@ function calendarHtml(career: Career): string {
   const state = career.state!;
   const team = teamById(state.teamId)!;
   const months = monthsFor(team.division, state.year);
+  // Open on the month the season is in: the race you are riding, the next one, or the last one you rode.
+  const current = seasonProgress(state).current;
   const busy = months.find((item) => RACES.some((race) => raceDays(race, state.year).some((slot) => slot.month === item)));
-  const month = months.includes(career.calendarMonth ?? -1) ? career.calendarMonth! : (busy ?? months[0]);
+  const start = current && months.includes(current) ? current : busy;
+  const month = months.includes(career.calendarMonth ?? -1) ? career.calendarMonth! : (start ?? months[0]);
   if (!month) return '<p class="muted">No races on this calendar.</p>';
   career.calendarMonth = month;
   const index = months.indexOf(month);
-  const done = new Set(state.done);
-  const races = RACES.filter((race) => raceDays(race, state.year).some((slot) => slot.month === month));
+  const inMonth = RACES.filter((race) => raceDays(race, state.year).some((slot) => slot.month === month));
+  const races = career.calendarMine ? inMonth.filter((race) => MINE.includes(chipStatus(race, career).status)) : inMonth;
   const details = races.map((race) => raceDetail(race, career, month)).join('');
   const prev = index > 0
     ? `<button class="btn ghost" type="button" data-career="month" data-dir="-1">← ${MONTHS[months[index - 1]]}</button>`
@@ -372,11 +417,16 @@ function calendarHtml(career: Career): string {
   const next = index < months.length - 1
     ? `<button class="btn ghost" type="button" data-career="month" data-dir="1">${MONTHS[months[index + 1]]} →</button>`
     : '<span class="month-slot"></span>';
+  const empty = career.calendarMine ? 'None of your races are this month.' : 'Nothing is scheduled this month.';
   return `<div class="month-nav">${prev}<h3>${MONTHS[month]} ${state.year}</h3>${next}</div>
-    <p class="muted">Every competition is on the calendar. Dimmed races are outside your division. You can start only one race on a day. Untick a race to stay home, and you score nothing for it.</p>
+    <div class="cal-intro">
+      <p>Tick the races you want to ride. You can start one race a day. A race you leave unticked is ridden without you, and you score nothing in it.</p>
+      <label class="check cal-mine"><input type="checkbox" data-career="cal-mine" ${career.calendarMine ? 'checked' : ''}/> My races only</label>
+    </div>
+    ${calendarLegend()}
     <section class="month-block">
-      ${monthBoard(state.year, month, races, done, team.division)}
-      ${races.length ? '' : '<p class="muted">Nothing is scheduled this month.</p>'}
+      ${monthBoard(career, month, races)}
+      ${races.length ? '' : `<p class="muted">${empty}</p>`}
       <div class="race-folds">${details}</div>
     </section>`;
 }
@@ -402,10 +452,19 @@ function raceDetail(race: RaceDef, career: Career, month: number): string {
   const days = raceDays(race, state.year);
   const when = raceSpan(race, state.year);
   const continued = race.month !== month ? ` · continues from ${MONTHS[race.month]}` : '';
+  const { status, place } = chipStatus(race, career);
   let box = '';
-  if (done) box = `<span class="muted">${saved?.skipped ? 'You sat this out' : saved ? `Won by ${esc(saved.winnerName)}${saved.playerPlace ? ` · you ${saved.playerPlace}` : ''}` : 'Done'}</span>`;
-  else if (!eligible) box = '<span class="muted">Not your division</span>';
+  if (status === 'now') box = '<span class="race-result">Riding now</span>';
+  else if (done) {
+    const winner = saved ? `Won by ${esc(saved.winnerName)}` : 'Done';
+    box = status === 'skipped'
+      ? '<span class="muted">You sat this out</span>'
+      : place
+        ? `<span class="race-result"><b>${placeWord(place)}</b> <small>${winner}</small></span>`
+        : `<span class="muted">${winner}</span>`;
+  } else if (!eligible) box = '<span class="muted">Not your division</span>';
   else box = `<label class="check"><input type="checkbox" data-career="enter" data-race="${race.id}" ${on ? 'checked' : ''}/> Ride</label>`;
+  const pays = eligible && !done ? ` · win +${racePayout(race).win}` : '';
   const windows = race.stages.map((stage) => stageWindow(stage));
   const km = windows.reduce((sum, window) => sum + window.km, 0);
   const ascent = windows.reduce((sum, window) => sum + window.ascent, 0);
@@ -428,9 +487,9 @@ function raceDetail(race: RaceDef, career: Career, month: number): string {
       <canvas class="route-profile stage-profile" data-stage="${race.id}:${index}"></canvas>
     </div>`;
   }).join('');
-  return `<details class="race-detail ${eligible ? '' : 'locked'}">
+  return `<details class="race-detail ${eligible ? '' : 'locked'} ${status}">
     <summary>
-      <span class="race-fold-main"><b>${esc(race.name)}</b><small>${esc(when)} · ${esc(level)} · ${count}${esc(continued)}</small></span>
+      <span class="race-fold-main"><b>${esc(race.name)}</b><small>${esc(when)} · ${esc(level)} · ${count}${esc(continued)}${pays}</small></span>
       <span class="race-fold-side">${box}</span>
     </summary>
     <div class="race-body">

@@ -178,6 +178,33 @@ describe('career screens render', () => {
     expect(html).toContain('Open the calendar');
   });
 
+  it('the calendar: key, your races marked, your place, and only your races', () => {
+    const career = new Career();
+    career.create('slorising', 'SLO', 3.4, 3.8, 4.3);
+    const row = (riderId: string, name: string, time: number, isPlayer = false) => ({
+      riderId, name, teamId: 'slorising', country: 'SLO', age: 24, time, sprint: 0, kom: 0, isPlayer,
+    });
+    career.state!.active = { raceId: 'opening-classic', stageIndex: 0, gc: [], sprint: [], kom: [], stageWinners: [] };
+    career.commit([row('other', 'A. Rider', 90), row('player', 'You', 100, true)]);
+    const off = career.state!.entered.find((id) => id !== career.nextEntered()?.id && RACES.find((race) => race.id === id)?.month === 2)!;
+    career.setEnter(off, false);
+    career.tab = 'calendar';
+    career.calendarMonth = 2;
+    let html = careerHtml(career, 'Test Rider');
+    expectClean(html, 'career calendar');
+    expect(html).toContain('class="cal-legend"');
+    expect(html).toContain('data-race="opening-classic"');
+    expect(html).toMatch(/race-chip tone-cont ridden" data-race="opening-classic">Opening Classic <b>2nd<\/b>/);
+    expect(html).toContain(`next" data-race="${career.nextEntered()!.id}"`);
+    expect(html).toContain(`off" data-race="${off}"`);
+    expect(html).toContain('win +');
+    career.calendarMine = true;
+    html = careerHtml(career, 'Test Rider');
+    expectClean(html, 'career calendar, my races');
+    expect(html).not.toContain(`data-race="${off}"`);
+    expect(html).toContain('data-race="opening-classic"');
+  });
+
   it('the race brief: stats, pace, teammates table, team orders, start', () => {
     const career = new Career();
     career.create('slorising', 'SLO', 3.4, 3.8, 4.3);
