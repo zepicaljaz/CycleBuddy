@@ -1,7 +1,7 @@
 import { ROUTE_DS } from '../routes/route';
 import { lerp, smoothstep } from '../util/math';
 import { Noise2D } from '../util/noise';
-import type { DemGrid, MapPolygon, SceneryDef, TrackPlaces } from '../routes/types';
+import type { CoverGrid, DemGrid, MapPolygon, SceneryDef, TrackPlaces } from '../routes/types';
 
 export const ROAD_HALF_WIDTH = 3.8;
 
@@ -28,6 +28,8 @@ export interface FieldInput {
   pads?: Float32Array;
   /** OpenStreetMap lakes and parking lots, in the same local metres as the road. */
   places?: TrackPlaces;
+  /** Mapped tree cover (fine first). Inside it trees grow only where the map has them. */
+  cover?: CoverGrid[] | null;
 }
 
 const CLEAR_CELL = 64;
@@ -180,12 +182,14 @@ export class TerrainField {
   private readonly lakes: MapArea[] = [];
   private readonly lots: MapArea[] = [];
   private readonly woods: MapArea[] = [];
+  private readonly cover: CoverGrid[] | null;
   /** Radius of the open verge at this road sample, or 0. The way back is included. */
   private openRadius: Float32Array | null = null;
 
   constructor(input: FieldInput) {
     this.town = input.town ?? null;
     this.dem = input.dem?.length ? input.dem : null;
+    this.cover = input.cover?.length ? input.cover : null;
     this.pads = input.pads ?? null;
     for (const lake of input.places?.lakes ?? []) this.lakes.push(compileArea(lake));
     for (const lot of input.places?.lots ?? []) this.lots.push(compileArea(lot));
@@ -834,12 +838,33 @@ export class TerrainField {
    * Everywhere else keeps the generated forest.
    */
   groundCover(x: number, z: number, y: number): 'wood' | 'pasture' | 'forest' {
+    const mapped = this.coverAt(x, z);
+    if (mapped === 1) return 'wood';
+    if (mapped === 2) return 'pasture';
     if (insideAny(this.woods, x, z)) return 'wood';
     const near = this.openRadius ? this.nearestRoad(x, z) : null;
     if (near && near.d <= (this.openRadius?.[near.i] ?? 0)) return 'pasture';
     const line = this.scenery.pastureAbove;
     if (line != null && y >= line) return 'pasture';
     return 'forest';
+  }
+
+  /** True when this road has a land-cover map, so mapped trees ignore the treeline. */
+  get hasCoverMap(): boolean {
+    return this.cover !== null;
+  }
+
+  /** Mapped cover of the nearest cell: 0 outside the map or no data, 1 trees, 2 open. */
+  coverAt(x: number, z: number): number {
+    if (!this.cover) return 0;
+    for (const g of this.cover) {
+      const i = Math.round((x - g.x0) / g.cell);
+      const j = Math.round((z - g.z0) / g.cell);
+      if (i < 0 || j < 0 || i >= g.w || j >= g.h) continue;
+      const v = g.data[j * g.w + i];
+      if (v) return v;
+    }
+    return 0;
   }
 
   /** Mark the open stretches, and the samples that come back down the same road. */

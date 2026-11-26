@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { getRoute, ROUTE_DS } from '../route';
 import { REAL_CLIMB_MAP } from './data';
 import { hasRealRoad, realClimbRoute } from './build';
+import { decodeCover } from './terrain';
 import { findHairpins } from '../../world/climbs';
 import { planTowns } from '../../world/scenery';
 import { ChunkBuilder } from '../../world/terrainChunk';
@@ -1052,5 +1053,221 @@ describe('Krvavec on its real road', () => {
     }
     expect(worst).toBeLessThan(2.5);
     expect(Math.max(...Array.from(route.grade, Math.abs))).toBeLessThan(0.16);
+  });
+});
+
+describe('Col de la Madeleine from La Chambre on its real road', () => {
+  const c = REAL_CLIMB_MAP.get('madeleine-la-chambre')!;
+  const def = realClimbRoute(c);
+  const route = getRoute(def);
+  const climb = route.climbs[0];
+  const origin = (def.track as { origin?: { lat: number; lon: number } }).origin!;
+  const R = 6371000;
+  const rad = (d: number) => (d * Math.PI) / 180;
+  const xz = (lat: number, lon: number) => ({
+    x: rad(lon - origin.lon) * Math.cos(rad(origin.lat)) * R,
+    z: -rad(lat - origin.lat) * R,
+  });
+  const nearest = (lat: number, lon: number) => {
+    const p = xz(lat, lon);
+    const a = Math.floor(climb.start / ROUTE_DS);
+    const b = Math.floor(climb.end / ROUTE_DS);
+    let d = Infinity;
+    let idx = a;
+    for (let i = a; i <= b; i++) {
+      const dist = Math.hypot(route.x[i] - p.x, route.z[i] - p.z);
+      if (dist < d) {
+        d = dist;
+        idx = i;
+      }
+    }
+    return { d, idx, along: (idx - a) * ROUTE_DS, y: route.y[idx] };
+  };
+
+  it('uses the OpenStreetMap line of the D 213', () => {
+    expect(hasRealRoad(c.id)).toBe(true);
+    expect(def.track).toBeDefined();
+    expect(def.track?.hairpins).toBe('up');
+    expect(def.track?.places?.lots.map((l) => l.name)).toEqual(['Col de la Madeleine']);
+  });
+
+  it('keeps the published length, start, summit and each kilometre', () => {
+    expect(Math.abs(climb.length - c.lengthKm * 1000) / (c.lengthKm * 1000)).toBeLessThan(0.02);
+    expect(climb.startElevation).toBeCloseTo(495, 0);
+    expect(climb.summitElevation).toBeCloseTo(2000, 0);
+    expect(Math.abs(climb.gain - c.gain)).toBeLessThan(12);
+    const i0 = Math.floor(climb.start / ROUTE_DS);
+    const scale = climb.length / (c.lengthKm * 1000);
+    for (let k = 0; k < c.kmGrades.length; k++) {
+      const a = i0 + Math.round((k * 1000 * scale) / ROUTE_DS);
+      const endM = Math.min((k + 1) * 1000, c.lengthKm * 1000) * scale;
+      const b = i0 + Math.round(endM / ROUTE_DS);
+      const grade = ((route.y[b] - route.y[a]) / ((b - a) * ROUTE_DS)) * 100;
+      expect(Math.abs(grade - c.kmGrades[k]), `km ${k + 1}`).toBeLessThan(0.2);
+    }
+  });
+
+  it('follows the D 213 from La Chambre to the pass and stops there', () => {
+    const start = nearest(45.3589136, 6.2998176);
+    const martin = nearest(45.3659, 6.31607);
+    const cote = nearest(45.37063, 6.32033);
+    const gallery = nearest(45.3895202, 6.3369687);
+    const epalud = nearest(45.40459, 6.34342);
+    const francois = nearest(45.41726, 6.36205);
+    const summit = nearest(45.4349516, 6.3755223);
+    expect(start.d).toBeLessThan(8);
+    expect(start.along).toBeLessThan(30);
+    expect(start.y).toBeCloseTo(495, 0);
+    expect(martin.d, 'Saint-Martin').toBeLessThan(15);
+    expect(martin.along).toBeGreaterThan(1650);
+    expect(martin.along).toBeLessThan(1900);
+    expect(martin.y).toBeGreaterThan(590);
+    expect(martin.y).toBeLessThan(640);
+    expect(cote.d, 'La Côte').toBeLessThan(20);
+    expect(cote.along).toBeGreaterThan(3450);
+    expect(cote.along).toBeLessThan(3700);
+    expect(cote.y).toBeCloseTo(772, 0);
+    expect(gallery.d, 'avalanche gallery').toBeLessThan(15);
+    expect(gallery.along).toBeGreaterThan(7600);
+    expect(gallery.along).toBeLessThan(8400);
+    expect(epalud.d, "l'Épalud").toBeLessThan(25);
+    expect(epalud.along).toBeGreaterThan(10400);
+    expect(epalud.along).toBeLessThan(10900);
+    expect(epalud.y).toBeGreaterThan(1300);
+    expect(epalud.y).toBeLessThan(1380);
+    expect(francois.d, 'Saint-François-Longchamp').toBeLessThan(70);
+    expect(francois.along).toBeGreaterThan(13400);
+    expect(francois.along).toBeLessThan(14300);
+    expect(francois.y).toBeGreaterThan(1550);
+    expect(francois.y).toBeLessThan(1640);
+    expect(summit.d).toBeLessThan(15);
+    expect(summit.y).toBeCloseTo(2000, 0);
+    expect(climb.end - summit.idx * ROUTE_DS).toBeLessThan(40);
+    const north = xz(45.4357927, 6.3754841);
+    const valley = xz(45.3478933, 6.3061985);
+    let northD = Infinity;
+    let valleyD = Infinity;
+    for (let i = 0; i < route.count; i += 4) {
+      northD = Math.min(northD, Math.hypot(route.x[i] - north.x, route.z[i] - north.z));
+      valleyD = Math.min(valleyD, Math.hypot(route.x[i] - valley.x, route.z[i] - valley.z));
+    }
+    expect(northD).toBeGreaterThan(40);
+    expect(valleyD).toBeGreaterThan(1000);
+  });
+
+  it('has the villages on the road, the resort, and open grass above it', () => {
+    const towns = planTowns(route);
+    expect(towns.map((t) => t.name)).toEqual([
+      'La Chambre',
+      'Saint-Martin-sur-la-Chambre',
+      'La Côte',
+      "l'Épalud",
+      'Saint-François-Longchamp',
+    ]);
+    const at = (name: string) => towns.find((t) => t.name === name)!;
+    const chambre = at('La Chambre');
+    const martin = at('Saint-Martin-sur-la-Chambre');
+    const cote = at('La Côte');
+    const epalud = at("l'Épalud");
+    const francois = at('Saint-François-Longchamp');
+    expect(chambre.s0).toBeLessThan(40);
+    expect(chambre.s1).toBeGreaterThan(400);
+    expect(chambre.s1).toBeLessThan(550);
+    expect(martin.s0).toBeGreaterThan(chambre.s1);
+    expect(martin.s0).toBeGreaterThan(1500);
+    expect(martin.s1).toBeLessThan(2100);
+    expect(cote.s0).toBeGreaterThan(martin.s1);
+    expect(cote.s0).toBeGreaterThan(3300);
+    expect(cote.s1).toBeLessThan(3900);
+    expect(epalud.s0).toBeGreaterThan(10200);
+    expect(epalud.s1).toBeLessThan(11000);
+    expect(francois.s0).toBeGreaterThan(epalud.s1);
+    expect(francois.s0).toBeGreaterThan(13000);
+    expect(francois.s1).toBeLessThan(15000);
+    expect(route.y[Math.round(francois.s1 / ROUTE_DS)]).toBeGreaterThan(1600);
+    expect(def.scenery.biome).toBe('alpine');
+    expect(def.scenery.treeline).toBe(1650);
+    expect(def.scenery.forestDensity).toBeCloseTo(0.72);
+    expect(def.scenery.pasture).toBe(true);
+    const lot = def.track!.places!.lots[0];
+    const top = Math.floor(climb.end / ROUTE_DS);
+    let d = Infinity;
+    for (let k = 0; k < lot.x.length; k++) d = Math.min(d, Math.hypot(route.x[top] - lot.x[k], route.z[top] - lot.z[k]));
+    expect(d).toBeLessThan(40);
+  });
+
+  it('numbers the sharp bends up from the foot', () => {
+    const pins = findHairpins(route, climb);
+    expect(pins.length).toBeGreaterThan(15);
+    expect(pins[0].number).toBe(1);
+    expect(pins[pins.length - 1].number).toBe(pins.length);
+    expect(pins[0].idx).toBeLessThan(pins[pins.length - 1].idx);
+    const along = pins.map((p) => (p.idx - Math.floor(climb.start / ROUTE_DS)) * ROUTE_DS);
+    expect(along[0]).toBeGreaterThan(1500);
+    expect(along[along.length - 1]).toBeGreaterThan(climb.length - 2500);
+    for (let i = 1; i < along.length; i++) expect(along[i]).toBeGreaterThan(along[i - 1]);
+  });
+
+  it('turns at the pass and comes back down the same road', () => {
+    const up = Math.floor((climb.start + 8000) / ROUTE_DS);
+    let back = Infinity;
+    for (let i = Math.floor(climb.end / ROUTE_DS) + 30; i < route.count; i += 2) {
+      back = Math.min(back, Math.hypot(route.x[i] - route.x[up], route.z[i] - route.z[up]));
+    }
+    expect(back).toBeLessThan(6);
+    expect(route.y[Math.floor(climb.end / ROUTE_DS)]).toBeCloseTo(2000, 0);
+  });
+
+  it('closes the lap and never jumps', () => {
+    let worst = 0;
+    for (let i = 0; i < route.count; i++) {
+      const j = (i + 1) % route.count;
+      worst = Math.max(worst, Math.hypot(route.x[j] - route.x[i], route.z[j] - route.z[i]));
+    }
+    expect(worst).toBeLessThan(2.5);
+    expect(Math.max(...Array.from(route.grade, Math.abs))).toBeLessThan(0.16);
+  });
+});
+
+// The project has no Node type definitions, so fs comes in untyped.
+const nodeFs = 'node:fs';
+const { readFileSync: readFile } = (await import(/* @vite-ignore */ nodeFs)) as { readFileSync(file: URL): ArrayLike<number> };
+
+describe('Col de la Madeleine tree cover (ESA WorldCover)', () => {
+  const c = REAL_CLIMB_MAP.get('madeleine-la-chambre')!;
+  const def = realClimbRoute(c);
+  const route = getRoute(def);
+  const info = def.track!.terrain!.cover!;
+  const bytes = new Uint8Array(readFile(new URL(`../../assets/terrain/${info.file}`, import.meta.url)));
+  const cover = decodeCover(bytes, info.grids)!;
+  const field = new TerrainField({ x: route.x, z: route.z, y: route.y, seed: def.seed, scenery: def.scenery, cover });
+  /** Share of points 30-300 m either side of the climb, between two heights, that grow trees. */
+  const trees = (lo: number, hi: number) => {
+    let n = 0;
+    let t = 0;
+    for (let i = 0; i < route.count; i += 5) {
+      if (route.section[i] !== 1 || route.y[i] < lo || route.y[i] >= hi) continue;
+      const j = Math.min(route.count - 1, i + 1);
+      const dx = route.x[j] - route.x[i];
+      const dz = route.z[j] - route.z[i];
+      const l = Math.hypot(dx, dz) || 1;
+      for (const off of [-300, -120, -30, 30, 120, 300]) {
+        n++;
+        if (field.groundCover(route.x[i] - (dz / l) * off, route.z[i] + (dx / l) * off, route.y[i]) === 'wood') t++;
+      }
+    }
+    return t / n;
+  };
+
+  it('decodes and covers the whole ride', () => {
+    expect(cover).not.toBeNull();
+    expect(cover[0].cell).toBe(10);
+    for (let i = 0; i < route.count; i += 50) expect(field.coverAt(route.x[i], route.z[i])).toBeGreaterThan(0);
+  });
+
+  it('is forest in the middle of the climb and open pasture at the top', () => {
+    expect(trees(900, 1250)).toBeGreaterThan(0.75);
+    expect(trees(1800, 2001)).toBeLessThan(0.03);
+    expect(field.groundCover(route.x[Math.floor(route.climbs[0].end / ROUTE_DS)], route.z[Math.floor(route.climbs[0].end / ROUTE_DS)], 2000)).toBe('pasture');
   });
 });

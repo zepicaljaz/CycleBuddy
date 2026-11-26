@@ -419,7 +419,8 @@ export class ChunkBuilder {
         const cover = field.groundCover(x, z, h);
         let density = smoothstep(1 - sc.forestDensity * 1.25, 1.1 - sc.forestDensity, forestN);
         if (cover === 'wood') density = Math.max(density, 0.9);
-        const altFade = cover === 'pasture' ? 0 : 1 - smoothstep(treeline - 200, treeline + 30, h);
+        // Trees from a land-cover map stand where the map has them, at any height.
+        const altFade = cover === 'pasture' ? 0 : cover === 'wood' && field.hasCoverMap ? 1 : 1 - smoothstep(treeline - 200, treeline + 30, h);
         const biome = sc.biome ?? 'alpine';
         const lx = x - req.x0;
         const lz = z - req.z0;

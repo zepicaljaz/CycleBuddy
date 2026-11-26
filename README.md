@@ -78,8 +78,8 @@ Also on the home screen: **Analytics** (overview, fitness, power, rides, climbs,
   gradients don't add up to its gain is dropped (`checkClimb`).
 - **Real road 1:1:** Vršič, Alpe d'Huez, Passo dello Stelvio from Prato, Mont Ventoux from
   Bédoin, Col du Tourmalet from Luz-Saint-Sauveur, Alto de l'Angliru from La Vega, Col du
-  Galibier from Valloire, Passo Giau from Selva di Cadore and Krvavec from Grad to Plaža run
-  on their real roads (OpenStreetMap line, published profile, real terrain). Free ride lists
+  Galibier from Valloire, Passo Giau from Selva di Cadore, Krvavec from Grad to Plaža and Col
+  de la Madeleine from La Chambre run on their real roads (OpenStreetMap line, published profile, real terrain). Free ride lists
   them under **Real climbs**. How they are built: `docs/REAL_ROADS.md`.
 - **Time trials:** a start ramp, riders leave one by one (the GC leader last), each on their own
   clock, with a broom car behind the last rider.
@@ -98,7 +98,7 @@ cyclebuddy/
 ├── server/                    Node API: accounts, sessions, ride sync, static files
 ├── api/index.js                Vercel: every /api/... request runs the same API handler
 ├── vercel.json                Vercel: build, page routes, asset caching
-├── scripts/real-track/        Offline builder for real roads (OSM + elevation)
+├── scripts/real-track/        Offline builder for real roads (OSM + elevation + WorldCover trees)
 ├── scripts/smoke.mjs          After a build: checks the production server serves the game
 ├── tests/                     House-rule tests (versions, README map, no secrets, no alert())
 ├── .github/workflows/test.yml Checks every pull request: types, tests, build, smoke

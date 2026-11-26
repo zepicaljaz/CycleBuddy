@@ -95,6 +95,11 @@ export interface DemGrid extends DemGridInfo {
   data: Float32Array;
 }
 
+/** Ground cover per cell, from a land-cover map: 0 no data, 1 trees, 2 open ground. */
+export interface CoverGrid extends DemGridInfo {
+  data: Uint8Array;
+}
+
 /** A polygon in the road's local metres (x east, z south). The first point is not repeated. */
 export interface MapPolygon {
   name: string;
@@ -141,7 +146,12 @@ export interface TrackDef {
   /** Published number of hairpins on the climb; the sharpest bends of the real line get the signs. */
   hairpinCount?: number;
   /** Height grids (fine first) in a binary file under src/assets/terrain, loaded when the ride starts. */
-  terrain?: { file: string; grids: DemGridInfo[] };
+  terrain?: {
+    file: string;
+    grids: DemGridInfo[];
+    /** Tree cover grids (fine first), run-length encoded in their own file. See `CoverGrid`. */
+    cover?: { file: string; grids: DemGridInfo[] };
+  };
   /** Where the data comes from, for the credits. */
   source?: string;
 }

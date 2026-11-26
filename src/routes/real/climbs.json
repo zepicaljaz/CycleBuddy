@@ -758,6 +758,10 @@
  {
   "id": "madeleine-la-chambre",
   "name": "Col de la Madeleine",
+  "biome": "alpine",
+  "treeline": 1650,
+  "forestDensity": 0.72,
+  "pasture": true,
   "side": "La Chambre",
   "country": "France",
   "region": "Savoie (Auvergne-Rhône-Alpes)",
@@ -792,7 +796,7 @@
    7.4
   ],
   "lastKmLength": 0.39,
-  "description": "The southern side leaves the Maurienne valley at La Chambre and climbs through villages and pasture with few breaks, a long, steady effort of around 8 % to the 2,000 m pass between the Maurienne and the Tarentaise. It is a regular Tour de France HC climb.",
+  "description": "The southern side leaves La Chambre on the D213 and climbs through Saint-Martin-sur-la-Chambre and the forest, then the resort of Saint-François-Longchamp and open pasture to the pass between the Maurienne and the Tarentaise. It is a regular Tour de France HC climb.",
   "famousFor": "Long, steady Tour HC climb between Maurienne and Tarentaise",
   "sources": [
    "https://www.cols-cyclisme.com/vanoise/france/col-de-la-madeleine-depuis-la-chambre-c50.htm",

@@ -57,6 +57,7 @@ describe('real road climbs', () => {
       'galibier-valloire',
       'giau-selva',
       'krvavec-cerklje',
+      'madeleine-la-chambre',
       'stelvio-prato',
       'tourmalet-luz',
       'ventoux-bedoin',

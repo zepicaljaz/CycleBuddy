@@ -180,6 +180,20 @@ Built with `node scripts/real-track/build.mjs giau`. Same rules as Vršič, with
 - Towns, measured from the valley end: Selva di Cadore on the opening street (the square is about 160 m along). The pass is not a town. There is one restaurant there, the same cabin used on the cols, and the OpenStreetMap parking stays. Rifugio Fedare is beside the road at about 1,990 m. It is not a town.
 - Parking from OpenStreetMap: three lots at the pass, and the lot at Rifugio Piezza (Da Aurelio) at about 2,150 m. The mountain is the limestone colours. The treeline is 2,000 m, so the forest holds to Fedare and the top is open meadow. Woods and houses are still generated.
 
+## Col de la Madeleine from La Chambre
+
+Built with `node scripts/real-track/build.mjs madeleine`. Same rules as Vršič, with these choices:
+
+- The line is the D 213 from the centre of La Chambre, where OpenStreetMap places the town on Grande Rue, to pass node 239981829. It stops there. The north side toward La Léchère is not in the file. The quieter road through Montgellafrey is a different road and is not included. The valley road below the town, the D 927 at the Carrefour de la Madeleine, is not on the ride.
+- The summit node is tagged 1,993 m. The cols-cyclisme drawing used for this climb runs 19.39 km from 495 m to the 2,000 m sign, 1,505 m of climbing. OpenStreetMap measures 19.37 km between those two points, 19.33 km after the corner rounding (0.3 % short). On a full kilometre the gradient stays within a tenth of a point of that drawing. The 30 m terrain is about 29 m off along the road, and the terrain height at the pass node is 1,991 m, so it is used for the mountains and not for the slope.
+- The bends stay as mapped (`minRadius: 0`). There is no published numbered hairpin series. Signs count up from the foot, on the sharp bends of this line only. One way on the road is tagged `tunnel=avalanche_protector`, about 8 km up.
+- The turn at the pass and the turn in La Chambre are the same small balloon as Vršič, so the ride comes back down this road and can climb it again.
+- Towns, measured from the valley end: La Chambre on the opening street, Saint-Martin-sur-la-Chambre (about 1.8 km, 614 m), La Côte (about 3.6 km, 772 m, the point labelled on the drawing), l'Épalud (about 10.6 km, 1,337 m) and Saint-François-Longchamp, the resort street from about 1,540 m up to the 1,650 m station. The pass is not a town. La Banquise sits beside it. Montaimont is off on a side road and is not a town on this line.
+- The mountain keeps the ordinary alpine colours. The Lauzière above the road is gneiss and granite, so the rock stays grey rather than the pale limestone used on Ventoux. The treeline is 1,650 m for the grass colours. The summit parking is the OpenStreetMap polygon beside the pass.
+- **Trees are mapped, not generated.** This is the first road with a tree-cover map: ESA WorldCover 10 m 2021 (Sentinel satellite land cover, CC BY 4.0), read by `scripts/real-track/worldcover.mjs` from the open GeoTIFFs on AWS. Only the 1024 px tiles around the road are fetched and cached in `data/dem-cache/worldcover/`. The build turns it into `src/assets/terrain/madeleine-la-chambre.cover.bin`: a 10 m grid over the fine terrain (14 × 16.5 km) and a 50 m grid over the coarse one (a cell is trees when most of its 10 m samples are), one byte per cell (0 no data, 1 trees, 2 open), run-length encoded, 227 KB. In the game `TerrainField.coverAt` reads it and `groundCover` follows it: trees only where the map has trees, grass everywhere else, and mapped trees ignore the treeline. Outside the grids the generated forest is used as before.
+- What that gives along the climb, 30–300 m either side of the road: 29 % trees at 400–600 m (La Chambre and the meadows above it), 53 % at 600–800 m, 75 % at 800–1,000 m, 88 % at 1,000–1,200 m (the closed forest around the avalanche gallery), about 60 % from l'Épalud to Saint-François-Longchamp, 8 % at 1,600–1,800 m and none above 1,800 m.
+- OpenStreetMap land cover was looked at first. Below l'Épalud the woods are hand-mapped in detail, but above it the only forest is the 2006 CORINE import (25 ha blocks), so it would leave the upper half generated. WorldCover covers all of it at 10 m.
+
 ## Hairpins and the ground mesh
 
 The grass is an 8 m grid. On a straight the bank starts about 18 m out, so a
@@ -282,7 +296,8 @@ Built with `node scripts/real-track/build.mjs krvavec`. Same rules as Vršič, w
    `mountain_pass` node), elevations, how the hairpins are numbered, and `towns`
    (name, `fromM`, `toM`, metres from the valley end of the road). A resort at
    the top is one of those towns, on the stretch where the road actually passes
-   through it.
+   through it. Add `worldCover: true` to plant the trees from ESA WorldCover
+   instead of the generated forest (see the Madeleine).
 3. The climb must already exist in `data/real-climbs.research.json` with its profile
    (`source_segments`) and sources.
 4. Run the script. Check that the length is within ~2 % of the published value and that

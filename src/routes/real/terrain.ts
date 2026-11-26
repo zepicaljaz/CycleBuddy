@@ -1,5 +1,5 @@
 import type { Route } from '../route';
-import type { DemGrid } from '../types';
+import type { CoverGrid, DemGrid, DemGridInfo } from '../types';
 
 /**
  * Height grids for real roads ship as small binary files (heights in decimetres,
@@ -32,7 +32,39 @@ async function fetchGrids(file: string, grids: NonNullable<NonNullable<Route['de
   return out;
 }
 
-/** Loads the real terrain for a track route onto `route.terrain`. Generated routes are left alone. */
+const coverCache = new Map<string, Promise<CoverGrid[] | null>>();
+
+/** Cover grids are (value, run) byte pairs, all grids back to back. */
+async function fetchCover(file: string, grids: DemGridInfo[]): Promise<CoverGrid[] | null> {
+  const key = Object.keys(FILES).find((k) => k.endsWith(`/${file}`));
+  if (!key) return null;
+  const res = await fetch(await FILES[key]());
+  if (!res.ok) return null;
+  return decodeCover(new Uint8Array(await res.arrayBuffer()), grids);
+}
+
+/** Unpacks run-length encoded cover grids. Null if the data does not fill them exactly. */
+export function decodeCover(rle: Uint8Array, grids: DemGridInfo[]): CoverGrid[] | null {
+  const out: CoverGrid[] = [];
+  let at = 0;
+  for (const g of grids) {
+    const data = new Uint8Array(g.w * g.h);
+    let i = 0;
+    while (i < data.length) {
+      if (at + 1 >= rle.length) return null;
+      const v = rle[at];
+      const n = rle[at + 1];
+      at += 2;
+      if (i + n > data.length) return null;
+      data.fill(v, i, i + n);
+      i += n;
+    }
+    out.push({ ...g, data });
+  }
+  return at === rle.length ? out : null;
+}
+
+/** Loads the real terrain (and tree cover, if any) for a track route onto the route. Generated routes are left alone. */
 export async function loadRouteTerrain(route: Route): Promise<void> {
   const t = route.def.track?.terrain;
   if (!t || route.terrain) return;
@@ -41,5 +73,15 @@ export async function loadRouteTerrain(route: Route): Promise<void> {
     p = fetchGrids(t.file, t.grids).catch(() => null);
     cache.set(t.file, p);
   }
-  route.terrain = await p;
+  let c: Promise<CoverGrid[] | null> | null = null;
+  if (t.cover) {
+    c = coverCache.get(t.cover.file) ?? null;
+    if (!c) {
+      c = fetchCover(t.cover.file, t.cover.grids).catch(() => null);
+      coverCache.set(t.cover.file, c);
+    }
+  }
+  const [terrain, cover] = await Promise.all([p, c]);
+  route.terrain = terrain;
+  route.cover = cover;
 }

@@ -8,12 +8,14 @@
 //   node scripts/real-track/build.mjs galibier
 //   node scripts/real-track/build.mjs giau
 //   node scripts/real-track/build.mjs krvavec
+//   node scripts/real-track/build.mjs madeleine
 // Output: src/routes/real/tracks/<id>.json (road line, elevation, sections) and
 // src/assets/terrain/<id>.bin (height grids around the road). See ATTRIBUTION.md.
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { demSampler } from './dem.mjs';
+import { worldCoverSampler, WC } from './worldcover.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const R = 6371000;
@@ -243,6 +245,41 @@ const CONFIGS = {
     towns: [
       { name: 'Grad', fromM: 0, toM: 400 },
       { name: 'Ambrož pod Krvavcem', fromM: 8000, toM: 9000 },
+    ],
+  },
+  madeleine: {
+    id: 'madeleine-la-chambre',
+    climbId: 'madeleine-la-chambre',
+    // D 213 from the centre of La Chambre to the pass. The north side, toward
+    // La Léchère, and the road through Montgellafrey are not in this file.
+    osm: 'data/osm/madeleine-d213.json',
+    places: 'data/osm/madeleine-places.json',
+    // Trees stand where ESA WorldCover (10 m, 2021) sees tree cover, and nowhere else.
+    worldCover: true,
+    // OpenStreetMap place node for La Chambre, on Grande Rue. 19.37 km below the pass.
+    from: { lat: 45.3589136, lon: 6.2998176 },
+    // OSM node 239981829, mountain_pass, tagged 1,993 m. The road stops here.
+    to: { lat: 45.4349516, lon: 6.3755223 },
+    climbStart: { lat: 45.3589136, lon: 6.2998176 },
+    summit: { lat: 45.4349516, lon: 6.3755223 },
+    // The cols-cyclisme drawing, which this climb already uses: 495 m to the 2,000 m sign.
+    startElevation: 495,
+    summitElevation: 2000,
+    // The lacets are tighter than 7 m. Opening them shortens the climb and rounds
+    // the bends. Same choice as the Stelvio. The light corner rounding stays.
+    minRadius: 0,
+    // No numbered boards. Signs count up from the foot, on the sharp bends only.
+    hairpins: 'up',
+    // Metres from the valley end of the built road. Centres are the OpenStreetMap
+    // place nodes on the D 213 (La Chambre 0, Saint-Martin 1,775 m, La Côte 3,576 m,
+    // l'Épalud 10,623 m). Saint-François-Longchamp is the resort street, from about
+    // 1,540 m up to the 1,650 m station where the pasture takes over.
+    towns: [
+      { name: 'La Chambre', fromM: 0, toM: 450 },
+      { name: 'Saint-Martin-sur-la-Chambre', fromM: 1570, toM: 1980 },
+      { name: 'La Côte', fromM: 3400, toM: 3760 },
+      { name: "l'Épalud", fromM: 10440, toM: 10840 },
+      { name: 'Saint-François-Longchamp', fromM: 13250, toM: 14700 },
     ],
   },
 };
@@ -573,6 +610,60 @@ const bin = Buffer.concat([Buffer.from(f16.buffer), Buffer.from(c16.buffer)]);
 fs.mkdirSync(path.join(ROOT, 'src/assets/terrain'), { recursive: true });
 fs.writeFileSync(path.join(ROOT, `src/assets/terrain/${cfg.id}.bin`), bin);
 
+// ---------------------------------------------------------------- tree cover (ESA WorldCover)
+// One byte per cell: 0 no data (generated forest), 1 trees, 2 open ground. The fine
+// grid is 10 m over the fine height grid; the coarse one is 50 m over the coarse
+// grid, a cell is trees when most of its 10 m samples are. Stored run-length
+// encoded as (value, run) byte pairs, fine grid first.
+let coverInfo = null;
+if (cfg.worldCover) {
+  const wcAt = await worldCoverSampler(grow(lineBox, COARSE_KM + 0.5), cache);
+  const cls = (x, z) => {
+    const p = toLL(x, z);
+    const v = wcAt(p.lat, p.lon);
+    return v === 0 ? 0 : v === WC.tree ? 1 : 2;
+  };
+  const coverGrid = (g, cell) => {
+    const w = Math.floor(((g.w - 1) * g.cell) / cell) + 1, h = Math.floor(((g.h - 1) * g.cell) / cell) + 1;
+    const data = new Uint8Array(w * h);
+    const k = Math.max(1, Math.round(cell / 10));
+    for (let j = 0; j < h; j++) {
+      for (let i = 0; i < w; i++) {
+        let trees = 0, open = 0;
+        for (let a = 0; a < k; a++) for (let b = 0; b < k; b++) {
+          const c = cls(g.x0 + i * cell + ((a + 0.5) / k - 0.5) * cell, g.z0 + j * cell + ((b + 0.5) / k - 0.5) * cell);
+          if (c === 1) trees++; else if (c === 2) open++;
+        }
+        data[j * w + i] = trees + open === 0 ? 0 : trees > open ? 1 : 2;
+      }
+    }
+    return { x0: g.x0, z0: g.z0, cell, w, h, data };
+  };
+  const cf = coverGrid(fine, 10), cc = coverGrid(coarse, 50);
+  const rle = [];
+  for (const g of [cf, cc]) {
+    for (let i = 0; i < g.data.length; ) {
+      const v = g.data[i];
+      let n = 1;
+      while (n < 255 && i + n < g.data.length && g.data[i + n] === v) n++;
+      rle.push(v, n);
+      i += n;
+    }
+  }
+  const buf = Buffer.from(rle);
+  fs.writeFileSync(path.join(ROOT, `src/assets/terrain/${cfg.id}.cover.bin`), buf);
+  const share = (g, v) => ((g.data.filter((c) => c === v).length / g.data.length) * 100).toFixed(0);
+  let near = 0, nearTrees = 0;
+  for (let i = 0; i < line.length; i += 20) {
+    for (const off of [-40, 40]) {
+      const c = cls(line[i].x + off, line[i].z);
+      if (c) { near++; if (c === 1) nearTrees++; }
+    }
+  }
+  console.log(`cover: fine ${cf.w}×${cf.h} (${share(cf, 1)} % trees), coarse ${cc.w}×${cc.h} (${share(cc, 1)} % trees), ${((nearTrees / near) * 100).toFixed(0)} % trees 40 m off the road, ${(buf.length / 1024).toFixed(0)} KB`);
+  coverInfo = { file: `${cfg.id}.cover.bin`, grids: [cf, cc].map(({ x0, z0, cell, w, h }) => ({ x0, z0, cell, w, h })) };
+}
+
 // ---------------------------------------------------------------- town length and mapped places
 if (cfg.townEnd) {
   const sp = toXZ(cfg.townEnd);
@@ -672,6 +763,7 @@ if (cfg.places) {
 }
 
 const OPEN_COVER = new Set(['meadow', 'grass', 'grassland', 'farmland', 'scrub']);
+
 if (cfg.cover) {
   const src = JSON.parse(fs.readFileSync(path.join(ROOT, cfg.cover), 'utf8'));
   const open = [];
@@ -719,7 +811,9 @@ const track = {
   id: cfg.id,
   source:
     creditLine(places) +
-    'Terrain: Terrain Tiles (SRTM, Copernicus EU-DEM). Road profile: ' +
+    'Terrain: Terrain Tiles (SRTM, Copernicus EU-DEM). ' +
+    (cfg.worldCover ? 'Tree cover: ESA WorldCover 10 m 2021 v200 (CC BY 4.0). ' : '') +
+    'Road profile: ' +
     climb.sources[0],
   origin: { lat: +lat0.toFixed(7), lon: +lon0.toFixed(7) },
   ...(places ? { places } : {}),
@@ -736,6 +830,7 @@ const track = {
   terrain: {
     file: `${cfg.id}.bin`,
     grids: [fine, coarse].map(({ x0, z0, cell, w, h }) => ({ x0, z0, cell, w, h })),
+    ...(coverInfo ? { cover: coverInfo } : {}),
   },
 };
 fs.mkdirSync(path.join(ROOT, 'src/routes/real/tracks'), { recursive: true });
