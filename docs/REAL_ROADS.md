@@ -264,8 +264,9 @@ scree is the pale rubble and rock the limestone rock colour. Outside the box the
 generated as on every other road.
 
 **Places.** Lago di Misurina and Lago d'Antorno (OpenStreetMap multipolygons, water at the LiDAR
-level), the parking within 250 m of the road (`lotsWithin`), Misurina as the town on the
-opening stretch. There is no published numbered hairpin series. Signs count up on the sharp
+level), the parking within 250 m of the road (`lotsWithin`). No generated town: Misurina is a
+few hotels on the east side of the lake road, and a generated street put apartment blocks
+along the shore, some on the lake side. There is no published numbered hairpin series. Signs count up on the sharp
 bends.
 
 ## Hairpins and the ground mesh

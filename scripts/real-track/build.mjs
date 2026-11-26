@@ -279,7 +279,9 @@ const CONFIGS = {
     // from anywhere on the ride, so they keep their shape from Misurina.
     landmarks: [{ name: 'Tre Cime di Lavaredo', south: 46.6125, north: 46.6235, west: 12.286, east: 12.3125 }],
     hairpins: 'up',
-    towns: [{ name: 'Misurina', fromM: 0, toM: 900 }],
+    // No generated town. Misurina is a few hotels on the east side of the lake road; a
+    // generated street puts apartment blocks along the shore, some on the lake side.
+    towns: [],
   },
 };
 

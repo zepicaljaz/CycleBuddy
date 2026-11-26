@@ -120,8 +120,8 @@ describe('Tre Cime di Lavaredo from Misurina on its real road', () => {
     expect(lakes.map((l) => l.name).sort()).toEqual(["Lago d'Antorno", 'Lago di Misurina']);
     expect(lakes.find((l) => l.name === 'Lago di Misurina')!.level).toBeCloseTo(1747.6, 0);
     expect(lakes.find((l) => l.name === "Lago d'Antorno")!.level).toBeCloseTo(1867.8, 0);
-    const towns = planTowns(route);
-    expect(towns.find((t) => t.name === 'Misurina')!.s0).toBeLessThan(40);
+    // No generated town: it would put apartment blocks along the lake shore.
+    expect(planTowns(route)).toEqual([]);
   });
 
   it('rides the real one-way loop round the hut and comes back down the same road', () => {
