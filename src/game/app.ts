@@ -36,10 +36,11 @@ import { progressFromRides, workoutKey } from '../training/progress';
 import { barsHtml, expandBlocks, formatSession, prescribedLoad } from '../training/workout';
 import { estimateLap, estimateTime } from './estimates';
 import { RideSession, type SessionMode } from './session';
-import { raceById, stageWindow } from '../career/calendar';
+import { formatDate, raceById, raceDays, stageWindow } from '../career/calendar';
 import { startMateCount } from '../career/squad';
 import { teamCode } from '../career/teams';
-import { careerHtml } from '../career/panel';
+import { calendarChipClass, careerHtml, seasonUpdateHtml } from '../career/panel';
+import type { SeasonUpdate } from '../career/progress';
 import { Career, stagePrimes, type CareerLaunch } from '../career/season';
 import type { RaceClassifications, StageResultRow } from '../career/season';
 import { summarizeSamples } from './recorder';
@@ -310,6 +311,8 @@ export class App {
   private roadAhead!: RoadAhead;
   private proChoice = loadChoice();
   private careerSheets: RaceClassifications | null = null;
+  /** Points, ranking and contract after the stage just ridden. Shown on the race results. */
+  private careerSeason: SeasonUpdate | null = null;
   private careerListening = false;
   private garagePose: RiderPose = { x: 0, y: 0, z: 0, tx: 1, tz: 0, grade: 0, crank: 0, wheel: 0, effort: 0, visible: true };
   /** Part the rider is looking at in Equipment. It is not owned until they buy it. */
@@ -3024,10 +3027,12 @@ export class App {
     }
     this.careerNext = false;
     this.careerSheets = null;
+    this.careerSeason = null;
     if (s.config.career && !this.quickRide && s.player.finishTime != null) {
       const result = this.career.commit(this.careerRows(s));
       this.careerNext = result.another;
       this.careerSheets = result.classifications;
+      this.careerSeason = result.season;
       if (result.headline) toast(result.headline, 'success', 5200);
     }
     const summary = s.summary();
@@ -3120,6 +3125,8 @@ export class App {
     if (race) {
       const st = s.sim.standings();
       const me = st.indexOf(s.player);
+      // Your teammates get their own highlight, so you can find them in the lists.
+      const myTeam = s.config.career ? this.career.state?.teamId ?? '' : '';
       const clockOf = (r: (typeof st)[number]) => r.officialTime ?? r.finishTime;
       const winner = clockOf(st[0]) ?? 0;
       const rows = st
@@ -3130,7 +3137,8 @@ export class App {
           const gap = clockOf(r) !== null && i > 0 ? (Math.abs((clockOf(r) ?? 0) - winner) < 0.05 ? 's.t.' : `+${formatDuration((clockOf(r) ?? 0) - winner)}`) : '';
           const side = r.isPlayer ? '' : s.config.career ? teamCode(r.team) : r.country;
           const name = r.isPlayer ? (this.profile.name || r.name) : r.name;
-          return `<tr class="${r === s.player ? 'me' : ''}"><td class="pos">${i + 1}</td><td class="rider" title="${esc(name)}"><span class="dot" style="background:${r.colors.jersey}"></span>${esc(name)}</td><td>${esc(side)}</td><td class="num">${time}</td><td class="num">${gap}</td></tr>`;
+          const mate = !!myTeam && !r.isPlayer && r.team === myTeam;
+          return `<tr class="${r === s.player ? 'me' : mate ? 'teammate' : ''}"><td class="pos">${i + 1}</td><td class="rider" title="${esc(name)}"><span class="dot" style="background:${r.colors.jersey}"></span>${esc(name)}</td><td>${esc(side)}</td><td class="num">${time}</td><td class="num">${gap}</td></tr>`;
         })
         .join('');
       const place = s.player.finishTime !== null ? `You finished <b>${me + 1}${ordinal(me + 1)}</b> of ${st.length}` : 'You did not finish';
@@ -3143,7 +3151,8 @@ export class App {
           const value = unit === 'time' ? formatDuration(row.value) : String(row.value);
           const gap = unit === 'time' && i > 0 ? (Math.abs(row.value - leader) < 0.05 ? 's.t.' : `+${formatDuration(row.value - leader)}`) : '';
           const gapCell = unit === 'time' ? `<td class="num">${gap}</td>` : '';
-          return `<tr class="${row.riderId === 'player' ? 'me' : ''}"><td class="pos">${i + 1}</td><td class="rider" title="${esc(row.name)}">${esc(row.name)}</td><td>${esc(teamCode(row.teamId))}</td><td class="num">${value}</td>${gapCell}</tr>`;
+          const rowClass = row.riderId === 'player' ? 'me' : myTeam && row.teamId === myTeam ? 'teammate' : '';
+          return `<tr class="${rowClass}"><td class="pos">${i + 1}</td><td class="rider" title="${esc(row.name)}">${esc(row.name)}</td><td>${esc(teamCode(row.teamId))}</td><td class="num">${value}</td>${gapCell}</tr>`;
         }).join('') || `<tr><td class="empty" colspan="${unit === 'time' ? 5 : 4}">No points yet</td></tr>`;
         const gapHead = unit === 'time' ? '<th class="num">Gap</th>' : '';
         return `<section class="race-class"><h3>${title}</h3><div class="race-scroll"><table class="standings ${unit === 'time' ? 'times' : 'points'}"><thead><tr><th class="pos">#</th><th class="rider">Rider</th><th>Team</th><th class="num">${unit === 'time' ? 'Time' : 'Pts'}</th>${gapHead}</tr></thead><tbody>${body}</tbody></table></div></section>`;
@@ -3183,8 +3192,9 @@ export class App {
           ${done}
         </div>`;
     const wideResults = hill || !!s.config.career;
+    const seasonLine = s.config.career && this.careerSeason ? this.careerSeasonHtml(this.careerSeason) : '';
     this.overlay.innerHTML = wideResults
-      ? `<div class="modal glass race-results${raceClasses ? ' has-classes' : ''}"><div class="race-results-bar"><h2>Race results</h2><div class="modal-actions">${fit}${next}${done}</div></div>${raceStats}<div class="race-results-main">${raceStage}${raceClasses}</div><footer class="race-results-foot">${notes}</footer></div>`
+      ? `<div class="modal glass race-results${raceClasses ? ' has-classes' : ''}"><div class="race-results-bar"><h2>Race results</h2><div class="modal-actions">${fit}${next}${done}</div></div>${raceStats}${seasonLine}<div class="race-results-main">${raceStage}${raceClasses}</div><footer class="race-results-foot">${notes}</footer></div>`
       : `<div class="modal wide glass"><h2>${race ? 'Race results' : train ? 'Workout complete' : 'Ride complete'}</h2>${body}${actions}</div>`;
     this.revealRaceRows();
     if (saved && workout?.ftpEstimate && workout.ftpKind !== 'twenty') {
@@ -3208,6 +3218,20 @@ export class App {
         this.startCareerStage();
       });
     }
+  }
+
+  /** The season line under the race stats: what this stage did to the ranking and the contract. */
+  private careerSeasonHtml(update: SeasonUpdate): string {
+    const state = this.career.state;
+    const active = state?.active;
+    const race = active ? raceById(active.raceId) : this.career.nextEntered();
+    let next = '';
+    if (active && race) next = `Next: ${race.name}, stage ${active.stageIndex + 1} of ${race.stages.length}`;
+    else if (race && state) {
+      const day = raceDays(race, state.year)[0];
+      next = `Next race: ${race.name}${day ? `, ${formatDate(day.month, day.day)}` : ''}`;
+    }
+    return seasonUpdateHtml(update, this.career.team()?.division ?? 'continental', next);
   }
 
   /** Keep the player's row on screen in each results list. */
@@ -3394,6 +3418,15 @@ export class App {
         this.panel.querySelectorAll<HTMLInputElement>('[data-career="enter"]').forEach((box) => {
           if (box.dataset.race) box.checked = chosen.has(box.dataset.race);
         });
+        // Ticked, unticked and next on the month grid, without re-rendering (which would close the open race).
+        this.panel.querySelectorAll<HTMLElement>('.race-chip[data-race]').forEach((chip) => {
+          const name = calendarChipClass(chip.dataset.race!, this.career);
+          if (name) chip.className = name;
+        });
+      }
+      if (target.dataset.career === 'cal-mine') {
+        this.career.calendarMine = target.checked;
+        this.render();
       }
       if (target.dataset.career === 'nation') this.career.draftNation = target.value;
       if (target.dataset.career === 'tactic' && target.dataset.tactic) {
@@ -3442,6 +3475,9 @@ export class App {
         this.render();
       } else if (act === 'rank' && (button.dataset.sheet === 'rankings' || button.dataset.sheet === 'results')) {
         this.career.rankSheet = button.dataset.sheet;
+        this.render();
+      } else if (act === 'rank-table' && button.dataset.table) {
+        this.career.rankTable = button.dataset.table as NonNullable<typeof this.career.rankTable>;
         this.render();
       } else if (act === 'skip') {
         this.career.skipNext();

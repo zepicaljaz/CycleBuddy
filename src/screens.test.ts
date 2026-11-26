@@ -4,7 +4,10 @@
 import { describe, expect, it } from 'vitest';
 import { analyticsHtml, type AnalyticsPage, type AnalyticsState } from './analytics/view';
 import { Career } from './career/season';
-import { careerHtml } from './career/panel';
+import { RACES } from './career/calendar';
+import { buildOffers } from './career/classify';
+import { ridersOf } from './career/roster';
+import { careerHtml, seasonUpdateHtml } from './career/panel';
 import type { CareerTab } from './career/season';
 import { homeHtml, HOME_KEYS } from './game/homeView';
 import { loadChoice, proRaceHtml } from './game/proRaceView';
@@ -122,8 +125,34 @@ describe('menu screens render', () => {
 });
 
 describe('career screens render', () => {
-  it('team pick, before a career exists', () => {
-    expectClean(careerHtml(new Career()), 'career pick');
+  it('team pick, before a career exists: how it works, teams, pace folded away, start', () => {
+    const html = careerHtml(new Career());
+    expectClean(html, 'career pick');
+    expect(html).toContain('class="career-ladder"');
+    expect(html).toContain('<details class="pick-pace">');
+    expect(html).toContain('data-career="draft-flat"');
+    expect(html).toContain('class="pick-go"');
+    expect(html).toContain('data-career="create"');
+  });
+
+  it('the season review before the offers', () => {
+    const career = new Career();
+    career.create('slorising', 'SLO', 3.4, 3.8, 4.3);
+    const row = (riderId: string, name: string, time: number, isPlayer = false) => ({
+      riderId, name, teamId: 'slorising', country: 'SLO', age: 24, time, sprint: 0, kom: 0, isPlayer,
+    });
+    career.state!.active = { raceId: 'opening-classic', stageIndex: 0, gc: [], sprint: [], kom: [], stageWinners: [] };
+    career.commit([row('player', 'You', 80, true), row('other', 'A. Rider', 90)]);
+    career.state!.cont = { ...career.state!.cont, player: 450 };
+    career.state!.offers = buildOffers(340, 'slorising');
+    career.tab = 'offers';
+    const html = careerHtml(career, 'Test Rider');
+    expectClean(html, 'career season review');
+    expect(html).toContain('Season 2026 is over');
+    expect(html).toContain('Pro offer · unlocked');
+    expect(html).toMatch(/World Tour offer · missed by \d+/);
+    expect(html).toContain('Move up');
+    expect((html.match(/data-career="sign"/g) ?? []).length).toBe(career.state!.offers.length);
   });
 
   it('every tab of a new career', () => {
@@ -134,6 +163,99 @@ describe('career screens render', () => {
       career.tab = tab;
       expectClean(careerHtml(career, 'Test Rider'), `career ${tab}`);
     }
+  });
+
+  it('the season page mid-season: next race, contract meter, season strip, a stage race in progress', () => {
+    const career = new Career();
+    career.create('slorising', 'SLO', 3.4, 3.8, 4.3);
+    const row = (riderId: string, name: string, time: number, isPlayer = false) => ({
+      riderId, name, teamId: 'slorising', country: 'SLO', age: 24, time, sprint: 0, kom: 0, isPlayer,
+    });
+    career.state!.active = { raceId: 'opening-classic', stageIndex: 0, gc: [], sprint: [], kom: [], stageWinners: [] };
+    career.commit([row('other', 'A. Rider', 90), row('player', 'You', 100, true)]);
+    career.state!.cont = { player: 120 };
+    career.tab = 'hub';
+    let html = careerHtml(career, 'Test Rider');
+    expectClean(html, 'career season page');
+    expect(html).toContain('class="season-next"');
+    expect(html).toContain('role="meter"');
+    expect(html).toContain('to a Pro offer');
+    expect(html).toContain('season-dot ridden top');
+    expect(html).not.toContain('menu-card');
+
+    const stageRace = career.state!.entered.map((id) => RACES.find((race) => race.id === id)!).find((race) => race.stages.length > 1)!;
+    const gcRow = (riderId: string, name: string, value: number) => ({ riderId, name, teamId: 'slorising', country: 'SLO', age: 24, value });
+    career.state!.active = {
+      raceId: stageRace.id, stageIndex: 1, sprint: [], kom: [], stageWinners: [],
+      gc: [gcRow('other', 'A. Rider', 3600), gcRow('player', 'You', 3642)],
+    };
+    html = careerHtml(career, 'Test Rider');
+    expectClean(html, 'career season page, stage race');
+    expect(html).toContain('Continue the race');
+    expect(html).toContain('2nd overall, 0:42 behind');
+  });
+
+  it('the season page when nothing is ticked', () => {
+    const career = new Career();
+    career.create('slorising', 'SLO', 3.4, 3.8, 4.3);
+    for (const id of [...career.state!.entered]) career.setEnter(id, false);
+    const html = careerHtml(career, 'Test Rider');
+    expectClean(html, 'career season page, empty');
+    expect(html).toContain('Open the calendar');
+  });
+
+  it('the calendar: key, your races marked, your place, and only your races', () => {
+    const career = new Career();
+    career.create('slorising', 'SLO', 3.4, 3.8, 4.3);
+    const row = (riderId: string, name: string, time: number, isPlayer = false) => ({
+      riderId, name, teamId: 'slorising', country: 'SLO', age: 24, time, sprint: 0, kom: 0, isPlayer,
+    });
+    career.state!.active = { raceId: 'opening-classic', stageIndex: 0, gc: [], sprint: [], kom: [], stageWinners: [] };
+    career.commit([row('other', 'A. Rider', 90), row('player', 'You', 100, true)]);
+    const off = career.state!.entered.find((id) => id !== career.nextEntered()?.id && RACES.find((race) => race.id === id)?.month === 2)!;
+    career.setEnter(off, false);
+    career.tab = 'calendar';
+    career.calendarMonth = 2;
+    let html = careerHtml(career, 'Test Rider');
+    expectClean(html, 'career calendar');
+    expect(html).toContain('class="cal-legend"');
+    expect(html).toContain('data-race="opening-classic"');
+    expect(html).toMatch(/race-chip tone-cont ridden" data-race="opening-classic">Opening Classic <b>2nd<\/b>/);
+    expect(html).toContain(`next" data-race="${career.nextEntered()!.id}"`);
+    expect(html).toContain(`off" data-race="${off}"`);
+    expect(html).toContain('win +');
+    career.calendarMine = true;
+    html = careerHtml(career, 'Test Rider');
+    expectClean(html, 'career calendar, my races');
+    expect(html).not.toContain(`data-race="${off}"`);
+    expect(html).toContain('data-race="opening-classic"');
+  });
+
+  it('standings and record mid-season: where you are, your row, your totals', () => {
+    const career = new Career();
+    career.create('slorising', 'SLO', 3.4, 3.8, 4.3);
+    const row = (riderId: string, name: string, time: number, isPlayer = false) => ({
+      riderId, name, teamId: 'slorising', country: 'SLO', age: 24, time, sprint: 0, kom: 0, isPlayer,
+    });
+    career.state!.active = { raceId: 'opening-classic', stageIndex: 0, gc: [], sprint: [], kom: [], stageWinners: [] };
+    career.commit([row('other', 'A. Rider', 90), row('player', 'You', 100, true)]);
+    career.simulateAhead();
+    career.tab = 'rankings';
+    for (const table of ['cyb', 'cont', 'wins', 'cyb-teams', 'cont-teams'] as const) {
+      career.rankTable = table;
+      const html = careerHtml(career, 'Test Rider');
+      expectClean(html, `career standings ${table}`);
+      expect(html).toContain('class="stand-summary"');
+    }
+    career.rankTable = 'cont';
+    const cont = careerHtml(career, 'Test Rider');
+    expect(cont).toContain('Test Rider');
+    expect(cont).toMatch(/<b>\d+(st|nd|rd|th)<\/b> of \d+/);
+    career.tab = 'record';
+    const record = careerHtml(career, 'Test Rider');
+    expectClean(record, 'career record');
+    expect(record).toContain('class="record-totals"');
+    expect(record).toContain('Opening Classic');
   });
 
   it('the race brief: stats, pace, teammates table, team orders, start', () => {
@@ -148,5 +270,74 @@ describe('career screens render', () => {
     expect(html).toContain('Team orders');
     expect(html).toContain('data-career="start"');
     expect((html.match(/data-career="tactic"/g) ?? []).length).toBe(3);
+  });
+
+  it('the brief says what the race pays, and the gap in a stage race', () => {
+    const career = new Career();
+    career.create('slorising', 'SLO', 3.4, 3.8, 4.3);
+    const stageRace = career.state!.entered.map((id) => RACES.find((race) => race.id === id)!).find((race) => race.stages.length > 1)!;
+    const gcRow = (riderId: string, name: string, value: number) => ({ riderId, name, teamId: 'slorising', country: 'SLO', age: 24, value });
+    career.state!.active = {
+      raceId: stageRace.id, stageIndex: 2, sprint: [], kom: [], stageWinners: [],
+      gc: [gcRow('other', 'A. Rider', 3600), gcRow('player', 'You', 3605)],
+      squad: [],
+    };
+    career.tab = 'brief';
+    const html = careerHtml(career, 'Test Rider');
+    expectClean(html, 'career brief, stage race');
+    expect(html).toContain('class="brief-stake"');
+    expect(html).toContain('Overall win');
+    expect(html).toContain('2nd overall, 0:05 behind');
+    expect(html).toContain('to a Pro offer');
+  });
+
+  it('the brief from stage 2: your squad with place and gap, you and teammates marked in the standings', () => {
+    const career = new Career();
+    career.create('slorising', 'SLO', 3.4, 3.8, 4.3);
+    const stageRace = career.state!.entered.map((id) => RACES.find((race) => race.id === id)!).find((race) => race.stages.length > 1)!;
+    const mate = ridersOf('slorising')[0];
+    const gcRow = (riderId: string, name: string, teamId: string, value: number) => ({ riderId, name, teamId, country: 'SLO', age: 24, value });
+    const gc = [gcRow('a', 'A. Leader', 'atlas', 3600)];
+    for (let i = 0; i < 10; i++) gc.push(gcRow(`f${i}`, `F. Rider${i}`, 'atlas', 3610 + i));
+    gc.push(gcRow('player', 'You', 'slorising', 3700), gcRow(mate.id, 'M. Mate', 'slorising', 3783));
+    career.state!.active = { raceId: stageRace.id, stageIndex: 1, sprint: [], kom: [], stageWinners: [], gc, squad: [mate.id] };
+    career.tab = 'brief';
+    const html = careerHtml(career, 'Test Rider');
+    expectClean(html, 'career brief, squad standing');
+    expect(html).toContain('class="squad-gc"><b>12th</b> +1:40');
+    expect(html).toContain('<b>13th</b> +3:03');
+    expect(html).toMatch(/<tr class="me"><td class="pos">12<\/td>/);
+    expect(html).toMatch(/<tr class="teammate"><td class="pos">13<\/td>/);
+    expect(html).toContain('<tr class="gap"');
+  });
+
+  it('standings list everyone with points, CYB first, teammates marked', () => {
+    const career = new Career();
+    career.create('slorising', 'SLO', 3.4, 3.8, 4.3);
+    const mate = ridersOf('slorising')[0];
+    career.state!.cont = { player: 10, [mate.id]: 5 };
+    ridersOf('atlas').forEach((rider, i) => { career.state!.cont![rider.id] = 50 + i; });
+    career.tab = 'rankings';
+    let html = careerHtml(career, 'Test Rider');
+    expect(html.indexOf('data-table="cyb"')).toBeLessThan(html.indexOf('data-table="cont"'));
+    expect(html).toContain('data-table="cyb" class="on"');
+    career.rankTable = 'cont';
+    html = careerHtml(career, 'Test Rider');
+    expectClean(html, 'standings, everyone');
+    const ranked = Object.values(career.state!.cont).filter((value) => value > 0).length;
+    expect((html.match(/<td class="pos">/g) ?? []).length).toBe(ranked);
+    expect(html).toContain('<tr class="teammate">');
+  });
+
+  it('the season line on the race results', () => {
+    const update = { gained: 27, points: 117, book: 'cont' as const, rankBefore: 41, rankAfter: 18, next: { at: 300, label: 'Pro offer', goal: 'a Pro offer', left: 183 }, from: 0.18, to: 0.24 };
+    const html = seasonUpdateHtml(update, 'continental', 'Next race: North Week, February 22');
+    expectClean(html, 'season update');
+    expect(html).toContain('+27');
+    expect(html).toContain('<b>41</b> → <b>18</b>');
+    expect(html).toContain('183</b> to a Pro offer');
+    const first = seasonUpdateHtml({ ...update, rankBefore: null, next: null }, 'continental');
+    expectClean(first, 'season update, first points');
+    expect(first).toContain('18th in the Continental ranking');
   });
 });

@@ -8,15 +8,24 @@ const WORLD_GC = [420, 340, 280, 230, 190, 150, 120, 95, 75, 55, 40, 30, 22, 16,
 const WORLD_STAGE = [45, 32, 24, 18, 14, 10, 8, 6, 4, 3, 2];
 
 export const FINISH_POINTS = [40, 30, 24, 20, 16, 14, 12, 10, 8, 7, 6, 5, 4, 3, 2];
-export const PRO_OFFER = 160;
-export const WORLD_OFFER = 450;
+/**
+ * Contract marks. Set high on purpose: the player chooses the bunch's W/kg, so they usually
+ * finish near the front, and a season should take real results to move up.
+ */
+export const PRO_OFFER = 300;
+export const WORLD_OFFER = 1000;
+/** A second World Tour team joins in from here. */
+export const WORLD_OFFER_SECOND = 1500;
+/** A Pro rider gets a matching offer from another Pro team from here. */
+export const PRO_RIVAL_OFFER = 170;
 
 /**
  * Weight of Pro and Continental points when teams decide on a contract.
  * Those points are already scaled down by level (a Pro one-day win is 90, a Continental one 36,
  * a Pro stage-race GC win 189), so a weight near 1 only trims them a little more:
- * at 0.75, three Pro wins (202) reach PRO_OFFER and about seven (472), or a Pro stage-race GC
- * plus five one-day wins, reach WORLD_OFFER. Six Continental wins also earn a Pro offer.
+ * at 0.75, five Pro one-day wins (338) reach PRO_OFFER and about fifteen (1013), or two Pro
+ * stage-race GC wins plus ten one-day wins, reach WORLD_OFFER. Eleven Continental wins also earn
+ * a Pro offer.
  */
 export const CONT_OFFER_WEIGHT = 0.75;
 
@@ -73,11 +82,11 @@ export function buildOffers(points: number, teamId: string): ContractOffer[] {
     for (const team of pickFrom('pro', `pro-${points}-${teamId}`, 2, skip)) add(team, `${team.name} will make you leader next season.`);
   }
   if (current.division !== 'world' && points >= WORLD_OFFER) {
-    const count = points >= WORLD_OFFER + 220 ? 2 : 1;
+    const count = points >= WORLD_OFFER_SECOND ? 2 : 1;
     const top = teamsIn('world').filter((t) => !skip.has(t.id)).slice(0, count);
     for (const team of top) add(team, `${team.name} will build the season around you.`);
   }
-  if (current.division === 'pro' && points >= 90) {
+  if (current.division === 'pro' && points >= PRO_RIVAL_OFFER) {
     for (const team of pickFrom('pro', `rival-${points}`, 1, skip)) add(team, `${team.name} matched your contract.`);
   }
   const filler = current.division === 'world' ? 'world' : current.division === 'pro' ? 'pro' : 'continental';

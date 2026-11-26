@@ -23,7 +23,11 @@ export interface SimRace {
   stages: { label: string; rows: SimRow[] }[];
 }
 
-function quality(rider: Rider, finish: string, kind: string, punchy = false): number {
+/**
+ * How good a rider is for this finish, from their ratings only. A simulated result is this
+ * score, lowered by fatigue in a stage race, plus a small random spread (±1.6).
+ */
+export function quality(rider: Rider, finish: string, kind: string, punchy = false): number {
   const a = rider.attrs;
   if (kind === 'tt' && finish === 'mountain') return a.tt * 0.46 + a.mountain * 0.42 + a.endurance * 0.12;
   if (kind === 'tt') return a.tt * 0.72 + a.flat * 0.16 + a.endurance * 0.12;

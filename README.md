@@ -109,6 +109,8 @@ cyclebuddy/
 ├── docs/CAREER_RACING.md      How a Career road race is raced: breaks, chase, climbs, sprints
 ├── docs/RACE_MEASURING.md     How to measure Career racing, and the numbers so far
 ├── docs/ANALYTICS.md          What the Analytics page shows and how each number is worked out
+├── docs/CAREER_UI.md          Career screens: what they do, decisions, what is open
+├── docs/CAREER_UI_PLAN.md     Career screens: the original audit and redesign plan
 ├── README.md                  This file: what is where
 ├── ARCHITECTURE.md            How the parts fit together
 ├── CONTRIBUTING.md            How we work: branches, pull requests, versions (read this first)
@@ -195,7 +197,7 @@ cyclebuddy/
 
 | Folder | What it does |
 |---|---|
-| `career/` | `season.ts` (career state, classifications), `calendar.ts` (races, stages, terrain bands), `panel.ts` (career screens incl. the race brief), `simulate.ts` (races you don't ride), `squad.ts`, `roster.ts`, `teams.ts`, `jerseys.ts`, `classify.ts` |
+| `career/` | `season.ts` (career state, classifications), `calendar.ts` (races, stages, terrain bands), `panel.ts` (career screens incl. the season page and the race brief), `progress.ts` (contract meter and season strip numbers), `simulate.ts` (races you don't ride), `squad.ts`, `roster.ts`, `teams.ts`, `jerseys.ts`, `classify.ts` |
 | `training/` | Plans, workouts, FTP test, progress ticks |
 | `analytics/` | The Analytics page, loaded only when opened: `metrics.ts` (load, fitness/fatigue/form, power curve, zones), `model.ts` (ride lists and totals), `view.ts` (the six pages), `charts.ts` (responsive charts), `shape.ts` (ride profile and power bars). See `docs/ANALYTICS.md` |
 | `storage/` | IndexedDB with a memory fallback, account ride sync, FIT import/export, backups |
@@ -333,5 +335,7 @@ A new feature comes with a test for it. A bug fix comes with a test that fails w
 | `NEXT_STEPS.md` | What to do next |
 | `docs/REAL_ROADS.md` | Building a real road 1:1 |
 | `docs/ANALYTICS.md` | The Analytics page: metrics, formulas, sources |
+| `docs/CAREER_UI.md` | Career screens: what they do, the decisions behind them, what is still open |
+| `docs/CAREER_UI_PLAN.md` | The original audit and plan for the career screens |
 | `ATTRIBUTION.md` | Credits for map, elevation and other data |
 | `data/real-climbs.research.json` | Raw climb research: source segments, notes, references |

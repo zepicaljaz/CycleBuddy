@@ -11,7 +11,7 @@ import { getRouteDef } from '../routes/definitions';
 import { getRoute } from '../routes/route';
 import { FREE_RIDE_RISE, freeRideProfileSpan } from '../ui/profileChart';
 import { RIDERS, bestClimbers, riderName, ridersOf, teamStars, teamStrength } from './roster';
-import { simulateRace } from './simulate';
+import { quality, simulateRace } from './simulate';
 import { CONTINENTAL_TEAMS, PRO_TEAMS, ROSTER_SIZE, TEAMS, WORLD_TEAMS, teamsIn } from './teams';
 import { DEFAULT_COLORS } from '../world/riders';
 
@@ -275,7 +275,7 @@ describe('career season', () => {
     expect(quiet.length).toBeLessThanOrEqual(5);
     expect(quiet[0].teamId).toBe('slorising');
     expect(quiet.some((offer) => TEAMS.find((t) => t.id === offer.teamId)?.division === 'world')).toBe(false);
-    const promoted = buildOffers(500, 'slorising');
+    const promoted = buildOffers(1100, 'slorising');
     expect(promoted.some((offer) => TEAMS.find((t) => t.id === offer.teamId)?.division === 'world')).toBe(true);
     expect(promoted.some((offer) => TEAMS.find((t) => t.id === offer.teamId)?.division === 'pro')).toBe(true);
   });
@@ -293,11 +293,12 @@ describe('career season', () => {
     };
     expect(divisionOf('slorising')).toBe('continental');
     expect(season(0).some((offer) => divisionOf(offer.teamId) !== 'continental')).toBe(false);
-    // Two Pro one-day wins (2 × 90) are not yet enough; three are.
-    expect(season(180).some((offer) => divisionOf(offer.teamId) === 'pro')).toBe(false);
-    expect(season(270).some((offer) => divisionOf(offer.teamId) === 'pro')).toBe(true);
-    // About seven Pro wins earn a World Tour offer.
-    expect(season(630).some((offer) => divisionOf(offer.teamId) === 'world')).toBe(true);
+    // Four Pro one-day wins (4 × 90 × 0.75 = 270) are not yet enough; five (338) are.
+    expect(season(360).some((offer) => divisionOf(offer.teamId) === 'pro')).toBe(false);
+    expect(season(450).some((offer) => divisionOf(offer.teamId) === 'pro')).toBe(true);
+    // About fifteen Pro wins earn a World Tour offer; fourteen do not.
+    expect(season(1260).some((offer) => divisionOf(offer.teamId) === 'world')).toBe(false);
+    expect(season(1350).some((offer) => divisionOf(offer.teamId) === 'world')).toBe(true);
   });
 
   it('gives one time to a bunch and a new time after a gap', () => {
@@ -922,6 +923,55 @@ describe('career season', () => {
 });
 
 describe('career results', () => {
+  it('decides races you do not ride on the AI riders\' ratings for that terrain', () => {
+    // Spearman rank correlation between rating order and finishing order.
+    const spearman = (a: number[], b: number[]) => {
+      const ranks = (list: number[]) => {
+        const order = list.map((value, index) => ({ value, index })).sort((x, y) => x.value - y.value);
+        const out = new Array<number>(list.length);
+        order.forEach((item, rank) => { out[item.index] = rank; });
+        return out;
+      };
+      const ra = ranks(a);
+      const rb = ranks(b);
+      const n = a.length;
+      const d2 = ra.reduce((sum, value, i) => sum + (value - rb[i]) ** 2, 0);
+      return 1 - (6 * d2) / (n * (n * n - 1));
+    };
+    const byId = new Map(RIDERS.map((rider) => [rider.id, rider]));
+    const all: number[] = [];
+    for (const race of RACES.filter((item) => item.level !== 'champ')) {
+      const stage = race.stages[0];
+      const seg = stageSegment(stage);
+      const punchy = seg.kind === 'road' && punchyStage(stage);
+      // The first day has no fatigue yet, so the order is ratings plus the small random spread.
+      const rows = simulateRace(race, 2026, 'SLO').stages[0].rows;
+      const scores = rows.map((row) => quality(byId.get(row.riderId)!, seg.finish, seg.kind, punchy));
+      const places = rows.map((_, index) => -index);
+      const rho = spearman(scores, places);
+      all.push(rho);
+      // Sprint fields are close in rating, so the small random spread moves riders more there.
+      expect(rho, `${race.name}: finish order should follow the ratings`).toBeGreaterThan(seg.finish === 'sprint' ? 0.6 : 0.75);
+      // The winner is one of the best-rated riders in the field for that terrain.
+      const better = scores.filter((score) => score > scores[0]).length;
+      expect(better, `${race.name}: winner rated too low`).toBeLessThan(Math.ceil(rows.length * 0.1));
+    }
+    all.sort((a, b) => a - b);
+    expect(all[Math.floor(all.length / 2)], 'typical race should follow the ratings closely').toBeGreaterThan(0.85);
+  });
+
+  it('orders a simulated race by the race, never by name, even when the bunch shares a time', () => {
+    for (const race of RACES.filter((item) => item.stages.length === 1 && item.level !== 'champ')) {
+      const sim = simulateRace(race, 2026, 'SLO');
+      const top = sim.overall.slice(0, 15).map((row) => row.name);
+      const byName = sim.overall.map((row) => row.name).sort((a, b) => a.localeCompare(b)).slice(0, 15);
+      expect(top, `${race.name} came out in name order`).not.toEqual(byName);
+      // A bunch finish gives many riders one time; they keep the order they crossed the line.
+      const shared = sim.overall.filter((row) => row.time === sim.overall[0].time);
+      if (shared.length > 3) expect(shared.map((row) => row.name)).not.toEqual([...shared.map((row) => row.name)].sort((a, b) => a.localeCompare(b)));
+    }
+  });
+
   const row = (riderId: string, name: string, time: number, isPlayer = false) => ({
     riderId, name, teamId: 'atlas', country: 'FRA', age: 27, time, sprint: 0, kom: 0, isPlayer,
   });
