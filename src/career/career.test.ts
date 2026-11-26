@@ -854,6 +854,18 @@ describe('career season', () => {
 });
 
 describe('career results', () => {
+  it('orders a simulated race by the race, never by name, even when the bunch shares a time', () => {
+    for (const race of RACES.filter((item) => item.stages.length === 1 && item.level !== 'champ')) {
+      const sim = simulateRace(race, 2026, 'SLO');
+      const top = sim.overall.slice(0, 15).map((row) => row.name);
+      const byName = sim.overall.map((row) => row.name).sort((a, b) => a.localeCompare(b)).slice(0, 15);
+      expect(top, `${race.name} came out in name order`).not.toEqual(byName);
+      // A bunch finish gives many riders one time; they keep the order they crossed the line.
+      const shared = sim.overall.filter((row) => row.time === sim.overall[0].time);
+      if (shared.length > 3) expect(shared.map((row) => row.name)).not.toEqual([...shared.map((row) => row.name)].sort((a, b) => a.localeCompare(b)));
+    }
+  });
+
   const row = (riderId: string, name: string, time: number, isPlayer = false) => ({
     riderId, name, teamId: 'atlas', country: 'FRA', age: 27, time, sprint: 0, kom: 0, isPlayer,
   });
