@@ -990,11 +990,13 @@ export class App {
     if (this.freeSort === 'type') {
       return list.sort((a, b) => dir * (DIFFICULTY_RANK[a.difficulty] - DIFFICULTY_RANK[b.difficulty]) || byName(a, b));
     }
-    const metric = (def: (typeof list)[number]) => {
+    // Perf: the sort key is read once per route before sorting, not twice per comparison.
+    const metric = new Map<(typeof list)[number], number>();
+    for (const def of list) {
       const r = getRoute(def);
-      return this.freeSort === 'distance' ? r.length : r.totalAscent;
-    };
-    return list.sort((a, b) => dir * (metric(a) - metric(b)) || byType(a, b));
+      metric.set(def, this.freeSort === 'distance' ? r.length : r.totalAscent);
+    }
+    return list.sort((a, b) => dir * (metric.get(a)! - metric.get(b)!) || byType(a, b));
   }
 
   private viewFree(): string {
