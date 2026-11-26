@@ -25,43 +25,17 @@ export function hillClimbField(count: number): Climber[] {
   return CLIMBERS.slice(0, n);
 }
 
-/**
- * Points place a rider between the slowest and strongest W/kg.
- * Each race adds a small form swing, about 40 ranking points, so riders
- * with similar points can change order. A gap bigger than that holds.
- */
-export function climbWattsPerKilo(
-  points: number,
-  lowPoints: number,
-  highPoints: number,
-  lowWkg: number,
-  highWkg: number,
-  rng: () => number,
-): number {
-  const span = highPoints - lowPoints;
-  const level = span > 0 ? (points - lowPoints) / span : 1;
-  const base = lowWkg + (highWkg - lowWkg) * level;
-  const swing = span > 0 && highWkg > lowWkg ? ((highWkg - lowWkg) * 40) / span : 0;
-  const form = randRange(rng, -swing, swing);
-  return clamp(base + form, lowWkg, highWkg);
-}
-
-/**
- * How far the next climber sits under the strongest W/kg.
- * A tenth is about a minute on a long climb. A narrow band keeps half of
- * itself, so the slowest setting still has room under him.
- */
-export function hillClimbLeaderGap(lowWkg: number, highWkg: number): number {
-  const band = Math.max(0, highWkg - lowWkg);
-  return Math.min(0.1, band / 2);
-}
+/** Race-day form, in score points: riders with ratings this close can change places. */
+const FORM_SWING = 40;
+/** How far a rider may sit off the even step, as a part of it. Under half, so the order holds. */
+const STEP_JITTER = 0.3;
 
 /**
  * W/kg for one hill-climb. `scores` is mountain rating times 20, strongest
- * climber first. He rides `highWkg` exactly: that setting is his power.
- * Everyone else is spread from `lowWkg` up to just under him, across their
- * own rating span, so his lead is not an empty piece of the band. Close
- * ratings can still change order.
+ * climber first. That rider holds `highWkg` exactly. Everyone else is ranked by
+ * rating plus form and given an even step down to `lowWkg`, so the field fills
+ * the whole band whatever the ratings are: many climbers share a rating, and
+ * mapping the rating itself onto the band bunched them at the top.
  */
 export function hillClimbWattsPerKilo(
   scores: number[],
@@ -72,18 +46,16 @@ export function hillClimbWattsPerKilo(
   if (!scores.length) return [];
   const hi = Math.max(lowWkg, highWkg);
   const lo = Math.min(lowWkg, highWkg);
-  const efforts = [hi];
-  if (scores.length === 1) return efforts;
-  let best = scores[1];
-  let worst = scores[1];
-  for (let i = 2; i < scores.length; i++) {
-    if (scores[i] > best) best = scores[i];
-    if (scores[i] < worst) worst = scores[i];
-  }
-  const chaseHi = hi - hillClimbLeaderGap(lo, hi);
-  for (let i = 1; i < scores.length; i++) {
-    efforts.push(climbWattsPerKilo(scores[i], worst, best, lo, chaseHi, rng));
-  }
+  const efforts = scores.map(() => hi);
+  const chasers = scores.slice(1).map((score, i) => ({ index: i + 1, form: score + randRange(rng, -FORM_SWING, FORM_SWING) }));
+  chasers.sort((a, b) => b.form - a.form);
+  const step = (hi - lo) / Math.max(1, chasers.length);
+  chasers.forEach((rider, i) => {
+    const place = i + 1;
+    // The last rider holds the slowest setting exactly.
+    const jitter = place === chasers.length ? 0 : randRange(rng, -STEP_JITTER, STEP_JITTER);
+    efforts[rider.index] = clamp(hi - step * (place + jitter), lo, hi);
+  });
   return efforts;
 }
 

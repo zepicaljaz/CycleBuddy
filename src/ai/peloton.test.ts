@@ -417,12 +417,11 @@ describe('AI hill-climb race', () => {
     }
     expect(Math.max(...wkgs)).toBeGreaterThan(3.95);
     expect(Math.min(...wkgs)).toBeLessThan(3.05);
-    // The best climber holds the top of the band. The next riders sit just under him, so the field is stronger than a straight line through his rating lead.
-    const leaderWkg = Math.max(...wkgs);
-    const nextWkg = Math.max(...wkgs.filter((w) => w < leaderWkg - 1e-9));
-    expect(leaderWkg - nextWkg).toBeGreaterThan(0.04);
-    expect(leaderWkg - nextWkg).toBeLessThan(0.16);
-    expect(wkgs.filter((w) => w >= 3.5).length).toBeGreaterThan(ai.length * 0.35);
+    // Even steps down the band: half the field in each half, and no cluster under the leader.
+    const strong = wkgs.filter((w) => w >= 3.5).length;
+    expect(strong).toBeGreaterThanOrEqual(18);
+    expect(strong).toBeLessThanOrEqual(22);
+    expect(wkgs.filter((w) => w >= 3.9).length).toBeLessThanOrEqual(6);
 
     sim.started = true;
     let highest = 0;
@@ -525,8 +524,9 @@ describe('AI hill-climb race', () => {
       const vinter = ai.find((r) => r.name === 'J. Vinter')!;
       expect(novarik.wkg).toBeGreaterThan(vinter.wkg);
       const next = Math.max(...ai.filter((r) => r !== novarik).map((r) => r.wkg));
-      expect(novarik.wkg - next).toBeGreaterThan(0.04);
-      expect(novarik.wkg - next).toBeLessThan(0.16);
+      // One even step of the 2 W/kg band over 39 chasers, give or take the jitter and whole watts.
+      expect(novarik.wkg - next).toBeGreaterThan(0.01);
+      expect(novarik.wkg - next).toBeLessThan(0.09);
       const ahead = ai.find((r) => r.name === riderName(closeA))!;
       const behind = ai.find((r) => r.name === riderName(closeB))!;
       return ahead.wkg - behind.wkg;

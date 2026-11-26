@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { CLIMBERS, climbEffortWatts, climbWattsPerKilo, climberName, hillClimbField, hillClimbLeaderGap, hillClimbWattsPerKilo } from './climbers';
+import { mulberry32 } from '../util/math';
+import { CLIMBERS, climbEffortWatts, climberName, hillClimbField, hillClimbWattsPerKilo } from './climbers';
 
 describe('climber ranking', () => {
   it('keeps 100 climbers in points order, shown as an initial and a last name', () => {
@@ -27,51 +28,40 @@ describe('climber ranking', () => {
     expect(hillClimbField(140)).toHaveLength(100);
   });
 
-  it('maps points into the chosen W/kg band and only swaps riders who are close', () => {
-    const low = () => 0;
-    const high = () => 1;
-    const top = climbWattsPerKilo(1493, 206, 1493, 2.5, 6, high);
-    const gallWorst = climbWattsPerKilo(927, 206, 1493, 2.5, 6, low);
-    const scaroniBest = climbWattsPerKilo(818, 206, 1493, 2.5, 6, high);
-    const last = climbWattsPerKilo(206, 206, 1493, 2.5, 6, low);
-    expect(top).toBeCloseTo(6);
-    expect(last).toBeCloseTo(2.5);
-    expect(gallWorst).toBeGreaterThan(scaroniBest);
-    const evenepoelOff = climbWattsPerKilo(1274, 206, 1493, 2.5, 6, low);
-    const seixasOn = climbWattsPerKilo(1247, 206, 1493, 2.5, 6, high);
-    expect(seixasOn).toBeGreaterThan(evenepoelOff);
-  });
-
-  it('gives the best climber the strongest W/kg and bunches the rest just under him', () => {
-    const steady = () => 0.5;
-    // 90, 86, 80 and 70 mountain rating, scored the same way as the start list.
-    const scores = [1800, 1720, 1600, 1400];
-    const efforts = hillClimbWattsPerKilo(scores, 3, 4.5, steady);
-    expect(hillClimbLeaderGap(3, 4.5)).toBeCloseTo(0.1);
-    expect(efforts[0]).toBeCloseTo(4.5);
-    expect(efforts[1]).toBeCloseTo(4.4);
-    expect(efforts[2]).toBeCloseTo(3.875);
-    expect(efforts[3]).toBeCloseTo(3);
-    // A straight line from 70 up to 90 would leave the 86 rider at 4.2.
-    const straight = climbWattsPerKilo(1720, 1400, 1800, 3, 4.5, steady);
-    expect(efforts[1]).toBeGreaterThan(straight);
-    const leaderWatts = climbEffortWatts(efforts[0], 66, 3, efforts[0], true);
-    expect(leaderWatts).toBe(297);
-    expect(leaderWatts / 66).toBeCloseTo(4.5);
-    const leaderWkg = leaderWatts / 66;
-    for (let i = 1; i < efforts.length; i++) {
-      const watts = climbEffortWatts(efforts[i], 64, 3, leaderWkg, false);
-      expect(watts / 64).toBeLessThan(leaderWkg);
-      expect(watts / 64).toBeGreaterThanOrEqual(3 - 1e-6);
+  it('spreads the field evenly from the strongest W/kg to the slowest', () => {
+    // Many riders share a rating, as the career climbers do.
+    const scores = [1800, ...Array(18).fill(1720), ...Array(18).fill(1700), ...Array(38).fill(1660)];
+    const efforts = hillClimbWattsPerKilo(scores, 1, 5, mulberry32(7));
+    expect(efforts[0]).toBe(5);
+    const sorted = [...efforts].sort((a, b) => b - a);
+    const step = 4 / (scores.length - 1);
+    expect(sorted.at(-1)).toBeCloseTo(1);
+    for (let i = 1; i < sorted.length; i++) {
+      const gap = sorted[i - 1] - sorted[i];
+      expect(gap).toBeGreaterThan(step * 0.35);
+      expect(gap).toBeLessThan(step * 1.65);
     }
   });
 
+  it('only swaps riders whose ratings are close', () => {
+    // 90, 86, 85 and 70 mountain rating, scored the same way as the start list.
+    const scores = [1800, 1720, 1700, 1400];
+    let swapped = false;
+    for (let seed = 1; seed <= 40; seed++) {
+      const efforts = hillClimbWattsPerKilo(scores, 3, 4.5, mulberry32(seed));
+      expect(efforts[0]).toBe(4.5);
+      expect(efforts[3]).toBeCloseTo(3);
+      if (efforts[2] > efforts[1]) swapped = true;
+    }
+    expect(swapped).toBe(true);
+  });
+
   it('keeps the best climber strongest when the band is narrow or the watts round up', () => {
-    expect(hillClimbLeaderGap(4.4, 4.5)).toBeCloseTo(0.05);
     const efforts = hillClimbWattsPerKilo([1800, 1720], 4.4, 4.4, () => 1);
     expect(efforts[0]).toBeCloseTo(4.4);
     expect(efforts[1]).toBeCloseTo(4.4);
     const leaderWatts = climbEffortWatts(4.4, 66, 4.4, 4.4, true);
+    expect(leaderWatts).toBe(290);
     const leaderWkg = leaderWatts / 66;
     const chased = climbEffortWatts(4.4, 64, 4.4, leaderWkg, false);
     expect(chased / 64).toBeLessThan(leaderWkg);
