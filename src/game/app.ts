@@ -51,6 +51,7 @@ import { drawRoadbook } from '../ui/roadbook';
 import { HOME_KEYS, homeHtml } from './homeView';
 import { bindProRace, loadChoice, proRaceHtml } from './proRaceView';
 import { launchQuickRace } from './quickRace';
+import { raceDetailHtml, raceListHtml, raceRows, type RaceRow } from './raceHistory';
 import { RoadAhead } from '../ui/roadAhead';
 import { RiderTag, tagLines, type TagMode } from '../ui/riderTag';
 import { pickRider } from '../world/riderPick';
@@ -319,6 +320,16 @@ export class App {
   private shopFocus: { kind: ShopKind; id: BikeBrand } | null = null;
   private shopPreview: { frame: BikeBrand | null; wheels: BikeBrand | null } = { frame: null, wheels: null };
   private loading = false;
+  /** Hill climb screen: set up a race, or look back at the ones ridden. */
+  private raceTab: 'new' | 'history' = 'new';
+  /** The race open in full, by ride id. Null shows the list. */
+  private raceOpen: string | null = null;
+  /** Saved races. Null until read, and again after a ride is saved. */
+  private raceRides: RideSummary[] | null = null;
+  private raceEfforts: ClimbEffort[] = [];
+  private raceSamples = new Map<string, RideSample[]>();
+  private raceListScroll = 0;
+  private racesLoading = false;
   private analyticsPage: AnalyticsPage = 'dashboard';
   private analyticsSort: RideSortKey = 'date';
   private analyticsSortDesc = true;
@@ -791,6 +802,12 @@ export class App {
       this.analyticsMonthIndex = today.getMonth();
       this.analyticsDay = null;
     }
+    if (screen === 'race' && this.screen === 'home') {
+      this.raceTab = 'new';
+      this.raceOpen = null;
+      this.raceRides = null;
+      this.raceSamples.clear();
+    }
     if (screen === 'free' && this.screen !== 'free') this.freeRegion = freeRegion ?? null;
     if (screen === 'career' && this.screen === 'home') this.enterCareer();
     this.screen = screen;
@@ -875,6 +892,11 @@ export class App {
   }
 
   private onNavBack(): void {
+    if (this.screen === 'race' && this.raceTab === 'history' && this.raceOpen) {
+      this.raceOpen = null;
+      this.render();
+      return;
+    }
     if (this.screen === 'free' && this.freeRegion) {
       this.freeRegion = null;
       this.render();
@@ -1294,7 +1316,103 @@ export class App {
         </button>`;
   }
 
+  private raceTabsHtml(): string {
+    const count = this.raceRowsNow()?.length ?? '';
+    const tab = (id: 'new' | 'history', label: string) =>
+      `<button type="button" data-race-tab="${id}"${this.raceTab === id ? ' class="active" aria-current="page"' : ''}>${label}</button>`;
+    return `<nav class="an-tabs race-tabs" aria-label="Hill climb">${tab('new', 'New race')}${tab('history', `My races <span id="race-count">${count}</span>`)}</nav>`;
+  }
+
+  private raceRowsNow(): RaceRow[] | null {
+    if (!this.raceRides) return null;
+    const climbs = new Map(this.allClimbs().map((item) => [item.climb.id, item.climb]));
+    return raceRows(this.raceRides, this.raceEfforts, (id) => {
+      const c = climbs.get(id);
+      return c ? { name: c.name, lengthM: c.length, gainM: c.gain, avgGrade: c.avgGrade } : null;
+    });
+  }
+
+  private viewRaceHistory(): string {
+    const rows = this.raceRowsNow();
+    const open = rows?.find((row) => row.ride.id === this.raceOpen);
+    const body = open
+      ? raceDetailHtml(open, this.raceSamples.get(open.ride.id) ?? null, this.profile.ftp)
+      : raceListHtml(rows);
+    return `
+      ${this.header('Hill-Climb Race', 'Every Hill climb race saved on your account.')}
+      ${this.raceTabsHtml()}
+      <div class="panel-body hill-body">${body}</div>`;
+  }
+
+  /** Reads the saved races: what is on this computer first, then again after the account's rides arrive. */
+  private async loadRaces(): Promise<void> {
+    if (this.racesLoading) return;
+    this.racesLoading = true;
+    try {
+      await this.readRaces();
+      await syncAccountRides(this.storage).catch((err) => console.error('Ride sync failed', err));
+      await this.readRaces();
+    } catch (err) {
+      console.error('Reading your races failed', err);
+    } finally {
+      this.racesLoading = false;
+    }
+  }
+
+  private async readRaces(): Promise<void> {
+    const [rides, efforts] = await Promise.all([this.storage.listRides(), this.storage.listClimbEfforts()]);
+    const changed = !this.raceRides || this.raceRides.map((r) => r.id).join() !== rides.map((r) => r.id).join();
+    this.raceRides = rides;
+    this.raceEfforts = efforts;
+    if (this.screen !== 'race' || this.session) return;
+    if (this.raceTab === 'history') {
+      if (changed) this.render();
+    } else {
+      // Only the count: redrawing the setup page would lose your place in the climbs.
+      const count = this.panel.querySelector('#race-count');
+      if (count) count.textContent = String(this.raceRowsNow()?.length ?? '');
+    }
+  }
+
+  private async loadRaceSamples(id: string): Promise<void> {
+    if (this.raceSamples.has(id)) return;
+    const samples = (await this.storage.getRideSamples(id)) ?? [];
+    this.raceSamples.set(id, samples);
+    if (this.screen === 'race' && !this.session && this.raceTab === 'history' && this.raceOpen === id) this.render();
+  }
+
+  private bindRaceTabs(): void {
+    $$('[data-race-tab]', this.panel).forEach((button) =>
+      button.addEventListener('click', () => {
+        const tab = button.dataset.raceTab === 'history' ? 'history' : 'new';
+        if (tab === this.raceTab && !this.raceOpen) return;
+        this.raceTab = tab;
+        this.raceOpen = null;
+        this.raceListScroll = 0;
+        this.render();
+      }),
+    );
+  }
+
+  private bindRaceHistory(): void {
+    const body = this.panel.querySelector<HTMLElement>('.hill-body');
+    if (body && !this.raceOpen) body.scrollTop = this.raceListScroll;
+    $$('[data-race-open]', this.panel).forEach((button) =>
+      button.addEventListener('click', () => {
+        this.raceListScroll = body?.scrollTop ?? 0;
+        this.raceOpen = button.dataset.raceOpen ?? null;
+        this.render();
+      }),
+    );
+    this.panel.querySelector('[data-race-back]')?.addEventListener('click', () => {
+      this.raceOpen = null;
+      this.render();
+    });
+    if (this.raceOpen) void this.loadRaceSamples(this.raceOpen);
+  }
+
   private viewRace(): string {
+    if (this.raceTab === 'history') return this.viewRaceHistory();
     const all = this.allClimbs();
     if (!this.selectedClimb || !all.some((item) => item.climb.id === this.selectedClimb)) {
       this.selectedClimb = all.find((item) => item.climb.id === 'alpine-geant')?.climb.id ?? all[0]?.climb.id ?? '';
@@ -1323,7 +1441,9 @@ export class App {
       .map((loop) => `<option value="${esc(loop.id)}"${loop.id === this.climbRoute ? ' selected' : ''}>${esc(loop.name)} (${loop.count})</option>`)
       .join('');
     return `
-      ${this.header('Hill-Climb Race', 'Mass start at the bottom, finish at the summit. The strongest W/kg is what the best climber holds. Everyone else is spread from just under that down to your slowest.')}
+      ${this.header('Hill-Climb Race', 'Mass start at the bottom, finish at the summit. The best climber holds your strongest W/kg. Everyone else is spread in even steps down to your slowest.')}
+      ${this.raceTabsHtml()}
+      <div class="panel-body hill-body">
       <div class="race-setup">
         <div class="effort-grid">
           <label class="field">AI riders <b id="ai-count-label">${this.aiCount}</b>
@@ -1336,9 +1456,8 @@ export class App {
             <input type="range" min="1" max="6" step="0.1" value="${this.aiBottom}" id="ai-bot" />
           </label>
         </div>
-        <p class="muted small">Riders are the best climbers from Career, named like T. Novarik. He holds the strongest W/kg. The others sit just under that and spread down to the slowest, so the gaps open near the summit. A shorter field leaves out the weaker climbers, and riders with a similar rating can still change places.</p>
+        <p class="muted small">Riders are the best climbers from Career, named like T. Novarik, who holds the strongest W/kg and never blows up. Between a quarter and a third of the field lose power in the last 30% of the climb. A shorter field leaves out the weaker climbers, and riders with a similar rating can change places.</p>
       </div>
-      <div class="panel-body">
         <div class="climb-tools">
           <div class="route-sort">
             <span class="muted">Sort</span>
@@ -1395,6 +1514,12 @@ export class App {
   }
 
   private bindRace() {
+    this.bindRaceTabs();
+    if (!this.raceRides) void this.loadRaces();
+    if (this.raceTab === 'history') {
+      this.bindRaceHistory();
+      return;
+    }
     const all = this.allClimbs();
     const scale = {
       maxLength: Math.max(1, ...all.map((item) => item.climb.length)),
@@ -3037,11 +3162,14 @@ export class App {
       if (result.headline) toast(result.headline, 'success', 5200);
     }
     const summary = s.summary();
+    const hillRecord = s.hillClimbRecord();
+    if (summary.race && hillRecord) summary.race.hill = hillRecord;
     const samples = s.recorder.samples;
     let saved: 'account' | 'local' | false = false;
     if (samples.length >= 10) {
       const fit = await encodeFitLazy(summary, samples);
       await this.storage.saveRide(summary, samples, fit);
+      this.raceRides = null;
       const efforts = [...s.newEfforts];
       const climb = s.config.climb;
       if (s.config.mode === 'race' && climb && s.player.finishTime !== null && !s.config.career) {

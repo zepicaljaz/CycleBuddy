@@ -354,6 +354,32 @@ function text(value, max) {
   return String(value ?? '').slice(0, max);
 }
 
+/** What a Hill climb race was. Null when it cannot be read, and the ride is saved without it. */
+function cleanHill(hill) {
+  if (!hill || typeof hill !== 'object') return null;
+  if (!Array.isArray(hill.results) || hill.results.length > 200) return null;
+  if (hill.results.some((row) => !row || typeof row !== 'object')) return null;
+  return {
+    climbName: text(hill.climbName, 80),
+    lengthM: num(hill.lengthM),
+    gainM: num(hill.gainM),
+    avgGrade: num(hill.avgGrade),
+    weightKg: num(hill.weightKg),
+    ftp: num(hill.ftp),
+    aiCount: num(hill.aiCount),
+    topWkg: num(hill.topWkg),
+    bottomWkg: num(hill.bottomWkg),
+    results: hill.results.map((row) => ({
+      name: text(row.name, 60),
+      country: text(row.country, 8),
+      timeSec: row.timeSec == null ? null : num(row.timeSec),
+      wkg: num(row.wkg),
+      drop: num(row.drop),
+      ...(row.player ? { player: true } : {}),
+    })),
+  };
+}
+
 function cleanSummary(summary, rideId) {
   if (!summary || typeof summary !== 'object') return null;
   if (summary.id !== rideId) return null;
@@ -410,6 +436,8 @@ function cleanSummary(summary, rideId) {
       finishTimeSec: summary.race.finishTimeSec == null ? null : num(summary.race.finishTimeSec),
       winnerTimeSec: summary.race.winnerTimeSec == null ? null : num(summary.race.winnerTimeSec),
     };
+    const hill = cleanHill(summary.race.hill);
+    if (hill) out.race.hill = hill;
   }
   return out;
 }

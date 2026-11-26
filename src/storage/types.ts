@@ -60,6 +60,35 @@ export interface WorkoutResult {
   completed: boolean;
 }
 
+export interface HillClimbResult {
+  name: string;
+  country: string;
+  /** Null for a rider who did not finish. */
+  timeSec: number | null;
+  /** The effort the rider set out with. For you, the average you rode. */
+  wkg: number;
+  /** Part of that effort an AI rider lost near the top, 0 to 1. */
+  drop: number;
+  player?: boolean;
+}
+
+/** What a Hill climb race was, kept with the ride for the list of your races. */
+export interface HillClimbRecord {
+  climbName: string;
+  lengthM: number;
+  gainM: number;
+  /** Rise over run: 0.08 is 8 %. */
+  avgGrade: number;
+  weightKg: number;
+  ftp: number;
+  aiCount: number;
+  /** The Strongest and Slowest settings the race was started with, W/kg. */
+  topWkg: number;
+  bottomWkg: number;
+  /** The finishing order. */
+  results: HillClimbResult[];
+}
+
 export interface RideSummary {
   id: string;
   createdAt: string;
@@ -83,7 +112,7 @@ export interface RideSummary {
   maxHeartRate: number;
   avgSpeedKmh: number;
   laps?: number;
-  race?: { position: number; field: number; finishTimeSec: number | null; winnerTimeSec: number | null };
+  race?: { position: number; field: number; finishTimeSec: number | null; winnerTimeSec: number | null; hill?: HillClimbRecord };
   hasFit: boolean;
 }
 

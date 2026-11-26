@@ -3,7 +3,7 @@ import { PowerMeter } from '../ai/powerMeter';
 import type { RoadBody, RoadPlan, RoadStarter } from '../ai/road';
 import type { DeviceManager } from '../ble/devices';
 import type { Climb, Route } from '../routes/route';
-import type { ClimbEffort, Profile, RideSample, RideSummary, WorkoutResult } from '../storage/types';
+import type { ClimbEffort, HillClimbRecord, Profile, RideSample, RideSummary, WorkoutResult } from '../storage/types';
 import { isRampTestStep, RampTest, sampleTwentyMinute, type TwentyWindow } from '../training/ftp';
 import { cueAt, stepAt, zoneName, type ActiveWorkout, type WorkoutCue } from '../training/workout';
 import { uuid } from '../util/math';
@@ -424,6 +424,34 @@ export class RideSession {
   /** Snapshot for crash recovery. */
   snapshot(): { summary: RideSummary; samples: RideSample[] } {
     return { summary: this.summary(), samples: this.recorder.samples };
+  }
+
+  /** The finished Hill climb race, for the list of your races. Null on any other ride. */
+  hillClimbRecord(): HillClimbRecord | null {
+    const { mode, climb, career, profile } = this.config;
+    if (mode !== 'race' || career || !climb) return null;
+    const samples = this.recorder.samples;
+    const power = samples.length ? samples.reduce((sum, s) => sum + s.power, 0) / samples.length : 0;
+    const { topWkg = 4.5, bottomWkg = 3 } = this.sim.opts;
+    return {
+      climbName: climb.name,
+      lengthM: climb.length,
+      gainM: climb.gain,
+      avgGrade: climb.avgGrade,
+      weightKg: profile.weightKg,
+      ftp: profile.ftp,
+      aiCount: this.sim.racers.filter((r) => !r.isPlayer).length,
+      topWkg: Math.max(topWkg, bottomWkg),
+      bottomWkg: Math.min(topWkg, bottomWkg),
+      results: this.sim.standings().map((r) => ({
+        name: r.isPlayer ? profile.name || r.name : r.name,
+        country: r.isPlayer ? '' : r.country,
+        timeSec: r.officialTime ?? r.finishTime,
+        wkg: Math.round((r.isPlayer ? power / profile.weightKg : r.ftp / r.mass) * 100) / 100,
+        drop: Math.round((r.fade?.drop ?? 0) * 100) / 100,
+        ...(r.isPlayer ? { player: true } : {}),
+      })),
+    };
   }
 
   summary(): RideSummary {

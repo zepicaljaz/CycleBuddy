@@ -134,6 +134,7 @@ cyclebuddy/
 | `game/session.ts` | One ride: state, physics steps, energy, distance, trainer commands, workout following |
 | `game/boot.ts`, `game/playBoot.ts` | Startup: which account owns local data, the loading screen while `/play` builds |
 | `game/homeView.ts` | Home menu: modes 1–4 (Pro race hidden), climb of the day, build stamp |
+| `game/raceHistory.ts` | Hill climb → My races: the list of your races and one race in full (power every 2 minutes over the road, your figures, the AI field and finishing order) |
 | `game/quickRace.ts`, `game/proRaceView.ts` | Pro race: builds a stage launch, and its setup page |
 | `game/recorder.ts` | One sample per second of riding, ride statistics |
 | `game/coins.ts`, `accountProfile.ts`, `climbRecord.ts`, `estimates.ts` | Coins and kit, the rider record on the account, climb segments, lap-time estimates |

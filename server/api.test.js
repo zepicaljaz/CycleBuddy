@@ -148,6 +148,23 @@ describe('account server', { timeout: 30_000 }, () => {
     expect(one.body.summary.routeName).toBe('Alpine Pass');
   });
 
+  it('keeps what a Hill climb race was, and nothing it does not know', async () => {
+    const body = ride('ride-test-hill');
+    const hill = {
+      climbName: 'Vršič', lengthM: 10606, gainM: 800, avgGrade: 0.075, weightKg: 72, ftp: 250, aiCount: 1, topWkg: 5, bottomWkg: 1,
+      results: [
+        { name: 'T. Novarik', country: 'SLO', timeSec: 2059, wkg: 5, drop: 0 },
+        { name: 'Me', country: '', timeSec: null, wkg: 3.1, drop: 0, player: true },
+      ],
+    };
+    body.summary.mode = 'race';
+    body.summary.race = { position: 2, field: 2, finishTimeSec: null, winnerTimeSec: 2059, hill: { ...hill, extra: 'x' } };
+    expect((await a('PUT', '/api/rides/ride-test-hill', body)).status).toBe(200);
+    const one = await a('GET', '/api/rides/ride-test-hill');
+    expect(one.body.summary.race.hill).toEqual(hill);
+    expect((await a('DELETE', '/api/rides/ride-test-hill')).status).toBe(200);
+  });
+
   it('rejects a ride whose id does not match, and a bad id', async () => {
     expect((await a('PUT', '/api/rides/ride-test-0002', ride('ride-test-0001'))).status).toBe(400);
     expect((await a('GET', '/api/rides/no')).status).toBe(400);

@@ -2269,3 +2269,73 @@ html.site-reveal .site-nav-actions { opacity: 1; transition: opacity .55s ease .
 .brief-class .c-num { width: 5.6rem; }
 .brief-class td { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .career-brief .brief-results-title { margin: 14px 0 0; }
+
+/* ---------------- Hill climb: setting up a race and looking back at them.
+   Wide like Analytics. Everything under the tabs scrolls, so a small window still shows the climbs. */
+#panel.screen-race { width: min(1280px, calc(100vw - 24px)); }
+#panel.screen-race .race-tabs { flex: none; margin: 0; padding: 0 24px; background: none; }
+.race-tabs span { margin-left: 6px; opacity: 0.7; font-variant-numeric: tabular-nums; }
+#panel.screen-race .hill-body { min-height: 0; padding-top: 14px; }
+#panel.screen-race .race-setup { padding: 0 0 14px; }
+#panel.screen-race .climb-tools { top: -14px; margin-top: 0; }
+#panel.screen-race .climb-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 520px), 1fr)); align-content: start; }
+#panel.screen-race .climb-group { grid-column: 1 / -1; }
+
+.race-empty { margin: 12px 0; font-size: 15px; }
+.race-list { list-style: none; margin: 0; padding: 0; }
+.race-list li + li { border-top: 1px solid var(--line); }
+.race-row { appearance: none; display: grid; grid-template-columns: minmax(200px, 1.8fr) repeat(6, minmax(0, 1fr)); gap: 8px 14px; align-items: center; width: 100%; padding: 12px 0; background: none; border: 0; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.race-row:hover .race-what b { color: var(--accent); }
+.race-row:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.race-what, .race-cell { min-width: 0; }
+.race-what b, .race-cell b { display: block; font-family: var(--display); font-weight: 800; font-variant-numeric: tabular-nums; }
+.race-what b { font-size: 20px; line-height: 1.1; text-transform: uppercase; }
+.race-what > span { display: block; margin-top: 3px; color: var(--muted); font-size: 13px; }
+.race-cell small { display: block; color: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+.race-cell b { font-size: 22px; white-space: nowrap; }
+.race-cell i { font-style: normal; font-size: 0.65em; color: var(--muted); }
+
+.race-title { margin: 4px 0 2px; font-size: 28px; }
+.race-chart { overflow-x: auto; }
+.race-cols { display: flex; height: 210px; }
+.race-col { display: flex; flex-direction: column; flex-basis: 0; min-width: 0; }
+.race-col-bar { position: relative; flex: 1; min-height: 0; margin-top: 20px; }
+.race-col-bar i { position: absolute; left: 1px; right: 1px; bottom: 0; height: var(--h); min-height: 2px; border-radius: 2px 2px 0 0; }
+.race-col-bar b { position: absolute; left: 50%; bottom: calc(var(--h) + 2px); transform: translateX(-50%); font-size: 12.5px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.race-col small { height: 18px; padding-top: 2px; padding-left: 1px; color: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.race-road { display: block; width: 100%; height: 100px; margin-top: 4px; }
+.race-table-wrap { overflow-x: auto; }
+.race-table-wrap .analytics-table th, .race-table-wrap .analytics-table td { white-space: nowrap; }
+.race-table-wrap .analytics-table th.num { text-align: right; }
+.race-results-table th.name { white-space: normal; }
+.race-results-table th.name small { margin-left: 4px; color: var(--muted); font-weight: 400; }
+.race-results-table tr.me th, .race-results-table tr.me td { background: rgba(255, 127, 42, 0.18); }
+
+@media (max-width: 1000px) {
+  #panel.screen-race { width: calc(100vw - 16px); }
+  .race-row { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .race-what { grid-column: 1 / -1; }
+}
+@media (max-width: 760px) {
+  #panel.screen-race { top: 60px; bottom: 6px; width: calc(100vw - 10px); }
+  #panel.screen-race .panel-head { padding: 12px 14px 4px; }
+  #panel.screen-race .panel-head h2 { font-size: 22px; }
+  #panel.screen-race .panel-head p { display: none; }
+  #panel.screen-race .race-tabs { padding: 0 4px; }
+  #panel.screen-race .hill-body { padding: 10px 12px 18px; }
+  #panel.screen-race .effort-grid { grid-template-columns: minmax(0, 1fr); }
+  /* The sort and search rows scroll away: stuck to the top they would cover the climbs. */
+  #panel.screen-race .climb-tools { position: static; margin: 0 -12px 12px; padding: 10px 12px 8px; }
+  #panel.screen-race .climb-scale-note { display: none; }
+  #panel.screen-race .climb-filters { width: 100%; }
+  #panel.screen-race .panel-foot { flex-direction: column; align-items: stretch; gap: 8px; padding: 10px 12px 12px; }
+  .race-row { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .race-cell b { font-size: 20px; }
+  .race-cols { height: 170px; }
+  .race-road { height: 76px; }
+}
+@media (max-height: 640px) {
+  #panel.screen-race .panel-head { padding-top: 10px; padding-bottom: 4px; }
+  #panel.screen-race .panel-head p { display: none; }
+  #panel.screen-race .panel-foot { padding-top: 8px; padding-bottom: 8px; }
+}
