@@ -126,8 +126,20 @@ export function gapCap(spanKm: number, roll: number): number {
 
 /** Day form: 0.93 to 1.07. It changes surge capacity and sprint power only, never the bunch tempo. */
 export function dayForm(riderId: string, seed: number): number {
-  return 0.93 + 0.14 * hash01(`form:${riderId}:${seed}`);
+  // Asked for every rider on every step: keep the last race's values instead of hashing a new string each time.
+  if (seed !== formSeed) {
+    formSeed = seed;
+    formCache.clear();
+  }
+  let form = formCache.get(riderId);
+  if (form === undefined) {
+    form = 0.93 + 0.14 * hash01(`form:${riderId}:${seed}`);
+    formCache.set(riderId, form);
+  }
+  return form;
 }
+let formSeed: number | undefined;
+const formCache = new Map<string, number>();
 
 /** Descending skill: speed on a descent for a rider alone or in a break, about ±1.5%. The same rider every race. */
 export function descentSkill(riderId: string): number {
