@@ -14,10 +14,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { demSampler } from './dem.mjs';
+import { rad, projection } from './geo.mjs';
+import { buildCover } from './cover.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
-const R = 6371000;
-const rad = (d) => (d * Math.PI) / 180;
 
 const CONFIGS = {
   vrsic: {
@@ -295,8 +295,7 @@ if (!climbStartLL) throw new Error('climb start not found');
 // Local metres: x east, z south, origin at the middle of the road.
 const lat0 = ll.reduce((a, p) => a + p.lat, 0) / ll.length;
 const lon0 = ll.reduce((a, p) => a + p.lon, 0) / ll.length;
-const toXZ = (p) => ({ x: rad(p.lon - lon0) * Math.cos(rad(lat0)) * R, z: -rad(p.lat - lat0) * R });
-const toLL = (x, z) => ({ lat: lat0 - (z / R) * (180 / Math.PI), lon: lon0 + (x / (R * Math.cos(rad(lat0)))) * (180 / Math.PI) });
+const { toXZ, toLL } = projection(lat0, lon0);
 
 function resample(pts, step) {
   const out = [pts[0]];
@@ -741,3 +740,13 @@ const track = {
 fs.mkdirSync(path.join(ROOT, 'src/routes/real/tracks'), { recursive: true });
 fs.writeFileSync(path.join(ROOT, `src/routes/real/tracks/${cfg.id}.json`), JSON.stringify(track));
 console.log(`wrote track (${(JSON.stringify(track).length / 1024).toFixed(0)} KB) and terrain (${(bin.length / 1024).toFixed(0)} KB, fine ${fine.w}×${fine.h}, coarse ${coarse.w}×${coarse.h})`);
+
+// ---------------------------------------------------------------- land cover
+// Real forest / meadow / rock / scree / ice / water per grid point (cover.mjs). Needs the
+// network (Overpass + ESA WorldCover); if that fails the road is still built, and
+// `node scripts/real-track/cover.mjs <id>` can be run again later.
+try {
+  await buildCover(cfg.id);
+} catch (e) {
+  console.log(`!! land cover not built (${e.message}); run: node scripts/real-track/cover.mjs ${cfg.id}`);
+}

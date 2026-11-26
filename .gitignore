@@ -13,6 +13,10 @@ coverage/
 
 # Elevation tiles downloaded while building a real road, and screen recordings.
 data/dem-cache/
+# Land cover downloads (Overpass answers, ESA WorldCover windows). Never commit them or any .tif.
+data/cover-cache/
+*.tif
+*.tiff
 videos/
 *.mov
 *.mp4
