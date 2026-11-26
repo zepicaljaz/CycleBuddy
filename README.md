@@ -159,7 +159,7 @@ cyclebuddy/
 | `routes/definitions.ts`, `moreWorlds.ts`, `careerWorlds.ts` | Every loop's definition (sections, styles, towns) |
 | `routes/regions.ts` | The six Free ride landscapes, the loops in each, and the Real climbs category |
 | `routes/sections.ts`, `grades.ts`, `types.ts`, `validate.ts` | Section shapes, gradient resolution, types, definition checks |
-| `routes/real/` | Real climbs and stages: `climbs.json`, `stages.json`, checks (`data.ts`), builders (`build.ts`), real tracks (`tracks/`), terrain loading (`terrain.ts`) |
+| `routes/real/` | Real climbs and stages: `climbs.json`, `stages.json`, checks (`data.ts`), builders (`build.ts`), real tracks (`tracks/`), terrain and land-cover loading (`terrain.ts`) |
 
 **The 3D world** (`world/`)
 
@@ -167,7 +167,7 @@ cyclebuddy/
 |---|---|
 | `world.ts` | Owns the scene: camera modes, the per-frame update, race finish and crowd |
 | `graphics.ts` | Renderer, quality presets, post-processing, dynamic resolution during rides |
-| `terrain.ts`, `terrainChunk.ts`, `terrainWorker.ts`, `terrainField.ts` | Terrain tiles built in workers with levels of detail and trees; the height field (with real elevation for real roads) |
+| `terrain.ts`, `terrainChunk.ts`, `terrainWorker.ts`, `terrainField.ts` | Terrain tiles built in workers with levels of detail and trees; the height field (with real elevation and land cover for real roads; colour and props from the cover map, see `docs/REAL_ROADS.md` → Land cover at runtime, tests in `terrainCover.test.ts`) |
 | `scenery.ts` | Roadside: towns, fences (culled per 500 m cell), race crowd (culled per 400 m cell), finish, signs |
 | `climbs.ts` | Climb furniture: km bornes, hairpin numbers, stone walls, graffiti |
 | `riders.ts`, `riderBody.ts`, `bikes.ts` | Instanced riders with three levels of detail; body and bike models |

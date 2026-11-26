@@ -288,6 +288,47 @@ Built with `node scripts/real-track/build.mjs krvavec`. Same rules as Vršič, w
 4. Run the script. Check that the length is within ~2 % of the published value and that
    the hairpin count matches. Add a test like `track.test.ts`.
 
+## Land cover at runtime
+
+How the game uses a road's land-cover grid (`terrain.cover` in the track
+JSON, `<id>.cover.bin` beside the heights). Where the data comes from is the
+data section; this is what the terrain does with it.
+
+- **Loading.** `loadRouteTerrain` fetches the cover with the heights, once per
+  file, and puts it on `route.cover`. A missing or broken file leaves it null
+  and the road keeps the generated look. The world passes it to the terrain
+  workers in `FieldInput.cover`. Heights now stay unsigned decimetres
+  (`DemGrid.scale = 0.1`) instead of a Float32 copy per worker.
+- **Reading.** `TerrainField.coverAt(x, z)`: fine grid first, then far, the
+  nearest node (node (i, j) sits at x0 + i·cell, z0 + j·cell, like the
+  heights), and a node with 0 falls through to the coarser grid. `coverMix`
+  gives the four surrounding nodes' weights per class, for colour.
+- **Slope for colour.** On a road with a DEM the steepness that colours a face
+  is the DEM's over 25 m around the face centre (`demNormalY`), not the
+  triangle's own normal. The invented facets and bumps stay in the geometry
+  but never decide a colour, a cut bank or hairpin bank takes the colour of
+  the slope it was cut into, and a face has the same class on the 8 m mesh
+  beside the rider and the 64 m far tiles. Generated roads keep the triangle
+  normal and look exactly as before (`terrainCover.test.ts` pins that).
+- **Colour.** Where cover is known: rock and cliff are the only grey (darker
+  the steeper the real ground), scree the pale stone (the gravel colour where
+  the road sets `screeLine`), glacier snow, forest the forest floor, scrub a
+  darker olive, meadow, water and built-up the altitude grass. Slope only
+  darkens vegetation by up to 12 %. Seasonal snow above `snowline` settles only
+  on bare classes. Lake sand and the worn verge are as before. The
+  treeline/noise look runs only where cover is 0.
+- **Props.** Forest keeps its trees up to about 45° of real slope (they shrink
+  in the last 200 m below the treeline). Meadow gets the odd lone tree below
+  the treeline. Scrub gets low bushes in prop slot 3 (`PROP_SCRUB`; the model
+  is `scrubGeom` in `terrain.ts`, where a dwarf pine can go). Boulders only on
+  rock, scree and cliff faces under ~52°, plus the ground within 25 m of a
+  cliff node (the cliff foot, bigger and denser). They keep their whole width
+  off the asphalt and sink by 20-88 % of their size with the slope so the
+  downhill edge does not float. Glacier, water and built-up stay empty.
+- **Treeline.** Cover wins over `treeline` wherever it is known. Roads without
+  cover still need the scenery hints in `climbs.json` (with a `sceneryNote`
+  giving the sources).
+
 ## Credits and licence
 
 See `ATTRIBUTION.md`. The track files are derived from OpenStreetMap (ODbL): if the app

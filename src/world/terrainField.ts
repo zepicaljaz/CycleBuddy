@@ -1031,15 +1031,15 @@ export class TerrainField {
       const c = d[(gz + 1) * W + gx];
       const e = d[(gz + 1) * W + gx + 1];
       let sum = 0;
-      const add = (v: number, wt: number) => {
-        if (v === 0 || v > 9 || wt <= 0) return;
-        out[v] += wt;
-        sum += wt;
-      };
-      add(a, (1 - tx) * (1 - tz));
-      add(b, tx * (1 - tz));
-      add(c, (1 - tx) * tz);
-      add(e, tx * tz);
+      // Unrolled: this runs once per terrain triangle.
+      let wt = (1 - tx) * (1 - tz);
+      if (a !== 0 && a <= 9 && wt > 0) { out[a] += wt; sum += wt; }
+      wt = tx * (1 - tz);
+      if (b !== 0 && b <= 9 && wt > 0) { out[b] += wt; sum += wt; }
+      wt = (1 - tx) * tz;
+      if (c !== 0 && c <= 9 && wt > 0) { out[c] += wt; sum += wt; }
+      wt = tx * tz;
+      if (e !== 0 && e <= 9 && wt > 0) { out[e] += wt; sum += wt; }
       if (sum <= 1e-6) continue;
       for (let k = 1; k < 10; k++) out[k] /= sum;
       return 1;
