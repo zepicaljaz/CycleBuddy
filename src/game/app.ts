@@ -10,7 +10,8 @@ import { clearLocalAccountData } from '../storage/localOwner';
 import { exportBackup, importBackup } from '../storage/backup';
 import { downloadBytes, rideFileName } from '../storage/download';
 import { IndexedDbStorage } from '../storage/indexedDb';
-import type { AnalyticsPage, AnalyticsState } from '../analytics/view';
+import type { AnalyticsPage, AnalyticsState, VolumeMetric } from '../analytics/view';
+import type { AnalyticsRange, PowerData } from '../analytics/metrics';
 import type { RideKind, RideSortKey } from '../analytics/model';
 import type { ClimbEffort, Profile, RideCamera, RideSample, RideSummary, StorageProvider } from '../storage/types';
 import { formatDuration, uuid } from '../util/math';
@@ -35,10 +36,11 @@ import { progressFromRides, workoutKey } from '../training/progress';
 import { barsHtml, expandBlocks, formatSession, prescribedLoad } from '../training/workout';
 import { estimateLap, estimateTime } from './estimates';
 import { RideSession, type SessionMode } from './session';
-import { raceById, stageWindow } from '../career/calendar';
+import { formatDate, raceById, raceDays, stageWindow } from '../career/calendar';
 import { startMateCount } from '../career/squad';
 import { teamCode } from '../career/teams';
-import { careerHtml } from '../career/panel';
+import { calendarChipClass, careerHtml, seasonUpdateHtml } from '../career/panel';
+import type { SeasonUpdate } from '../career/progress';
 import { Career, stagePrimes, type CareerLaunch } from '../career/season';
 import type { RaceClassifications, StageResultRow } from '../career/season';
 import { summarizeSamples } from './recorder';
@@ -50,6 +52,8 @@ import { HOME_KEYS, homeHtml } from './homeView';
 import { bindProRace, loadChoice, proRaceHtml } from './proRaceView';
 import { launchQuickRace } from './quickRace';
 import { RoadAhead } from '../ui/roadAhead';
+import { RiderTag, tagLines, type TagMode } from '../ui/riderTag';
+import { pickRider } from '../world/riderPick';
 import '../ui/menus.css';
 
 type Screen = 'home' | 'free' | 'race' | 'pro' | 'plans' | 'plan' | 'train-route' | 'garage' | 'history' | 'settings' | 'help' | 'career';
@@ -64,10 +68,6 @@ const FRAME_CATCH_UP_SEC = 5;
 const BACKGROUND_CATCH_UP_SEC = 75;
 
 const DIFFICULTY_LABEL: Record<Difficulty, string> = { flat: 'Flat', hilly: 'Hilly', mountain: 'Mountain', epic: 'Epic' };
-
-function clampShift(value: number, max: number): number {
-  return Math.max(0, Math.min(max, value));
-}
 
 function cssEscape(value: string): string {
   if (typeof CSS !== 'undefined' && typeof CSS.escape === 'function') return CSS.escape(value);
@@ -252,7 +252,12 @@ export class App {
   private braking = false;
   private lookYaw = 0;
   private lookPitch = 0;
+  /** Held key (L): the view swings half a turn to look behind, then returns when it is released. */
+  private lookBack = false;
   private draggingLook = false;
+  /** Mouse over the 3D view, in canvas pixels. Null when the mouse is elsewhere or the pointer is a finger. */
+  private hoverAt: { x: number; y: number; left: number; top: number } | null = null;
+  private riderTag!: RiderTag;
   private lookPointer = -1;
   /** Clicks before this time are the tail of a press already handled, including after a confirm dialog. */
   private overlayIgnoreUntil = 0;
@@ -306,6 +311,8 @@ export class App {
   private roadAhead!: RoadAhead;
   private proChoice = loadChoice();
   private careerSheets: RaceClassifications | null = null;
+  /** Points, ranking and contract after the stage just ridden. Shown on the race results. */
+  private careerSeason: SeasonUpdate | null = null;
   private careerListening = false;
   private garagePose: RiderPose = { x: 0, y: 0, z: 0, tx: 1, tz: 0, grade: 0, crank: 0, wheel: 0, effort: 0, visible: true };
   /** Part the rider is looking at in Equipment. It is not owned until they buy it. */
@@ -321,10 +328,11 @@ export class App {
   private analyticsDay: string | null = null;
   private analyticsSegment = 'all';
   private analyticsRouteId = '';
-  private analyticsMonthShift = 0;
-  private analyticsWeekShift = 0;
-  private analyticsSessionShift = 0;
-  private analyticsPowerShift = 0;
+  private analyticsRange: AnalyticsRange = '3m';
+  private analyticsVolume: VolumeMetric = 'time';
+  /** Best efforts and zone time per ride, keyed by ride id and the FTP they were scored with. */
+  private analyticsPower = new Map<string, PowerData>();
+  private analyticsPowerLoading = false;
   private analyticsRides: RideSummary[] = [];
   private analyticsEfforts: ClimbEffort[] = [];
   private analyticsSamples = new Map<string, RideSample[]>();
@@ -353,6 +361,7 @@ export class App {
     this.panel = $('#panel', this.ui);
     this.overlay = $('#overlay', this.ui);
     this.hud = new Hud(this.ui);
+    this.riderTag = new RiderTag(this.ui);
     const left = this.ui.querySelector<HTMLElement>('#hud .hud-left');
     this.roadAhead = new RoadAhead(left ?? this.ui);
     const metrics = left?.querySelector('.hud-metrics');
@@ -365,6 +374,9 @@ export class App {
       brake: (held) => {
         this.brakePointer = held;
         this.applyBrake();
+      },
+      lookBack: (held) => {
+        if (!held || (this.session && this.world && !this.uiBlocksLook())) this.setLookBack(held);
       },
     });
     this.hud.bindOrders((kind, value) => this.onTeamOrder(kind, value));
@@ -388,14 +400,24 @@ export class App {
         this.brakeKey = false;
         this.applyBrake();
       }
+      if (e.key.toLowerCase() === 'l') this.setLookBack(false);
     });
-    window.addEventListener('blur', () => this.releaseBrake());
+    window.addEventListener('blur', () => {
+      this.releaseBrake();
+      this.setLookBack(false);
+    });
     // The ride view used to keep the pointer, so a press on the pause dialog
     // never reached the button. While a dialog is open, the press is handled
     // here, before the canvas can take it.
     window.addEventListener('pointerup', (e) => this.onOverlayPointer(e), true);
     this.canvas.addEventListener('pointerdown', (e) => this.onLookDown(e));
-    window.addEventListener('pointermove', (e) => this.onLookMove(e));
+    window.addEventListener('pointermove', (e) => {
+      this.onLookMove(e);
+      this.onHover(e);
+    });
+    document.addEventListener('pointerleave', () => {
+      this.hoverAt = null;
+    });
     window.addEventListener('pointerup', (e) => {
       if (e.button !== 0) return;
       this.draggingLook = false;
@@ -406,7 +428,10 @@ export class App {
       this.lookPointer = -1;
     });
     document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState !== 'visible') this.releaseBrake();
+      if (document.visibilityState !== 'visible') {
+        this.releaseBrake();
+        this.setLookBack(false);
+      }
       if (document.visibilityState === 'visible' && this.session) void this.requestWakeLock();
     });
     window.addEventListener('popstate', () => this.onPlayPath());
@@ -673,6 +698,7 @@ export class App {
         const spin = s.watchingFinish ? (s.sim.raceDir() > 0 ? Math.PI : 0) : s.sim.facingAngle();
         const ramp = trial ? { s: s.sim.opts.startS, dir: s.sim.raceDir() } : undefined;
         world.update(dt, focusS, s.player.lat, poses, riders, spin, ramp);
+        this.updateRiderTag(s, poses, world);
         this.updateSound(s, dt);
         this.hudTimer += dt;
         if (this.hudTimer > 0.1) {
@@ -684,6 +710,7 @@ export class App {
           this.syncCareerRide(s);
         }
       } else {
+        this.riderTag.hide();
         const garageS = 40;
         world.poseAt(garageS, 0, this.garagePose);
         this.garagePose.visible = this.screen === 'garage';
@@ -763,10 +790,6 @@ export class App {
       this.analyticsYear = today.getFullYear();
       this.analyticsMonthIndex = today.getMonth();
       this.analyticsDay = null;
-      this.analyticsMonthShift = 0;
-      this.analyticsWeekShift = 0;
-      this.analyticsSessionShift = 0;
-      this.analyticsPowerShift = 0;
     }
     if (screen === 'free' && this.screen !== 'free') this.freeRegion = freeRegion ?? null;
     if (screen === 'career' && this.screen === 'home') this.enterCareer();
@@ -1991,10 +2014,8 @@ export class App {
       day: this.analyticsDay,
       segmentId: this.analyticsSegment,
       routeId: this.analyticsRouteId,
-      monthShift: this.analyticsMonthShift,
-      weekShift: this.analyticsWeekShift,
-      sessionShift: this.analyticsSessionShift,
-      powerShift: this.analyticsPowerShift,
+      range: this.analyticsRange,
+      volume: this.analyticsVolume,
       now: new Date(),
     };
   }
@@ -2005,25 +2026,74 @@ export class App {
     if (this.screen !== 'history') return;
     if (this.analyticsPage === 'calendar') await this.ensureMonthSamples();
     if (this.screen !== 'history') return;
+    const missingPower = this.analyticsPage === 'power' && this.missingPowerRides().length > 0;
     const scroller = this.panel.querySelector('.panel-body');
     const top = keepScroll ? (scroller?.scrollTop ?? 0) : 0;
     this.panel.innerHTML = `
       ${this.header('Analytics', 'Free rides, training, hill climbs and career stages saved on your account.')}
       <div class="panel-body analytics-body">
-        ${an().analyticsHtml(this.analyticsRides, this.analyticsEfforts, this.analyticsState(), { ftp: this.profile.ftp, samples: this.analyticsSamples })}
+        ${an().analyticsHtml(this.analyticsRides, this.analyticsEfforts, this.analyticsState(), {
+          ftp: this.profile.ftp,
+          weightKg: this.profile.weightKg,
+          samples: this.analyticsSamples,
+          power: this.ridePowerMap(),
+          powerLoading: missingPower,
+        })}
       </div>`;
     const next = this.panel.querySelector('.panel-body');
     if (next) next.scrollTop = top;
     this.bindAnalytics();
+    if (missingPower) void this.loadRangePower();
+  }
+
+  private powerKey(ride: RideSummary, ftpOf: (ride: RideSummary) => number): string {
+    return `${ride.id}:${Math.round(ftpOf(ride))}`;
+  }
+
+  /** Power data of the saved rides, keyed by ride id only. */
+  private ridePowerMap(): Map<string, PowerData> {
+    const ftpOf = an().ftpTimeline(this.analyticsRides, this.profile.ftp);
+    const out = new Map<string, PowerData>();
+    for (const ride of this.analyticsRides) {
+      const data = this.analyticsPower.get(this.powerKey(ride, ftpOf));
+      if (data) out.set(ride.id, data);
+    }
+    return out;
+  }
+
+  private missingPowerRides(): RideSummary[] {
+    const ftpOf = an().ftpTimeline(this.analyticsRides, this.profile.ftp);
+    return an()
+      .powerRides(this.analyticsRides, this.analyticsRange, new Date())
+      .filter((ride) => !this.analyticsPower.has(this.powerKey(ride, ftpOf)));
+  }
+
+  /** Reads the samples of every ride in the range once, and keeps only the numbers the Power page needs. */
+  private async loadRangePower(): Promise<void> {
+    if (this.analyticsPowerLoading) return;
+    this.analyticsPowerLoading = true;
+    try {
+      const ftpOf = an().ftpTimeline(this.analyticsRides, this.profile.ftp);
+      for (const ride of this.missingPowerRides()) {
+        if (this.screen !== 'history' || this.analyticsPage !== 'power') return;
+        const samples = this.analyticsSamples.get(ride.id) ?? (await this.storage.getRideSamples(ride.id)) ?? [];
+        this.analyticsPower.set(this.powerKey(ride, ftpOf), an().powerData(samples, ftpOf(ride)));
+      }
+    } catch (err) {
+      console.error('Reading ride power failed', err);
+    } finally {
+      this.analyticsPowerLoading = false;
+    }
+    if (this.screen === 'history' && this.analyticsPage === 'power' && !this.missingPowerRides().length) void this.paintAnalytics(true);
   }
 
   private bindAnalytics(): void {
     $$('[data-analytics]', this.panel).forEach((button) =>
       button.addEventListener('click', () => {
         const page = button.dataset.analytics;
-        if (page !== 'dashboard' && page !== 'rides' && page !== 'segments' && page !== 'calendar') return;
+        if (!an().ANALYTICS_PAGES.includes(page as AnalyticsPage)) return;
         if (page === this.analyticsPage) return;
-        this.analyticsPage = page;
+        this.analyticsPage = page as AnalyticsPage;
         this.paintAnalytics(false);
       }),
     );
@@ -2037,12 +2107,36 @@ export class App {
     $$('[data-sort]', this.panel).forEach((button) =>
       button.addEventListener('click', () => {
         const key = button.dataset.sort;
-        if (key !== 'name' && key !== 'date' && key !== 'type' && key !== 'distance' && key !== 'time' && key !== 'elevation' && key !== 'power' && key !== 'segmentPower') return;
+        if (!an().RIDE_SORT_KEYS.includes(key as RideSortKey)) return;
         if (this.analyticsSort === key) this.analyticsSortDesc = !this.analyticsSortDesc;
         else {
-          this.analyticsSort = key;
+          this.analyticsSort = key as RideSortKey;
           this.analyticsSortDesc = key !== 'name' && key !== 'type';
         }
+        this.paintAnalytics(true);
+      }),
+    );
+    this.panel.querySelector<HTMLSelectElement>('[data-sort-select]')?.addEventListener('change', (event) => {
+      const key = (event.target as HTMLSelectElement).value;
+      if (!an().RIDE_SORT_KEYS.includes(key as RideSortKey)) return;
+      this.analyticsSort = key as RideSortKey;
+      this.analyticsSortDesc = key !== 'name' && key !== 'type';
+      this.paintAnalytics(true);
+    });
+    $$('[data-range]', this.panel).forEach((button) =>
+      button.addEventListener('click', () => {
+        const range = button.dataset.range;
+        if (range !== '6w' && range !== '3m' && range !== '6m' && range !== '1y' && range !== 'all') return;
+        if (range === this.analyticsRange) return;
+        this.analyticsRange = range;
+        this.paintAnalytics(true);
+      }),
+    );
+    $$('[data-volume]', this.panel).forEach((button) =>
+      button.addEventListener('click', () => {
+        const metric = button.dataset.volume;
+        if (!an().VOLUME_METRICS.includes(metric as VolumeMetric)) return;
+        this.analyticsVolume = metric as VolumeMetric;
         this.paintAnalytics(true);
       }),
     );
@@ -2061,19 +2155,6 @@ export class App {
         const next = button.dataset.route || '';
         if (next !== this.analyticsRouteId) this.analyticsSegment = 'all';
         this.analyticsRouteId = next;
-        this.paintAnalytics(true);
-      }),
-    );
-    $$('[data-window]', this.panel).forEach((button) =>
-      button.addEventListener('click', () => {
-        if (button.hasAttribute('disabled')) return;
-        const step = button.dataset.window === 'power' ? an().POWER_PAGE : 1;
-        const dir = button.dataset.dir === 'prev' ? step : -step;
-        const now = new Date();
-        if (button.dataset.window === 'month') this.analyticsMonthShift = clampShift(this.analyticsMonthShift + dir, an().maxMonthShift(this.analyticsRides, now));
-        else if (button.dataset.window === 'week') this.analyticsWeekShift = clampShift(this.analyticsWeekShift + dir, an().maxWeekShift(this.analyticsRides, now));
-        else if (button.dataset.window === 'sessions') this.analyticsSessionShift = clampShift(this.analyticsSessionShift + dir, an().maxWeekShift(this.analyticsRides, now));
-        else if (button.dataset.window === 'power') this.analyticsPowerShift = clampShift(this.analyticsPowerShift + dir, an().maxPowerSkip(this.analyticsRides.length));
         this.paintAnalytics(true);
       }),
     );
@@ -2159,11 +2240,15 @@ export class App {
         const samples = this.analyticsSamples.get(id) ?? (await this.storage.getRideSamples(id)) ?? [];
         this.analyticsSamples.set(id, samples);
         if (!row.isConnected) return;
-        const trace = an().rideTraceHtml(samples, this.profile.ftp);
+        const ride = rides.find((item) => item.id === id);
+        const ftp = ride ? an().ftpTimeline(rides, this.profile.ftp)(ride) : this.profile.ftp;
+        const trace = an().rideTraceHtml(samples, ftp, this.profile.weightKg);
         const profile = row.querySelector('[data-detail-profile]');
         const power = row.querySelector('[data-detail-power]');
+        const extra = row.querySelector('[data-detail-extra]');
         if (profile) profile.innerHTML = trace.profile;
         if (power) power.innerHTML = trace.power;
+        if (extra) extra.innerHTML = trace.extra;
         row.dataset.ready = '1';
       }),
     );
@@ -2942,10 +3027,12 @@ export class App {
     }
     this.careerNext = false;
     this.careerSheets = null;
+    this.careerSeason = null;
     if (s.config.career && !this.quickRide && s.player.finishTime != null) {
       const result = this.career.commit(this.careerRows(s));
       this.careerNext = result.another;
       this.careerSheets = result.classifications;
+      this.careerSeason = result.season;
       if (result.headline) toast(result.headline, 'success', 5200);
     }
     const summary = s.summary();
@@ -3038,6 +3125,8 @@ export class App {
     if (race) {
       const st = s.sim.standings();
       const me = st.indexOf(s.player);
+      // Your teammates get their own highlight, so you can find them in the lists.
+      const myTeam = s.config.career ? this.career.state?.teamId ?? '' : '';
       const clockOf = (r: (typeof st)[number]) => r.officialTime ?? r.finishTime;
       const winner = clockOf(st[0]) ?? 0;
       const rows = st
@@ -3048,7 +3137,8 @@ export class App {
           const gap = clockOf(r) !== null && i > 0 ? (Math.abs((clockOf(r) ?? 0) - winner) < 0.05 ? 's.t.' : `+${formatDuration((clockOf(r) ?? 0) - winner)}`) : '';
           const side = r.isPlayer ? '' : s.config.career ? teamCode(r.team) : r.country;
           const name = r.isPlayer ? (this.profile.name || r.name) : r.name;
-          return `<tr class="${r === s.player ? 'me' : ''}"><td class="pos">${i + 1}</td><td class="rider" title="${esc(name)}"><span class="dot" style="background:${r.colors.jersey}"></span>${esc(name)}</td><td>${esc(side)}</td><td class="num">${time}</td><td class="num">${gap}</td></tr>`;
+          const mate = !!myTeam && !r.isPlayer && r.team === myTeam;
+          return `<tr class="${r === s.player ? 'me' : mate ? 'teammate' : ''}"><td class="pos">${i + 1}</td><td class="rider" title="${esc(name)}"><span class="dot" style="background:${r.colors.jersey}"></span>${esc(name)}</td><td>${esc(side)}</td><td class="num">${time}</td><td class="num">${gap}</td></tr>`;
         })
         .join('');
       const place = s.player.finishTime !== null ? `You finished <b>${me + 1}${ordinal(me + 1)}</b> of ${st.length}` : 'You did not finish';
@@ -3061,7 +3151,8 @@ export class App {
           const value = unit === 'time' ? formatDuration(row.value) : String(row.value);
           const gap = unit === 'time' && i > 0 ? (Math.abs(row.value - leader) < 0.05 ? 's.t.' : `+${formatDuration(row.value - leader)}`) : '';
           const gapCell = unit === 'time' ? `<td class="num">${gap}</td>` : '';
-          return `<tr class="${row.riderId === 'player' ? 'me' : ''}"><td class="pos">${i + 1}</td><td class="rider" title="${esc(row.name)}">${esc(row.name)}</td><td>${esc(teamCode(row.teamId))}</td><td class="num">${value}</td>${gapCell}</tr>`;
+          const rowClass = row.riderId === 'player' ? 'me' : myTeam && row.teamId === myTeam ? 'teammate' : '';
+          return `<tr class="${rowClass}"><td class="pos">${i + 1}</td><td class="rider" title="${esc(row.name)}">${esc(row.name)}</td><td>${esc(teamCode(row.teamId))}</td><td class="num">${value}</td>${gapCell}</tr>`;
         }).join('') || `<tr><td class="empty" colspan="${unit === 'time' ? 5 : 4}">No points yet</td></tr>`;
         const gapHead = unit === 'time' ? '<th class="num">Gap</th>' : '';
         return `<section class="race-class"><h3>${title}</h3><div class="race-scroll"><table class="standings ${unit === 'time' ? 'times' : 'points'}"><thead><tr><th class="pos">#</th><th class="rider">Rider</th><th>Team</th><th class="num">${unit === 'time' ? 'Time' : 'Pts'}</th>${gapHead}</tr></thead><tbody>${body}</tbody></table></div></section>`;
@@ -3101,8 +3192,9 @@ export class App {
           ${done}
         </div>`;
     const wideResults = hill || !!s.config.career;
+    const seasonLine = s.config.career && this.careerSeason ? this.careerSeasonHtml(this.careerSeason) : '';
     this.overlay.innerHTML = wideResults
-      ? `<div class="modal glass race-results${raceClasses ? ' has-classes' : ''}"><div class="race-results-bar"><h2>Race results</h2><div class="modal-actions">${fit}${next}${done}</div></div>${raceStats}<div class="race-results-main">${raceStage}${raceClasses}</div><footer class="race-results-foot">${notes}</footer></div>`
+      ? `<div class="modal glass race-results${raceClasses ? ' has-classes' : ''}"><div class="race-results-bar"><h2>Race results</h2><div class="modal-actions">${fit}${next}${done}</div></div>${raceStats}${seasonLine}<div class="race-results-main">${raceStage}${raceClasses}</div><footer class="race-results-foot">${notes}</footer></div>`
       : `<div class="modal wide glass"><h2>${race ? 'Race results' : train ? 'Workout complete' : 'Ride complete'}</h2>${body}${actions}</div>`;
     this.revealRaceRows();
     if (saved && workout?.ftpEstimate && workout.ftpKind !== 'twenty') {
@@ -3126,6 +3218,20 @@ export class App {
         this.startCareerStage();
       });
     }
+  }
+
+  /** The season line under the race stats: what this stage did to the ranking and the contract. */
+  private careerSeasonHtml(update: SeasonUpdate): string {
+    const state = this.career.state;
+    const active = state?.active;
+    const race = active ? raceById(active.raceId) : this.career.nextEntered();
+    let next = '';
+    if (active && race) next = `Next: ${race.name}, stage ${active.stageIndex + 1} of ${race.stages.length}`;
+    else if (race && state) {
+      const day = raceDays(race, state.year)[0];
+      next = `Next race: ${race.name}${day ? `, ${formatDate(day.month, day.day)}` : ''}`;
+    }
+    return seasonUpdateHtml(update, this.career.team()?.division ?? 'continental', next);
   }
 
   /** Keep the player's row on screen in each results list. */
@@ -3312,6 +3418,15 @@ export class App {
         this.panel.querySelectorAll<HTMLInputElement>('[data-career="enter"]').forEach((box) => {
           if (box.dataset.race) box.checked = chosen.has(box.dataset.race);
         });
+        // Ticked, unticked and next on the month grid, without re-rendering (which would close the open race).
+        this.panel.querySelectorAll<HTMLElement>('.race-chip[data-race]').forEach((chip) => {
+          const name = calendarChipClass(chip.dataset.race!, this.career);
+          if (name) chip.className = name;
+        });
+      }
+      if (target.dataset.career === 'cal-mine') {
+        this.career.calendarMine = target.checked;
+        this.render();
       }
       if (target.dataset.career === 'nation') this.career.draftNation = target.value;
       if (target.dataset.career === 'tactic' && target.dataset.tactic) {
@@ -3360,6 +3475,9 @@ export class App {
         this.render();
       } else if (act === 'rank' && (button.dataset.sheet === 'rankings' || button.dataset.sheet === 'results')) {
         this.career.rankSheet = button.dataset.sheet;
+        this.render();
+      } else if (act === 'rank-table' && button.dataset.table) {
+        this.career.rankTable = button.dataset.table as NonNullable<typeof this.career.rankTable>;
         this.render();
       } else if (act === 'skip') {
         this.career.skipNext();
@@ -3444,10 +3562,21 @@ export class App {
     this.world.setMouseLook(this.lookYaw, this.lookPitch);
   }
 
+  /** Hold L to look behind. The turn is eased in the world; the mouse look stays as it was and comes back on release. */
+  private setLookBack(on: boolean): void {
+    if (this.lookBack === on) return;
+    this.lookBack = on;
+    this.world?.setLookBack(on);
+    this.hud.setLookBack(on);
+  }
+
   private resetLook(): void {
     this.lookYaw = 0;
     this.lookPitch = 0;
+    this.lookBack = false;
+    this.hud.setLookBack(false);
     this.releaseLook();
+    this.world?.setLookBack(false);
     this.world?.setMouseLook(0, 0);
   }
 
@@ -3460,6 +3589,34 @@ export class App {
     this.lookPointer = -1;
     if (document.pointerLockElement) document.exitPointerLock();
     this.canvas.classList.add('ui-open');
+  }
+
+  private onHover(e: PointerEvent): void {
+    if (e.pointerType === 'touch' || e.target !== this.canvas) {
+      this.hoverAt = null;
+      return;
+    }
+    const rect = this.canvas.getBoundingClientRect();
+    this.hoverAt = { x: e.clientX - rect.left, y: e.clientY - rect.top, left: rect.left, top: rect.top };
+  }
+
+  /** W/kg over the AI rider under the mouse. What else it shows depends on the kind of ride. */
+  private updateRiderTag(s: RideSession, poses: RiderPose[], world: World): void {
+    const at = this.hoverAt;
+    if (!at || this.draggingLook || this.uiBlocksLook() || s.state === 'countdown') {
+      this.riderTag.hide();
+      return;
+    }
+    const racers = s.sim.racers;
+    const pick = pickRider(poses, world.camera, this.canvas.clientWidth, this.canvas.clientHeight, at.x, at.y, (i) => !racers[i] || racers[i].isPlayer);
+    if (!pick) {
+      this.riderTag.hide();
+      return;
+    }
+    const r = racers[pick.index];
+    const mode: TagMode = s.config.mode === 'free' ? 'free' : s.config.mode === 'train' ? 'train' : s.config.career ? 'career' : 'hillclimb';
+    const lines = tagLines(mode, { name: r.name, gcRank: r.road?.gcRank, gcGap: r.road?.gcGap }, s.wkgOf(pick.index));
+    this.riderTag.show(lines, pick.x + at.left, pick.y + at.top);
   }
 
   private uiBlocksLook(): boolean {
@@ -3496,6 +3653,8 @@ export class App {
       this.cycleMap();
     } else if (key === 't' && this.world) {
       this.cycleTime();
+    } else if (key === 'l' && s && this.world && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      if (!this.uiBlocksLook()) this.setLookBack(true);
     } else if (key === 'b') {
       this.brakeKey = true;
       this.applyBrake();

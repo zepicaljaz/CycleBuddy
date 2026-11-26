@@ -1,6 +1,7 @@
 import type { RoadBody, RoadFeature, RoadPlan, RoadStarter } from '../ai/road';
 import { canEnter, climbScoresOnStage, formatDate, monthsFor, punchyStage, raceById, raceEnd, RACES, risesOnCourse, sharesDay, segmentFinish, segmentKind, stageCourse, stageKm, type RaceDef, type RaceStage } from './calendar';
 import { buildOffers, cybPoints, FINISH_POINTS, finishJerseyPoints, offerPoints } from './classify';
+import { seasonSnapshot, seasonUpdate, type SeasonUpdate } from './progress';
 import { nationColors, paintKits, type PaintContext } from './jerseys';
 import { riderById, riderName, type Rider } from './roster';
 import { aiField, champField, fieldFromList, squadFor, startMateCount } from './squad';
@@ -305,11 +306,15 @@ export class Career {
   draftMountain = 4.3;
   /** Month shown on the calendar. Kept in memory so the page stays on the month you opened. */
   calendarMonth: number | null = null;
+  /** Calendar shows only your races: ticked, ridden, skipped and the one in progress. */
+  calendarMine = false;
   /** Team opened from All teams. Null is the list of teams. */
   browseTeam: string | null = null;
   riderSort: { key: string; dir: 1 | -1 } = { key: 'name', dir: 1 };
   /** Standings page: the points tables, or the classifications of races already held. */
   rankSheet: 'rankings' | 'results' = 'rankings';
+  /** Ranking shown on Standings. Null is the one your division scores in. */
+  rankTable: 'cont' | 'cyb' | 'wins' | 'cyb-teams' | 'cont-teams' | null = null;
 
   load(): void {
     if (typeof localStorage === 'undefined') return;
@@ -564,6 +569,8 @@ export class Career {
       if (index < 0) index = active.gc.findIndex((row) => row.name === name);
       return index < 0 ? undefined : index;
     };
+    const gapOf = (rank: number | undefined): number | undefined =>
+      rank === undefined || !active.gc[0] ? undefined : Math.max(0, active.gc[rank].value - active.gc[0].value);
     const playerBody: RoadBody = {
       riderId: 'player',
       teamId: team.id,
@@ -573,7 +580,11 @@ export class Career {
       kit: playerKit,
       gcRank: rankOf('player', profile.name),
     };
-    for (const rider of field) rider.body.gcRank = rankOf(rider.body.riderId, rider.name);
+    playerBody.gcGap = gapOf(playerBody.gcRank);
+    for (const rider of field) {
+      rider.body.gcRank = rankOf(rider.body.riderId, rider.name);
+      rider.body.gcGap = gapOf(rider.body.gcRank);
+    }
     const paint = paintContext(state, race, active);
     const dressed = [{ colors: playerKit, sprintPts: 0, komPts: 0, road: playerBody }, ...field.map((r) => ({ colors: r.colors, sprintPts: 0, komPts: 0, road: r.body }))];
     paintKits(dressed, paint);
@@ -608,7 +619,19 @@ export class Career {
     };
   }
 
-  commit(rows: StageResultRow[]): { another: boolean; headline: string; classifications: RaceClassifications | null } {
+  /** Counts a stage you rode, and says how the season moved: points gained, ranking, contract. */
+  commit(rows: StageResultRow[]): { another: boolean; headline: string; classifications: RaceClassifications | null; season: SeasonUpdate | null } {
+    const race = this.state?.active ? raceById(this.state.active.raceId) : undefined;
+    const before = this.state && race ? seasonSnapshot(this.state, race) : null;
+    const notes = this.state?.stageNotes?.length ?? 0;
+    const result = this.commitStage(rows);
+    // A counted stage always leaves a stage note; a stage that was not counted leaves none.
+    const counted = (this.state?.stageNotes?.length ?? 0) > notes;
+    const season = before && this.state && counted ? seasonUpdate(before, this.state) : null;
+    return { ...result, season };
+  }
+
+  private commitStage(rows: StageResultRow[]): { another: boolean; headline: string; classifications: RaceClassifications | null } {
     const state = this.state;
     const active = state?.active;
     const race = active ? raceById(active.raceId) : undefined;

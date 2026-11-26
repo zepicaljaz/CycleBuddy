@@ -1,4 +1,5 @@
 import { RideSim, type Racer } from '../ai/peloton';
+import { PowerMeter } from '../ai/powerMeter';
 import type { RoadBody, RoadPlan, RoadStarter } from '../ai/road';
 import type { DeviceManager } from '../ble/devices';
 import type { Climb, Route } from '../routes/route';
@@ -102,6 +103,8 @@ export class RideSession {
   private miss = 0;
   private workoutClosed = false;
   private poses: RiderPose[] = [];
+  /** Every rider's power, read from how they actually move. Shown when you point at a rider. */
+  readonly meter = new PowerMeter();
   onFinish?: () => void;
 
   constructor(readonly config: SessionConfig) {
@@ -214,7 +217,10 @@ export class RideSession {
     const h = dt / steps;
     const prevS = p.s;
     const trial = this.config.career?.road.timeTrial === true;
-    for (let i = 0; i < steps; i++) this.sim.step(h, power, cadence, this.braking);
+    for (let i = 0; i < steps; i++) {
+      this.sim.step(h, power, cadence, this.braking);
+      this.readMeter(h);
+    }
     const recording = (!trial || this.sim.time >= p.ttStart) && p.finishTime === null;
     if (recording) {
       this.distance += Math.abs(p.s - prevS);
@@ -293,8 +299,21 @@ export class RideSession {
   private rollOn(dt: number, power: number, cadence: number, devices: DeviceManager, now: number, difficulty: number): void {
     const steps = Math.max(1, Math.ceil(dt / 0.05));
     const h = dt / steps;
-    for (let i = 0; i < steps; i++) this.sim.step(h, power, cadence);
+    for (let i = 0; i < steps; i++) {
+      this.sim.step(h, power, cadence);
+      this.readMeter(h);
+    }
     devices.updateGrade(this.feltGrade(3) * 100 * difficulty, now);
+  }
+
+  private readMeter(dt: number): void {
+    this.meter.update(this.sim.racers, dt, (s) => this.route.gradeAt(s), (s) => this.route.elevationAt(s), this.config.career != null);
+  }
+
+  /** Current W/kg of a rider, from the power meter. */
+  wkgOf(index: number): number {
+    const r = this.sim.racers[index];
+    return r ? this.meter.wkgOf(index, r.mass) : 0;
   }
 
   /** Hill climbs stay one race segment. Career stages record each named climb on the road. */

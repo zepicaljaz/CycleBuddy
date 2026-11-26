@@ -11,7 +11,7 @@ import { getRouteDef } from '../routes/definitions';
 import { getRoute } from '../routes/route';
 import { FREE_RIDE_RISE, freeRideProfileSpan } from '../ui/profileChart';
 import { RIDERS, bestClimbers, riderName, ridersOf, teamStars, teamStrength } from './roster';
-import { simulateRace } from './simulate';
+import { quality, simulateRace } from './simulate';
 import { CONTINENTAL_TEAMS, PRO_TEAMS, ROSTER_SIZE, TEAMS, WORLD_TEAMS, teamsIn } from './teams';
 import { DEFAULT_COLORS } from '../world/riders';
 
@@ -275,7 +275,7 @@ describe('career season', () => {
     expect(quiet.length).toBeLessThanOrEqual(5);
     expect(quiet[0].teamId).toBe('slorising');
     expect(quiet.some((offer) => TEAMS.find((t) => t.id === offer.teamId)?.division === 'world')).toBe(false);
-    const promoted = buildOffers(500, 'slorising');
+    const promoted = buildOffers(1100, 'slorising');
     expect(promoted.some((offer) => TEAMS.find((t) => t.id === offer.teamId)?.division === 'world')).toBe(true);
     expect(promoted.some((offer) => TEAMS.find((t) => t.id === offer.teamId)?.division === 'pro')).toBe(true);
   });
@@ -293,11 +293,12 @@ describe('career season', () => {
     };
     expect(divisionOf('slorising')).toBe('continental');
     expect(season(0).some((offer) => divisionOf(offer.teamId) !== 'continental')).toBe(false);
-    // Two Pro one-day wins (2 × 90) are not yet enough; three are.
-    expect(season(180).some((offer) => divisionOf(offer.teamId) === 'pro')).toBe(false);
-    expect(season(270).some((offer) => divisionOf(offer.teamId) === 'pro')).toBe(true);
-    // About seven Pro wins earn a World Tour offer.
-    expect(season(630).some((offer) => divisionOf(offer.teamId) === 'world')).toBe(true);
+    // Four Pro one-day wins (4 × 90 × 0.75 = 270) are not yet enough; five (338) are.
+    expect(season(360).some((offer) => divisionOf(offer.teamId) === 'pro')).toBe(false);
+    expect(season(450).some((offer) => divisionOf(offer.teamId) === 'pro')).toBe(true);
+    // About fifteen Pro wins earn a World Tour offer; fourteen do not.
+    expect(season(1260).some((offer) => divisionOf(offer.teamId) === 'world')).toBe(false);
+    expect(season(1350).some((offer) => divisionOf(offer.teamId) === 'world')).toBe(true);
   });
 
   it('gives one time to a bunch and a new time after a gap', () => {
@@ -559,6 +560,29 @@ describe('career season', () => {
     expect(saved?.mountains ?? []).toEqual([]);
   });
 
+  it('gives every starter their overall place and gap to the leader after the first stage', () => {
+    const career = new Career();
+    career.create('slorising', 'SLO', 3.4, 3.8, 4.3);
+    const profile = { name: 'You', weightKg: 70, skin: 'light' };
+    const active = { raceId: 'south-week', stageIndex: 0, gc: [], sprint: [], kom: [], stageWinners: [] };
+    career.state!.active = { ...active };
+    const first = career.launch(profile)!;
+    expect(first.field.every((rider) => rider.body.gcRank === undefined && rider.body.gcGap === undefined)).toBe(true);
+    const [a, b] = first.field;
+    const row = (riderId: string, name: string, value: number) => ({ riderId, name, teamId: 'slorising', country: 'SLO', age: 24, value, places: 1, stages: 1 });
+    career.state!.active = {
+      ...active,
+      stageIndex: 1,
+      startList: first.field.map((rider) => rider.body.riderId),
+      gc: [row(b.body.riderId, b.name, 3600), row('player', 'You', 3630), row(a.body.riderId, a.name, 3684)],
+    };
+    const second = career.launch(profile)!;
+    const find = (id: string) => second.field.find((rider) => rider.body.riderId === id)!.body;
+    expect(find(b.body.riderId)).toMatchObject({ gcRank: 0, gcGap: 0 });
+    expect(find(a.body.riderId)).toMatchObject({ gcRank: 2, gcGap: 84 });
+    expect(second.playerBody).toMatchObject({ gcRank: 1, gcGap: 30 });
+  });
+
   it('pays a one-day climb at the finish for both sprint and mountains', () => {
     const career = new Career();
     career.create('slorising', 'SLO', 3.4, 3.8, 4.3);
@@ -659,7 +683,8 @@ describe('career season', () => {
       for (let t = 0; t < 150; t += 0.2) sim.step(0.2, 250, 90);
       return sim;
     };
-    const nose = (sim: RideSim) => [...sim.racers].filter((r) => !r.isPlayer && r.mode !== 'attack').sort((a, b) => b.s - a.s)[0]?.road?.teamId;
+    // The front of the bunch: riders off the front on an attack, or easing off after one, do not count.
+    const nose = (sim: RideSim) => [...sim.racers].filter((r) => !r.isPlayer && (r.mode === 'follow' || r.mode === 'pace')).sort((a, b) => b.s - a.s)[0]?.road?.teamId;
     expect(nose(ride('sprint'))).toBe('sprint');
     expect(nose(ride('mountain'))).toBe('climb');
   });
@@ -689,6 +714,9 @@ describe('career season', () => {
     const mate = sim.racers.find((r) => r.road?.riderId === 'mate')!;
     const others = sim.racers.filter((r) => r.road && !r.road.teammate);
     mate.s = Math.min(...others.map((r) => r.s)) - 8;
+    // The order is for the player's group, so the player rides in it.
+    sim.player.s = Math.min(...others.map((r) => r.s)) - 1;
+    sim.player.v = others[0].v;
     sim.manual = true;
     sim.paceOn = true;
     sim.paceWkg = 4.2;
@@ -700,6 +728,41 @@ describe('career season', () => {
     for (let t = 0; t < 6; t += 0.05) sim.step(0.05, 160, 85);
     const lifted = others.reduce((sum, r) => sum + r.v, 0) / others.length;
     expect(lifted).toBeGreaterThan(bunch + 1.2);
+  });
+
+  it('keeps teammates on the front of the player\'s group when the player is off the back', () => {
+    const route = getRoute(getRouteDef('lowlands'));
+    const start = route.sectionStart[1] + 400;
+    const body = (id: string, teammate: boolean): RoadBody => ({
+      riderId: id, teamId: 'sprint', age: 27, teammate,
+      attrs: { ...attrs(74), sprint: 80, flat: 76 },
+      kit: DEFAULT_COLORS,
+    });
+    const field = [body('mate', true), body('a', false), body('b', false)].map((item) => ({
+      name: item.riderId, country: 'FRA', team: 'Sprint', mass: 74, colors: DEFAULT_COLORS, body: item,
+    }));
+    const sim = new RideSim(route, {
+      startS: start, finishS: start + 8000, aiCount: 0, seed: 4,
+      road: {
+        flatWkg: 2.2, hillWkg: 3, mountainWkg: 3.6, oneDay: true, timeTrial: false,
+        startS: start, finishS: start + 8000, lastClimbS: null, firstClimbS: start, finishKind: 'sprint', tactic: 'control', features: [],
+      },
+      roadField: field,
+      player: { name: 'Me', massKg: 74, ftp: 163, colors: DEFAULT_COLORS },
+    });
+    sim.started = true;
+    for (let t = 0; t < 90; t += 0.05) sim.step(0.05, 160, 85);
+    const mate = sim.racers.find((r) => r.road?.riderId === 'mate')!;
+    const others = sim.racers.filter((r) => r.road && !r.road.teammate);
+    // The player is far off the back of the other riders; the teammate is with the player.
+    sim.player.s = Math.min(...others.map((r) => r.s)) - 60;
+    mate.s = sim.player.s + 4;
+    sim.manual = true;
+    sim.paceOn = true;
+    sim.paceWkg = 4.2;
+    for (let t = 0; t < 20; t += 0.05) sim.step(0.05, 160, 85);
+    // The teammate pulls the player at the front of the player's group instead of riding off up the road.
+    expect(mate.s - sim.player.s).toBeLessThan(14);
   });
 
   it('spends stamina in the wind and holds it in the wheels', () => {
@@ -726,6 +789,7 @@ describe('career season', () => {
     expect(breakFactor(0.6)).toBeCloseTo(1.02, 2);
     expect(breakFactor(0.3)).toBeCloseTo(0.93, 2);
     expect(breakFactor(0.1)).toBe(0.84);
+    // A rider alone off the front rides breakPace: 1.10 of the slider fresh, falling to 0.86 of that when empty.
     const plan: RoadPlan = {
       flatWkg: 2.2, hillWkg: 3, mountainWkg: 3.6, oneDay: false, timeTrial: false,
       startS: 0, finishS: 18000, lastClimbS: null, finishKind: 'sprint', tactic: 'control', features: [],
@@ -747,21 +811,25 @@ describe('career season', () => {
     decideRoad(fresh, plan, orders, 0, [fresh], []);
     decideRoad(tired, plan, orders, 0, [tired], []);
     expect(fresh.mode).toBe('attack');
-    expect(fresh.targetPower / fresh.mass).toBeCloseTo(2.2 * 1.04, 2);
-    expect(tired.targetPower / tired.mass).toBeCloseTo(2.2 * 0.84, 2);
+    expect(fresh.targetPower / fresh.mass).toBeCloseTo(2.2 * 1.1, 2);
+    expect(tired.targetPower / tired.mass).toBeCloseTo(2.2 * 1.1 * 0.86, 2);
+    expect(tired.targetPower).toBeLessThan(fresh.targetPower);
   });
 
-  it('lifts a flat sprint in steps and leaves a hill finish on the slider', () => {
+  it('lifts the front of the bunch in steps on a sprint run-in and leaves a hill finish on the slider', () => {
     const sprint: RoadPlan = {
       flatWkg: 2.2, hillWkg: 3, mountainWkg: 3.6, oneDay: false, timeTrial: false,
       startS: 0, finishS: 18200, lastClimbS: null, finishKind: 'sprint', tactic: 'sprint', features: [],
     };
     const hill: RoadPlan = { ...sprint, finishKind: 'hill', finishS: 21000, lastClimbS: 18000 };
+    // Lead-out from 13% of the stage (2.4 km here): 1.15, the last kilometre 1.28, the last 500 m 1.38.
+    // A break up the road no longer changes it; the chase of a break is the chase director's.
     expect(flatRunIn(sprint, 7000, 0, 0)).toBe(1);
-    expect(flatRunIn(sprint, 7000, 20, 0)).toBe(1.04);
-    expect(flatRunIn(sprint, 5000, 0, 0)).toBe(1.05);
-    expect(flatRunIn(sprint, 2000, 0, 0)).toBe(1.08);
-    expect(flatRunIn(sprint, 500, 30, 0)).toBe(1.1);
+    expect(flatRunIn(sprint, 7000, 20, 0)).toBe(1);
+    expect(flatRunIn(sprint, 3000, 0, 0)).toBe(1);
+    expect(flatRunIn(sprint, 2000, 0, 0)).toBe(1.15);
+    expect(flatRunIn(sprint, 900, 0, 0)).toBe(1.28);
+    expect(flatRunIn(sprint, 500, 30, 0)).toBe(1.38);
     expect(flatRunIn(sprint, 500, 30, 0.04)).toBe(1);
     expect(flatRunIn(hill, 500, 30, 0)).toBe(1);
   });
@@ -794,7 +862,8 @@ describe('career season', () => {
   it('opens a gap when the best climbers attack', () => {
     const route = getRoute(getRouteDef('argent'));
     const climb = route.climbs.find((item) => item.id === 'arg-lune')!;
-    const start = climb.start + 150;
+    // The last 1.6 km of the climb: the attacks come in the second half of a final climb.
+    const start = climb.end - 1600;
     const climber = (id: string, mountain: number) => {
       const body: RoadBody = {
         riderId: id, teamId: 'hive', age: 27, teammate: false,
@@ -816,9 +885,10 @@ describe('career season', () => {
       player: { name: 'Me', massKg: 68, ftp: 280, colors: DEFAULT_COLORS },
     });
     sim.started = true;
-    for (let t = 0; t < 150; t += 0.2) sim.step(0.2, 300, 85);
     const star = sim.racers.find((r) => r.road?.riderId === 'star')!;
     const dom = sim.racers.find((r) => r.road?.riderId === 'dom')!;
+    for (let t = 0; t < 900 && star.finishTime == null; t += 0.2) sim.step(0.2, 300, 85);
+    expect(star.finishTime).not.toBeNull();
     expect(star.s - dom.s).toBeGreaterThan(40);
     expect(sim.events.some((text) => text.includes('attacks'))).toBe(true);
   });
@@ -853,6 +923,55 @@ describe('career season', () => {
 });
 
 describe('career results', () => {
+  it('decides races you do not ride on the AI riders\' ratings for that terrain', () => {
+    // Spearman rank correlation between rating order and finishing order.
+    const spearman = (a: number[], b: number[]) => {
+      const ranks = (list: number[]) => {
+        const order = list.map((value, index) => ({ value, index })).sort((x, y) => x.value - y.value);
+        const out = new Array<number>(list.length);
+        order.forEach((item, rank) => { out[item.index] = rank; });
+        return out;
+      };
+      const ra = ranks(a);
+      const rb = ranks(b);
+      const n = a.length;
+      const d2 = ra.reduce((sum, value, i) => sum + (value - rb[i]) ** 2, 0);
+      return 1 - (6 * d2) / (n * (n * n - 1));
+    };
+    const byId = new Map(RIDERS.map((rider) => [rider.id, rider]));
+    const all: number[] = [];
+    for (const race of RACES.filter((item) => item.level !== 'champ')) {
+      const stage = race.stages[0];
+      const seg = stageSegment(stage);
+      const punchy = seg.kind === 'road' && punchyStage(stage);
+      // The first day has no fatigue yet, so the order is ratings plus the small random spread.
+      const rows = simulateRace(race, 2026, 'SLO').stages[0].rows;
+      const scores = rows.map((row) => quality(byId.get(row.riderId)!, seg.finish, seg.kind, punchy));
+      const places = rows.map((_, index) => -index);
+      const rho = spearman(scores, places);
+      all.push(rho);
+      // Sprint fields are close in rating, so the small random spread moves riders more there.
+      expect(rho, `${race.name}: finish order should follow the ratings`).toBeGreaterThan(seg.finish === 'sprint' ? 0.6 : 0.75);
+      // The winner is one of the best-rated riders in the field for that terrain.
+      const better = scores.filter((score) => score > scores[0]).length;
+      expect(better, `${race.name}: winner rated too low`).toBeLessThan(Math.ceil(rows.length * 0.1));
+    }
+    all.sort((a, b) => a - b);
+    expect(all[Math.floor(all.length / 2)], 'typical race should follow the ratings closely').toBeGreaterThan(0.85);
+  });
+
+  it('orders a simulated race by the race, never by name, even when the bunch shares a time', () => {
+    for (const race of RACES.filter((item) => item.stages.length === 1 && item.level !== 'champ')) {
+      const sim = simulateRace(race, 2026, 'SLO');
+      const top = sim.overall.slice(0, 15).map((row) => row.name);
+      const byName = sim.overall.map((row) => row.name).sort((a, b) => a.localeCompare(b)).slice(0, 15);
+      expect(top, `${race.name} came out in name order`).not.toEqual(byName);
+      // A bunch finish gives many riders one time; they keep the order they crossed the line.
+      const shared = sim.overall.filter((row) => row.time === sim.overall[0].time);
+      if (shared.length > 3) expect(shared.map((row) => row.name)).not.toEqual([...shared.map((row) => row.name)].sort((a, b) => a.localeCompare(b)));
+    }
+  });
+
   const row = (riderId: string, name: string, time: number, isPlayer = false) => ({
     riderId, name, teamId: 'atlas', country: 'FRA', age: 27, time, sprint: 0, kom: 0, isPlayer,
   });

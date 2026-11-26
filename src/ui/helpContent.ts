@@ -87,12 +87,12 @@ export const HELP_SECTIONS: HelpSection[] = [
 <h3>Reading the HUD</h3>
 <ul>
   <li><b>Top left:</b> power (3-second average), W/kg, cadence, heart rate, speed.</li>
-  <li><b>Under those stats:</b> camera, time of day, map, turn around and brake. Click a row, or press <kbd>C</kbd>, <kbd>T</kbd> or <kbd>M</kbd>. CycleBuddy keeps the last choice for the next ride. <kbd>R</kbd> turns the bike around when you are stopped, on a free ride or a training plan. It stays faded while you are moving, and a race has no turn-around. The lap bar, the next climb, the elevation profile and the map follow the new direction. Hold the Brake row, or hold <kbd>B</kbd>, and speed falls gradually to a stop, including on a steep descent.</li>
+  <li><b>Under those stats:</b> camera, time of day, map, turn around, look back and brake. Click a row, or press <kbd>C</kbd>, <kbd>T</kbd> or <kbd>M</kbd>. CycleBuddy keeps the last choice for the next ride. <kbd>R</kbd> turns the bike around when you are stopped, on a free ride or a training plan. It stays faded while you are moving, and a race has no turn-around. The lap bar, the next climb, the elevation profile and the map follow the new direction. Hold the Look back row, or hold <kbd>L</kbd>, to look behind you. Hold the Brake row, or hold <kbd>B</kbd>, and speed falls gradually to a stop, including on a steep descent.</li>
   <li><b>Map:</b> the nearby road, fixed to the world and always the same size, coloured by gradient (blue downhill, green flat, yellow to purple uphill). Press <kbd>M</kbd> and it zooms out to a wider stretch, about five times further. Press <kbd>M</kbd> again and it zooms out to the whole loop, where climbs are marked in gold. Press <kbd>M</kbd> once more and it zooms back in. In a race the other riders are marked on the map. A free ride shows only you.</li>
   <li><b>Top centre:</b> current climb, then time, distance, elevation already climbed, average power and average speed. On a free ride the bar moves forward as you ride, and after a turn the next climb is the one ahead of you.</li>
   <li><b>Top right:</b> race standings around you with time gaps. The leader stays on the top row and last place on the bottom row. A free ride shows lap and ride stats instead.</li>
   <li><b>Bottom:</b> elevation profile, coloured by steepness (green easy &rarr; red/purple very steep).</li>
-  <li><b>Segments:</b> every named climb records a time, like a Strava segment. On a free ride you can start at kilometre 0, or at the bottom or the top of a climb. Compare attempts under <b>Analytics → Segment analyzer</b>. A career stage keeps each named climb you ride all the way through.</li>
+  <li><b>Segments:</b> every named climb records a time, like a Strava segment. On a free ride you can start at kilometre 0, or at the bottom or the top of a climb. Compare attempts under <b>Analytics → Climbs</b>. A career stage keeps each named climb you ride all the way through.</li>
 </ul>
 
 <h3>Garage</h3>
@@ -108,6 +108,7 @@ export const HELP_SECTIONS: HelpSection[] = [
   <tr><td><kbd>Esc</kbd></td><td>Pause menu (resume / finish / discard)</td></tr>
   <tr><td><kbd>C</kbd></td><td>Change camera (chase / close / aerial / helicopter / first person) and recentre the view</td></tr>
   <tr><td>Mouse</td><td>Hold the left button and drag to look around. Chase, close and aerial cameras orbit the rider through a full circle, so the cyclist stays in view. The helicopter flies itself and does not follow the mouse. The view stays there until you press <kbd>C</kbd>.</td></tr>
+  <tr><td><kbd>L</kbd></td><td>Hold to look behind you. Let go and the view returns to where it was. Works with the chase, close, aerial and first person cameras, and together with the mouse.</td></tr>
   <tr><td><kbd>H</kbd></td><td>Hide / show the HUD</td></tr>
   <tr><td><kbd>M</kbd></td><td>Switch the map: nearby road, wider road, then the full loop</td></tr>
   <tr><td><kbd>T</kbd></td><td>Cycle time of day</td></tr>
@@ -150,7 +151,7 @@ export const HELP_SECTIONS: HelpSection[] = [
 <h3>The game is slow or stutters</h3>
 <p>Lower <b>Graphics quality</b> in Settings (Medium is a good choice for laptops). Plug your laptop into power, and close other heavy browser tabs.</p>
 <h3>Where are my rides stored?</h3>
-<p>On your account. Sign in on another browser and the same rides are there. A copy also stays in the browser you rode on, so a finished ride is still on this computer if the connection drops. Use <b>Analytics &rarr; All rides &rarr; Export backup</b> when you want a file, and upload important rides to Strava or Garmin as .FIT files.</p>
+<p>On your account. Sign in on another browser and the same rides are there. A copy also stays in the browser you rode on, so a finished ride is still on this computer if the connection drops. Use <b>Analytics &rarr; Rides &rarr; Export backup</b> when you want a file, and upload important rides to Strava or Garmin as .FIT files.</p>
 `,
   },
 ];

@@ -69,7 +69,7 @@ npm start               # production server (after a build)
 
 Pro race (six stages modelled on real ones, at 25, 50 or 100 % of the day) is built, and off the play menu for now.
 
-Also on the home screen: **Analytics** (dashboard, all rides, segment analyzer, calendar),
+Also on the home screen: **Analytics** (overview, fitness, power, rides, climbs, calendar),
 **Bike and kit**, **Settings** and **Trainer setup** (help).
 
 - **Real climbs:** `src/routes/real/climbs.json` holds 22 climbs (Stelvio, Alpe d'Huez, Ventoux,
@@ -106,6 +106,11 @@ cyclebuddy/
 ├── public/route-previews/     Still image of each loop, for the Free ride picker
 ├── logo/                      Logo source files
 ├── docs/REAL_ROADS.md         How real roads are built
+├── docs/CAREER_RACING.md      How a Career road race is raced: breaks, chase, climbs, sprints
+├── docs/RACE_MEASURING.md     How to measure Career racing, and the numbers so far
+├── docs/ANALYTICS.md          What the Analytics page shows and how each number is worked out
+├── docs/CAREER_UI.md          Career screens: what they do, decisions, what is open
+├── docs/CAREER_UI_PLAN.md     Career screens: the original audit and redesign plan
 ├── README.md                  This file: what is where
 ├── ARCHITECTURE.md            How the parts fit together
 ├── CONTRIBUTING.md            How we work: branches, pull requests, versions (read this first)
@@ -140,8 +145,11 @@ cyclebuddy/
 | `ble/` | Web Bluetooth. `devices.ts` owns trainer and HR connections and reconnects; `ftms.ts` and `fec.ts` are the two trainer protocols; `heartRate.ts`; `virtualTrainer.ts` (arrow keys) |
 | `physics/cycling.ts` | Speed from power, grade, mass, drag, drafting and braking |
 | `ai/peloton.ts` | The AI field: pacing, drafting, lanes and packs, attacks, finish and time-trial clocks |
-| `ai/road.ts` | Road-race plans: terrain W/kg, team orders, time-trial start order and gaps |
+| `ai/powerMeter.ts` | Each rider's power read from how they actually move (speed, grade, draft, acceleration), smoothed like a head unit. Feeds the W/kg tag |
+| `ai/road.ts` | Road-race plans and the road AI: terrain W/kg, each rider's move (`decideRoad`), group speeds and the chase (`shapeRoad`), team orders, time-trial start order and gaps |
 | `ai/climbers.ts`, `ai/names.ts` | Hill-climb fields and rider names |
+| `ai/raceBrain.ts` | Career race state and physiology: the early break, the chase director's limits, surge reserve, sprint and kick power, day form, descending skill. See `docs/CAREER_RACING.md` |
+| `ai/raceMeasure.ts` | Measuring tool for Career races: rides a stage headless and reports breaks, gaps, winners, bunch size and power. See `docs/RACE_MEASURING.md` |
 
 **Roads**
 
@@ -163,6 +171,7 @@ cyclebuddy/
 | `scenery.ts` | Roadside: towns, fences (culled per 500 m cell), race crowd (culled per 400 m cell), finish, signs |
 | `climbs.ts` | Climb furniture: km bornes, hairpin numbers, stone walls, graffiti |
 | `riders.ts`, `riderBody.ts`, `bikes.ts` | Instanced riders with three levels of detail; body and bike models |
+| `riderPick.ts` | Which rider is under the mouse, found on screen without raycasting |
 | `spectators.ts`, `fences.ts` | Spectator figures; hairpin fences (metal or stone by region) |
 | `alpineHotel.ts`, `modernHotel.ts`, `alpineRestaurant.ts`, `ventouxAntenna.ts`, `island.ts`, `buildings.ts`, `settlement.ts`, `site.ts`, `farms.ts`, `mills.ts` | Buildings and places |
 | `traffic.ts`, `cars.ts`, `convoy.ts`, `motorcycle.ts`, `motorhome.ts`, `tractor.ts`, `boats.ts`, `birds.ts` | Things that move: traffic, the race convoy and broom car, boats, birds |
@@ -177,6 +186,7 @@ cyclebuddy/
 |---|---|
 | `hud.ts` | In-ride HUD: metrics, map, key strip, ride stats, standings, profile, group gaps |
 | `minimap.ts` | Nearby-road, wider-road and full-loop map |
+| `riderTag.ts` | The label over the AI rider under the mouse: W/kg, plus name and overall standing where the ride has them |
 | `profileChart.ts` | Elevation profiles (HUD, cards, stages) |
 | `roadAhead.ts`, `roadbook.ts`, `rideBar.ts` | Road-ahead panel, roadbook profile, lap bar |
 | `helpContent.ts` | Trainer setup and help text |
@@ -187,9 +197,9 @@ cyclebuddy/
 
 | Folder | What it does |
 |---|---|
-| `career/` | `season.ts` (career state, classifications), `calendar.ts` (races, stages, terrain bands), `panel.ts` (career screens incl. the race brief), `simulate.ts` (races you don't ride), `squad.ts`, `roster.ts`, `teams.ts`, `jerseys.ts`, `classify.ts` |
+| `career/` | `season.ts` (career state, classifications), `calendar.ts` (races, stages, terrain bands), `panel.ts` (career screens incl. the season page and the race brief), `progress.ts` (contract meter and season strip numbers), `simulate.ts` (races you don't ride), `squad.ts`, `roster.ts`, `teams.ts`, `jerseys.ts`, `classify.ts` |
 | `training/` | Plans, workouts, FTP test, progress ticks |
-| `analytics/` | The Analytics page, loaded only when opened: `model.ts` (numbers), `view.ts` (HTML), `charts.ts`, `shape.ts` |
+| `analytics/` | The Analytics page, loaded only when opened: `metrics.ts` (load, fitness/fatigue/form, power curve, zones), `model.ts` (ride lists and totals), `view.ts` (the six pages), `charts.ts` (responsive charts), `shape.ts` (ride profile and power bars). See `docs/ANALYTICS.md` |
 | `storage/` | IndexedDB with a memory fallback, account ride sync, FIT import/export, backups |
 | `site/` | Public homepage, sign-in, training-plans page |
 | `audio/sound.ts` | Wind, freewheel, crowds, music (from `assets/audio/`) |
@@ -324,5 +334,8 @@ A new feature comes with a test for it. A bug fix comes with a test that fails w
 | `CHANGES.md` | What changed in each version |
 | `NEXT_STEPS.md` | What to do next |
 | `docs/REAL_ROADS.md` | Building a real road 1:1 |
+| `docs/ANALYTICS.md` | The Analytics page: metrics, formulas, sources |
+| `docs/CAREER_UI.md` | Career screens: what they do, the decisions behind them, what is still open |
+| `docs/CAREER_UI_PLAN.md` | The original audit and plan for the career screens |
 | `ATTRIBUTION.md` | Credits for map, elevation and other data |
 | `data/real-climbs.research.json` | Raw climb research: source segments, notes, references |
