@@ -564,6 +564,8 @@ export class Career {
       if (index < 0) index = active.gc.findIndex((row) => row.name === name);
       return index < 0 ? undefined : index;
     };
+    const gapOf = (rank: number | undefined): number | undefined =>
+      rank === undefined || !active.gc[0] ? undefined : Math.max(0, active.gc[rank].value - active.gc[0].value);
     const playerBody: RoadBody = {
       riderId: 'player',
       teamId: team.id,
@@ -573,7 +575,11 @@ export class Career {
       kit: playerKit,
       gcRank: rankOf('player', profile.name),
     };
-    for (const rider of field) rider.body.gcRank = rankOf(rider.body.riderId, rider.name);
+    playerBody.gcGap = gapOf(playerBody.gcRank);
+    for (const rider of field) {
+      rider.body.gcRank = rankOf(rider.body.riderId, rider.name);
+      rider.body.gcGap = gapOf(rider.body.gcRank);
+    }
     const paint = paintContext(state, race, active);
     const dressed = [{ colors: playerKit, sprintPts: 0, komPts: 0, road: playerBody }, ...field.map((r) => ({ colors: r.colors, sprintPts: 0, komPts: 0, road: r.body }))];
     paintKits(dressed, paint);

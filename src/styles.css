@@ -1807,3 +1807,18 @@ html.site-reveal .site-nav-actions { opacity: 1; transition: opacity .55s ease .
 /* Secondary pause action: outlined, so Resume is the only filled button. */
 #overlay .pause-actions .btn:not(.primary) { background: transparent; color: var(--text); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35); }
 #overlay .pause-actions .btn:not(.primary):hover { background: var(--plate-hi); }
+
+/* W/kg over the AI rider under the mouse. Follows the rider, never takes the pointer. */
+#app > .rider-tag {
+  position: fixed; left: 0; top: 0; z-index: 2; pointer-events: none !important;
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 6px 12px 7px; border-radius: 3px; border-top: 3px solid var(--accent);
+  background: rgba(8, 12, 18, 0.82); color: var(--text); white-space: nowrap;
+  font-family: var(--display); font-style: normal; text-align: center; line-height: 1.05;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4); will-change: transform;
+}
+#app > .rider-tag[hidden] { display: none; }
+.rider-tag .rt-name { font-size: 17px; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; }
+.rider-tag .rt-stand { display: flex; gap: 10px; font-size: 15px; font-weight: 600; color: var(--muted); font-variant-numeric: tabular-nums; }
+.rider-tag .rt-stand[hidden], .rider-tag .rt-name[hidden] { display: none; }
+.rider-tag .rt-wkg { font-size: 30px; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: 0.01em; }

@@ -50,6 +50,8 @@ import { HOME_KEYS, homeHtml } from './homeView';
 import { bindProRace, loadChoice, proRaceHtml } from './proRaceView';
 import { launchQuickRace } from './quickRace';
 import { RoadAhead } from '../ui/roadAhead';
+import { RiderTag, tagLines, type TagMode } from '../ui/riderTag';
+import { pickRider } from '../world/riderPick';
 import '../ui/menus.css';
 
 type Screen = 'home' | 'free' | 'race' | 'pro' | 'plans' | 'plan' | 'train-route' | 'garage' | 'history' | 'settings' | 'help' | 'career';
@@ -255,6 +257,9 @@ export class App {
   /** Held key (L): the view swings half a turn to look behind, then returns when it is released. */
   private lookBack = false;
   private draggingLook = false;
+  /** Mouse over the 3D view, in canvas pixels. Null when the mouse is elsewhere or the pointer is a finger. */
+  private hoverAt: { x: number; y: number; left: number; top: number } | null = null;
+  private riderTag!: RiderTag;
   private lookPointer = -1;
   /** Clicks before this time are the tail of a press already handled, including after a confirm dialog. */
   private overlayIgnoreUntil = 0;
@@ -355,6 +360,7 @@ export class App {
     this.panel = $('#panel', this.ui);
     this.overlay = $('#overlay', this.ui);
     this.hud = new Hud(this.ui);
+    this.riderTag = new RiderTag(this.ui);
     const left = this.ui.querySelector<HTMLElement>('#hud .hud-left');
     this.roadAhead = new RoadAhead(left ?? this.ui);
     const metrics = left?.querySelector('.hud-metrics');
@@ -404,7 +410,13 @@ export class App {
     // here, before the canvas can take it.
     window.addEventListener('pointerup', (e) => this.onOverlayPointer(e), true);
     this.canvas.addEventListener('pointerdown', (e) => this.onLookDown(e));
-    window.addEventListener('pointermove', (e) => this.onLookMove(e));
+    window.addEventListener('pointermove', (e) => {
+      this.onLookMove(e);
+      this.onHover(e);
+    });
+    document.addEventListener('pointerleave', () => {
+      this.hoverAt = null;
+    });
     window.addEventListener('pointerup', (e) => {
       if (e.button !== 0) return;
       this.draggingLook = false;
@@ -685,6 +697,7 @@ export class App {
         const spin = s.watchingFinish ? (s.sim.raceDir() > 0 ? Math.PI : 0) : s.sim.facingAngle();
         const ramp = trial ? { s: s.sim.opts.startS, dir: s.sim.raceDir() } : undefined;
         world.update(dt, focusS, s.player.lat, poses, riders, spin, ramp);
+        this.updateRiderTag(s, poses, world);
         this.updateSound(s, dt);
         this.hudTimer += dt;
         if (this.hudTimer > 0.1) {
@@ -696,6 +709,7 @@ export class App {
           this.syncCareerRide(s);
         }
       } else {
+        this.riderTag.hide();
         const garageS = 40;
         world.poseAt(garageS, 0, this.garagePose);
         this.garagePose.visible = this.screen === 'garage';
@@ -3483,6 +3497,34 @@ export class App {
     this.lookPointer = -1;
     if (document.pointerLockElement) document.exitPointerLock();
     this.canvas.classList.add('ui-open');
+  }
+
+  private onHover(e: PointerEvent): void {
+    if (e.pointerType === 'touch' || e.target !== this.canvas) {
+      this.hoverAt = null;
+      return;
+    }
+    const rect = this.canvas.getBoundingClientRect();
+    this.hoverAt = { x: e.clientX - rect.left, y: e.clientY - rect.top, left: rect.left, top: rect.top };
+  }
+
+  /** W/kg over the AI rider under the mouse. What else it shows depends on the kind of ride. */
+  private updateRiderTag(s: RideSession, poses: RiderPose[], world: World): void {
+    const at = this.hoverAt;
+    if (!at || this.draggingLook || this.uiBlocksLook() || s.state === 'countdown') {
+      this.riderTag.hide();
+      return;
+    }
+    const racers = s.sim.racers;
+    const pick = pickRider(poses, world.camera, this.canvas.clientWidth, this.canvas.clientHeight, at.x, at.y, (i) => !racers[i] || racers[i].isPlayer);
+    if (!pick) {
+      this.riderTag.hide();
+      return;
+    }
+    const r = racers[pick.index];
+    const mode: TagMode = s.config.mode === 'free' ? 'free' : s.config.mode === 'train' ? 'train' : s.config.career ? 'career' : 'hillclimb';
+    const lines = tagLines(mode, { name: r.name, gcRank: r.road?.gcRank, gcGap: r.road?.gcGap }, s.wkgOf(pick.index));
+    this.riderTag.show(lines, pick.x + at.left, pick.y + at.top);
   }
 
   private uiBlocksLook(): boolean {
