@@ -1,0 +1,44 @@
+# src/routes/real: real climbs, stages and real roads
+
+Three levels of "real":
+1. **Real climb on a generated road**: `climbs.json` entry, built by `realClimbRoute` as valley + the climb exactly as published (km gradients, real hairpin count) + descent.
+2. **Real climb on its real road**: same entry plus `tracks/<id>.json` and `src/assets/terrain/<id>.bin`. `realClimbRoute` uses the track automatically when the ids match. These are the Free ride "Real climbs" list (`realRoadClimbs`).
+3. **Real-inspired stage**: `stages.json`, laid out km by km from named climbs by `realStageRoute`.
+
+## What lives here
+- `climbs.json`: the published climbs (camelCase). Each has `kmGrades`, `lastKmLength`, `gain`, `hairpins`, `hairpinsKnown`, scenery hints and `sources`.
+- `stages.json`: stages with `inspiredBy` (the real race day, plain words), `points` (climbs by id or inline, sprints), `finish`, `terrain`.
+- `data.ts`: `checkClimb`, `REAL_CLIMBS`, `REAL_CLIMB_MAP`, `REAL_STAGES`.
+- `build.ts`: `realClimbRoute`, `realStageRoute`, `hairpinPositions`, `hairpinTrace`, `hasRealRoad`, `realRoadClimbs`.
+- `terrain.ts`: `loadRouteTerrain`, fetches a road's `.bin` on ride start (cached per file).
+- `types.ts`: `RealClimb`, `RealStage`, `StagePoint`.
+- `tracks/*.json`: real road lines, written by `scripts/real-track/build.mjs`. Never edit by hand.
+
+## Rules
+- Gradients only from published profiles, with `sources` on the entry. Never invent or "smooth in" a gradient. Road gradient on a real road comes from the profile, never from the terrain data.
+- A climb must pass `checkClimb`: km gradients present, each within -15..30 %, and their gain within 8 % of the published `gain`.
+- No race trademarks as product names. Stages say what they were modelled on in `inspiredBy`.
+- New data source: credit it in `ATTRIBUTION.md` in the same commit.
+- Hairpins and the ground mesh: the slope rules are in `docs/REAL_ROADS.md` → "Hairpins and the ground mesh".
+
+## Track JSON and terrain .bin
+- Track: `id`, `source` (credit line), `origin` (lat/lon of local 0,0; x east, z south, metres), `sections` (3 lengths: 0 valley, 1 published climb, 2 top turn + descent + bottom turn), per-point `x`, `z`, `y`, `sec`, optional `places` (lakes, lots, `cover` open/wood polygons), `climbFromSection`, `hairpins` ('up' or 'down'), `hairpinCount`, `town`/`towns` (metres from the valley end), `terrain` {file, grids}.
+- `.bin`: the grids back to back, fine (25 m, 4 km) then coarse (100 m, 15 km), each `w*h` unsigned 16-bit **decimetres**, row by row from (x0, z0). Grid sizes live in the track JSON, not in the file.
+
+## Add a real climb
+1. Research it into `data/real-climbs.research.json` (snake_case, `source_segments`, `sources`, notes).
+2. Copy it to `climbs.json` in the game's camelCase shape. No script does this; keep both in step.
+3. `npx vitest run src/routes/real/data.test.ts`. A climb that fails `checkClimb` is dropped silently in the game (only a dev console warning), so this test is what catches it.
+4. For its real road, see `scripts/real-track/CLAUDE.md`, then add a `describe` to `track.test.ts`.
+
+## Tests
+- `npx vitest run src/routes/real/data.test.ts`: every climb passes `checkClimb`, builds to its published length, gain and hairpin count; every stage builds with the finish inside the loop.
+- `npx vitest run src/routes/real/build.test.ts`: resampling keeps length and gain, hairpin spacing, real-road list.
+- `npx vitest run src/routes/real/track.test.ts`: per road: OSM line, published length/start/summit/each km, towns, hairpin numbering, loop closes without jumps. Slow; run once at the end.
+- `npx vitest run src/routes/real/branches.test.ts`: Krvavec + land cover + map zoom fit together; every real road builds a terrain field.
+
+## Traps
+- `.bin` heights are unsigned: anything below 0 m is clamped to 0 by the builder, and the maximum is 6,553.5 m.
+- A track is matched to a climb by id. Rename one without the other and the climb silently falls back to a generated road.
+- `data.test.ts` imports `countHairpins` from `build.test.ts`, so build.test's tests also run inside data.test.
+- `trackClimbRoute` gives each section one average grade; the real per-point grade comes from `track.y` in `Route`, not from `sections`.
