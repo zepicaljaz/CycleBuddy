@@ -1327,8 +1327,12 @@ export class RideSim {
     r.lat += clamp(dl, -rate * dt, rate * dt);
   }
 
-  /** Fast-forwards AI riders until everyone has finished (player keeps their result or DNF). */
-  simulateToEnd(maxSeconds = 4 * 3600): void {
+  /**
+   * Fast-forwards AI riders until everyone has finished (player keeps their result or DNF).
+   * A hill-climb gets longer: a blown-up rider on a 25 km climb can be hours behind, and
+   * anyone cut off is given a guessed time that puts them far too high.
+   */
+  simulateToEnd(maxSeconds = (this.opts.road ? 4 : 12) * 3600): void {
     if (!isFinite(this.opts.finishS)) return;
     const dt = 0.5;
     const playerFinished = this.player.finishTime !== null;

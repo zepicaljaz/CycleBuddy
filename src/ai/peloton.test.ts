@@ -185,6 +185,24 @@ describe('AI hill-climb race', () => {
     }
   });
 
+  it('rides even the slowest, blown-up rider all the way to the line', () => {
+    // Longer than four hours at 0.4 W/kg.
+    const sim = new RideSim(route, {
+      startS: climb.start,
+      finishS: climb.end,
+      aiCount: 4,
+      topWkg: 5,
+      bottomWkg: 0.4,
+      seed: 5,
+      player: { name: 'Me', massKg: 72, ftp: 250, colors: DEFAULT_COLORS },
+    });
+    sim.started = true;
+    sim.simulateToEnd();
+    const times = sim.racers.filter((r) => !r.isPlayer).map((r) => r.officialTime);
+    for (const time of times) expect(time).not.toBeNull();
+    expect(Math.max(...(times as number[]))).toBeGreaterThan(4 * 3600);
+  });
+
   it('rides the buddy at the set power and meets the player at a climb gate', () => {
     const route = new Route(getRouteDef('alpine'));
     const climb = route.climbs[0];
