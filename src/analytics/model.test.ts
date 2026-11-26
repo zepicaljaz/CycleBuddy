@@ -304,9 +304,9 @@ describe('analytics pages', () => {
     expect(dashboard).toContain('Weekly load');
     expect(dashboard).toContain('Recent rides');
     expect(dashboard).toContain('Totals');
-    // A short history says form reads low, and opens the explanations.
+    // A short history says form reads low. The explanations stay folded until tapped.
     expect(dashboard).toContain('Still learning your fitness');
-    expect(dashboard).toContain('<details class="an-explain" open>');
+    expect(dashboard).not.toContain('<details class="an-explain" open>');
     expect(dashboard).toContain('What these numbers mean');
     expect(dashboard).toContain('data-tip=');
     expect(dashboard).toContain('France Tour · Stage 13');

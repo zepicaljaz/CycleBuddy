@@ -54,7 +54,8 @@ labels are HTML text that stays readable at any width.
   is normal while training, positive is what you want before a race or a test.
 - **Short history.** Fitness and fatigue start at zero on the first saved ride. Fatigue catches
   up in about a week, fitness in about six, so form reads low at first. Until there are 42 days
-  of history the page says so, and the explanations on the Overview are open.
+  of history the page says so. Every page has a folded "What these numbers mean" link that
+  opens the explanations.
 - **Ramp** = fitness today minus fitness 7 days ago.
 - **Efficiency factor (EF)** = NP / average heart rate, on rides of 20 min or more with HR.
 - **Pw:HR decoupling** = (power/HR in the first half − in the second half) / first half. Needs

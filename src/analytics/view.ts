@@ -195,7 +195,7 @@ function overviewPage(rides: RideSummary[], rows: RideRow[], state: AnalyticsSta
         <p class="an-foot">${lastTest ? `Last FTP test ${esc(formatDay(lastTest.at))}.` : 'No FTP test yet. Load and zones use the FTP in your profile.'}</p>
         <div class="an-hero-help">
           ${learningNote(series.length)}
-          ${glossary(['form', 'fitness', 'fatigue', 'load', 'ftp'], series.length < LEARNING_DAYS)}
+          ${glossary(['form', 'fitness', 'fatigue', 'load', 'ftp'])}
         </div>
       </section>
 
@@ -867,8 +867,8 @@ const TERMS: Record<Term, [string, string]> = {
   zones: ['Zones', 'Power ranges set from your FTP, from easy Recovery to all-out Sprint. Time in zones shows how your riding was spread. Mostly Endurance and Tempo with a little hard work builds fitness well.'],
 };
 
-function glossary(terms: Term[], open = false): string {
-  return `<details class="an-explain"${open ? ' open' : ''}>
+function glossary(terms: Term[]): string {
+  return `<details class="an-explain">
     <summary>What these numbers mean</summary>
     <dl class="an-glossary">${terms.map((term) => `<div><dt>${TERMS[term][0]}</dt><dd>${TERMS[term][1]}</dd></div>`).join('')}</dl>
   </details>`;
