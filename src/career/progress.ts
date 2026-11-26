@@ -206,3 +206,74 @@ export function seasonUpdate(before: SeasonSnapshot, state: CareerState): Season
     to: Math.min(1, after.points / after.scale),
   };
 }
+
+/** Where you stand in one ranking. */
+export interface Standing {
+  /** Null while you have no points in it. */
+  place: number | null;
+  /** Riders with points. */
+  of: number;
+  points: number;
+  /** Points to the rider just ahead, or null when you lead or are not ranked. */
+  toNext: number | null;
+  /** Points to 10th place, when you are below it. */
+  toTen: number | null;
+}
+
+export function standingIn(map: Record<string, number> | undefined): Standing {
+  const values = Object.values(map ?? {}).filter((value) => value > 0).sort((a, b) => b - a);
+  const points = map?.player ?? 0;
+  const place = rankIn(map);
+  const ahead = place && place > 1 ? Math.min(...values.filter((value) => value > points)) : null;
+  const tenth = values[9];
+  return {
+    place,
+    of: values.length,
+    points,
+    toNext: ahead != null && Number.isFinite(ahead) ? ahead - points : null,
+    toTen: place && place > 10 && tenth != null ? tenth - points : null,
+  };
+}
+
+/** One line of a ranking table, with the place it really has (a pinned row keeps its own). */
+export interface RankRow {
+  place: number;
+  id: string;
+  value: number;
+}
+
+/** The top of a ranking, and your row under it when you are further down. Ties share a place. */
+export function rankTop(map: Record<string, number> | undefined, limit: number, pinId = 'player'): { top: RankRow[]; pinned: RankRow | null } {
+  const sorted = Object.entries(map ?? {})
+    .filter(([, value]) => value > 0)
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+  const rows = sorted.map(([id, value]) => ({ id, value, place: 1 + sorted.filter(([, other]) => other > value).length }));
+  const top = rows.slice(0, limit);
+  const mine = rows.find((row) => row.id === pinId) ?? null;
+  return { top, pinned: mine && !top.includes(mine) ? mine : null };
+}
+
+/** Your career in numbers, over every season. */
+export interface CareerTotals {
+  seasons: number;
+  stages: number;
+  raceWins: number;
+  stageWins: number;
+  podiums: number;
+  topTen: number;
+}
+
+export function careerTotals(state: CareerState): CareerTotals {
+  const notes = state.stageNotes ?? [];
+  const finals = state.palmares.filter((item) => item.kind !== 'stage');
+  const multi = new Set(RACES.filter((race) => race.stages.length > 1).map((race) => race.id));
+  const first = Math.min(state.year, ...notes.map((note) => note.year), ...state.palmares.map((item) => item.year));
+  return {
+    seasons: state.year - first + 1,
+    stages: notes.length,
+    raceWins: finals.filter((item) => item.place === 1).length,
+    stageWins: notes.filter((note) => note.place === 1 && multi.has(note.raceId)).length,
+    podiums: finals.filter((item) => item.place <= 3).length,
+    topTen: finals.filter((item) => item.place <= 10).length,
+  };
+}

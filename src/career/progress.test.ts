@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { canEnter, RACES } from './calendar';
 import { CONT_OFFER_WEIGHT, cybPoints, PRO_OFFER, WORLD_OFFER } from './classify';
-import { bookFor, contractProgress, racePayout, rankIn, seasonProgress } from './progress';
+import { bookFor, careerTotals, contractProgress, racePayout, rankIn, rankTop, seasonProgress, standingIn } from './progress';
 import { Career } from './season';
 import { teamsIn } from './teams';
 
@@ -134,5 +134,45 @@ describe('season update after a stage', () => {
   it('ranks nobody without points', () => {
     expect(rankIn({})).toBeNull();
     expect(rankIn({ player: 5, a: 9, b: 5, c: 1 })).toBe(2);
+  });
+});
+
+describe('standings', () => {
+  const map: Record<string, number> = { player: 30 };
+  for (let i = 0; i < 14; i++) map[`r${i}`] = 100 - i * 5;
+
+  it('says your place, how many are ranked, and the gap to 10th', () => {
+    const mine = standingIn(map);
+    expect(mine).toMatchObject({ place: 15, of: 15, points: 30 });
+    expect(mine.toTen).toBe(map.r9 - 30);
+    expect(mine.toNext).toBe(map.r13 - 30);
+  });
+
+  it('is not ranked without points, and leads with the most', () => {
+    expect(standingIn({ a: 4 }).place).toBeNull();
+    expect(standingIn({ player: 9, a: 4 })).toMatchObject({ place: 1, toNext: null, toTen: null });
+  });
+
+  it('pins your row under the top when you are further down', () => {
+    const { top, pinned } = rankTop(map, 10);
+    expect(top).toHaveLength(10);
+    expect(pinned).toMatchObject({ id: 'player', place: 15 });
+    expect(rankTop(map, 20).pinned).toBeNull();
+  });
+
+  it('gives tied riders the same place', () => {
+    const { top } = rankTop({ a: 10, b: 10, c: 5 }, 5);
+    expect(top.map((row) => row.place)).toEqual([1, 1, 3]);
+  });
+});
+
+describe('career totals', () => {
+  it('counts wins, podiums, top 10s, stages and seasons', () => {
+    const career = fresh();
+    rideOpeningClassic(career, 80);
+    const state = career.state!;
+    state.palmares.push({ year: state.year - 1, raceId: 'x', name: 'Old Race', place: 3, kind: 'one-day' });
+    const totals = careerTotals(state);
+    expect(totals).toMatchObject({ raceWins: 1, podiums: 2, topTen: 2, stages: 1, seasons: 2, stageWins: 0 });
   });
 });

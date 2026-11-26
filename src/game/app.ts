@@ -3390,6 +3390,9 @@ export class App {
       } else if (act === 'rank' && (button.dataset.sheet === 'rankings' || button.dataset.sheet === 'results')) {
         this.career.rankSheet = button.dataset.sheet;
         this.render();
+      } else if (act === 'rank-table' && button.dataset.table) {
+        this.career.rankTable = button.dataset.table as 'cont' | 'cyb' | 'wins' | 'teams';
+        this.render();
       } else if (act === 'skip') {
         this.career.skipNext();
         toast('Race skipped. No points.', 'info');

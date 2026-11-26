@@ -1909,3 +1909,37 @@ html.site-reveal .site-nav-actions { opacity: 1; transition: opacity .55s ease .
   .meter-fill.gain { animation: meter-grow 0.9s ease-out 0.3s both; transform-origin: left center; }
 }
 @keyframes meter-grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
+/* Career standings: where you are first, then one ranking at a time */
+.stand-summary { display: flex; flex-direction: column; margin: 12px 0 14px; border-top: 1px solid var(--line); }
+.stand-summary p { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; margin: 0; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 17px; font-variant-numeric: tabular-nums; }
+.stand-summary p > span:first-child { flex: 0 0 200px; color: var(--muted); font-family: var(--display); font-weight: 700; font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; }
+.stand-value { flex: 1 1 260px; }
+.career .sheet-tabs button { border-radius: 3px; }
+.stand-summary b { font-family: var(--display); font-size: 26px; font-weight: 800; line-height: 1; color: var(--accent); }
+.rank-switch button { font-size: 15px; padding: 8px 14px; }
+.rank-about { margin: 8px 0 4px; font-size: 13px; }
+.rank-table { font-size: 15px; max-width: 760px; }
+.rank-table .pos { width: 3rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.rank-table .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.rank-table .num small, .rank-table td .muted { font-size: 12px; }
+.rank-table tr.me td:first-child { box-shadow: inset 3px 0 0 var(--accent); color: var(--text); }
+.rank-table tr.gap td { padding: 0 6px; border-top: 0; color: var(--muted); text-align: left; line-height: 1; }
+
+/* Career record: totals, then each season */
+.record-totals { display: grid; grid-template-columns: repeat(auto-fit, minmax(118px, 1fr)); gap: 4px 16px; margin: 4px 0 8px; padding: 12px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.record-totals div { padding: 4px 0; }
+.record-totals dd { margin: 0; font-family: var(--display); font-size: 36px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+.record-totals dt { margin-top: 4px; color: var(--muted); font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+.record-season { padding: 4px 0 10px; border-bottom: 1px solid var(--line); }
+.record-season h3 { margin: 10px 0 6px; font-size: 20px; font-variant-numeric: tabular-nums; }
+.record-finals { list-style: none; margin: 0 0 8px; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.career-record .record-finals li { color: var(--text); font-size: 16px; font-variant-numeric: tabular-nums; }
+.record-finals li b { display: inline-block; min-width: 3.2em; font-family: var(--display); font-weight: 800; }
+.record-finals li.podium b, .record-season tr.podium b { color: var(--accent); }
+.record-finals small { color: var(--muted); }
+.record-season details summary { cursor: pointer; color: var(--muted); font-weight: 700; margin: 4px 0; }
+.record-season .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+@media (max-width: 560px) {
+  .stand-summary p > span:first-child { flex-basis: 100%; }
+}

@@ -205,6 +205,33 @@ describe('career screens render', () => {
     expect(html).toContain('data-race="opening-classic"');
   });
 
+  it('standings and record mid-season: where you are, your row, your totals', () => {
+    const career = new Career();
+    career.create('slorising', 'SLO', 3.4, 3.8, 4.3);
+    const row = (riderId: string, name: string, time: number, isPlayer = false) => ({
+      riderId, name, teamId: 'slorising', country: 'SLO', age: 24, time, sprint: 0, kom: 0, isPlayer,
+    });
+    career.state!.active = { raceId: 'opening-classic', stageIndex: 0, gc: [], sprint: [], kom: [], stageWinners: [] };
+    career.commit([row('other', 'A. Rider', 90), row('player', 'You', 100, true)]);
+    career.simulateAhead();
+    career.tab = 'rankings';
+    for (const table of ['cont', 'cyb', 'wins', 'teams'] as const) {
+      career.rankTable = table;
+      const html = careerHtml(career, 'Test Rider');
+      expectClean(html, `career standings ${table}`);
+      expect(html).toContain('class="stand-summary"');
+    }
+    career.rankTable = 'cont';
+    const cont = careerHtml(career, 'Test Rider');
+    expect(cont).toContain('Test Rider');
+    expect(cont).toMatch(/<b>\d+(st|nd|rd|th)<\/b> of \d+/);
+    career.tab = 'record';
+    const record = careerHtml(career, 'Test Rider');
+    expectClean(record, 'career record');
+    expect(record).toContain('class="record-totals"');
+    expect(record).toContain('Opening Classic');
+  });
+
   it('the race brief: stats, pace, teammates table, team orders, start', () => {
     const career = new Career();
     career.create('slorising', 'SLO', 3.4, 3.8, 4.3);

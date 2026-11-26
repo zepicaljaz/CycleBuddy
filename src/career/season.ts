@@ -313,6 +313,8 @@ export class Career {
   riderSort: { key: string; dir: 1 | -1 } = { key: 'name', dir: 1 };
   /** Standings page: the points tables, or the classifications of races already held. */
   rankSheet: 'rankings' | 'results' = 'rankings';
+  /** Ranking shown on Standings. Null is the one your division scores in. */
+  rankTable: 'cont' | 'cyb' | 'wins' | 'teams' | null = null;
 
   load(): void {
     if (typeof localStorage === 'undefined') return;
