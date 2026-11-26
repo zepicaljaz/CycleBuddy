@@ -850,7 +850,7 @@ function briefHtml(career: Career, playerName = 'You'): string {
     .join('');
   const standing = (title: string, rows: ClassRow[], unit: 'time' | 'pts') => `<section><h3>${title}</h3>${raceStandingTable(rows, unit, state.teamId, playerName)}</section>`;
   const results = active.stageIndex > 0
-    ? `<div class="brief-results rank-grid">${standing('Overall', active.gc, 'time')}${standing('Sprint', active.sprint, 'pts')}${standing('Mountains', active.kom, 'pts')}</div>`
+    ? `<h4 class="brief-results-title">Current results · after stage ${active.stageIndex} of ${race.stages.length}</h4><div class="brief-results rank-grid">${standing('Overall', active.gc, 'time')}${standing('Sprint', active.sprint, 'pts')}${standing('Mountains', active.kom, 'pts')}</div>`
     : '';
   const TACTIC: Record<CareerState['tactic'], [string, string]> = {
     control: ['Control the race', 'They ride on the front at the bunch pace until the last 800 m.'],
@@ -882,7 +882,6 @@ function briefHtml(career: Career, playerName = 'You'): string {
         <button class="btn primary big" type="button" data-career="start">Start stage</button>
       </div>
     </div>
-    ${results}
     <div class="brief-map">
       <div class="brief-profile">
         <canvas class="route-profile stage-profile" data-stage="${race.id}:${active.stageIndex}"></canvas>
@@ -907,6 +906,7 @@ function briefHtml(career: Career, playerName = 'You'): string {
       <h4 class="tactic-title">Team orders</h4>
       <div class="tactic" role="radiogroup" aria-label="Team orders">${tactics}</div>
     </section>
+    ${results}
   </div>`;
 }
 

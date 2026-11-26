@@ -2038,3 +2038,4 @@ html.site-reveal .site-nav-actions { opacity: 1; transition: opacity .55s ease .
 .brief-class .c-team { width: 3.6rem; }
 .brief-class .c-num { width: 5.6rem; }
 .brief-class td { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.career-brief .brief-results-title { margin: 14px 0 0; }

@@ -7,7 +7,7 @@ releases.
 ## Unreleased
 
 - **Career screens use the whole screen width.** The season page has its page links along the top; on a wide screen the next race is on the left and the contract and season on the right, on a narrow one they stack.
-- **Race brief**: Start stage sits at the top next to what the race pays. From stage 2 the overall, sprint and mountains tables come right under it, side by side when there is room.
+- **Race brief**: Start stage sits at the top next to what the race pays. Then the stage profile, bunch pace, riders to watch, your teammates and team orders. From stage 2 the current results (overall, sprint and mountains) come last, side by side when there is room.
 - **Contract offers need more points**: 300 for a Pro offer (was 160) and 1000 for a World Tour offer (was 450), a second World Tour offer from 1500, and a matching Pro offer for a Pro rider from 170. You set the bunch's W/kg, so you usually finish near the front; a season now takes about five Pro wins to move up to Pro and about fifteen to reach the World Tour.
 - **Teammates are marked** in white next to your orange row: in the standings, the full results, the race results after a stage and the standings on the race brief.
 - **Race brief, from stage 2**: you and your teammates are listed in overall order with each rider's place and time to the leader. The overall, sprint and mountains tables show the top 8, then you and your teammates further down in place.
