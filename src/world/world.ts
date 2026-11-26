@@ -28,6 +28,8 @@ export const CAMERA_LABEL: Record<(typeof RIDE_CAMERAS)[number], string> = {
 };
 
 const MAX_RIDERS = 241;
+/** Time for the look-behind key to turn the view half a circle. */
+const LOOK_BACK_SECONDS = 0.45;
 
 export interface WorldOptions {
   /** Instanced rider slots. A ride uses 241. The homepage only draws a handful. */
@@ -93,6 +95,11 @@ export class World {
   /** Mouse look, in radians. Yaw wraps through a full turn; zero looks down the road. */
   private lookYaw = 0;
   private lookPitch = 0;
+  /** Look-behind key: 0 looks ahead, 1 looks back. Eases over LOOK_BACK_SECONDS, so the turn is smooth. */
+  private lookBackTarget = 0;
+  private lookBackAmount = 0;
+  /** Mouse yaw plus the look-behind turn, as used by the camera this frame. */
+  private viewYaw = 0;
 
   constructor(
     readonly route: Route,
@@ -268,8 +275,22 @@ export class World {
     this.lookPitch = THREE.MathUtils.clamp(pitch, -0.42, 0.48);
   }
 
+  /** Hold-to-look-behind. The view turns half a circle and back with an eased motion. */
+  setLookBack(on: boolean): void {
+    this.lookBackTarget = on ? 1 : 0;
+  }
+
+  private stepLookBack(dt: number): void {
+    const step = Math.min(dt, 0.1) / LOOK_BACK_SECONDS;
+    if (this.lookBackAmount < this.lookBackTarget) this.lookBackAmount = Math.min(this.lookBackTarget, this.lookBackAmount + step);
+    else if (this.lookBackAmount > this.lookBackTarget) this.lookBackAmount = Math.max(this.lookBackTarget, this.lookBackAmount - step);
+    const t = this.lookBackAmount;
+    this.viewYaw = this.lookYaw + t * t * (3 - 2 * t) * Math.PI;
+  }
+
   update(dt: number, focusS: number, focusLat: number, poses: RiderPose[], riders: LaneUser[] = [], spin = 0, ramp?: { s: number; dir: 1 | -1 }): void {
     const started = this.perf ? performance.now() : 0;
+    this.stepLookBack(dt);
     crowdTime.value += dt;
     this.traffic.update(dt, riders, this.camera.position);
     this.scenery.update(dt, this.camera.position);
@@ -495,12 +516,12 @@ export class World {
   private aimedLook(): void {
     this.aimed.copy(this.camLook);
     if (this.cameraMode === 'flyover' || this.cameraMode === 'garage' || this.cameraMode === 'showcase') return;
-    if (Math.abs(this.lookYaw) < 0.001 && Math.abs(this.lookPitch) < 0.001) return;
+    if (Math.abs(this.viewYaw) < 0.001 && Math.abs(this.lookPitch) < 0.001) return;
     this.lookForward.subVectors(this.camLook, this.camPos);
     const len = this.lookForward.length();
     if (len < 0.05) return;
     this.lookForward.multiplyScalar(1 / len);
-    this.yawRotate(this.lookForward, this.lookYaw);
+    this.yawRotate(this.lookForward, this.viewYaw);
     const horiz = Math.hypot(this.lookForward.x, this.lookForward.z) || 1;
     const pitched = THREE.MathUtils.clamp(Math.atan2(this.lookForward.y, horiz) + this.lookPitch, -0.85, 0.9);
     const h = Math.cos(pitched);
@@ -513,7 +534,7 @@ export class World {
    * through a full turn. Applied after the road-follow smoothing.
    */
   private orbitAroundRider(pose: RiderPose): void {
-    if (Math.abs(this.lookYaw) < 0.001 && Math.abs(this.lookPitch) < 0.001) {
+    if (Math.abs(this.viewYaw) < 0.001 && Math.abs(this.lookPitch) < 0.001) {
       this.camera.position.copy(this.camPos);
       this.aimed.copy(this.camLook);
       return;
@@ -521,8 +542,8 @@ export class World {
     this.orbitPivot.set(pose.x, pose.y + 1.05, pose.z);
     this.camOff.subVectors(this.camPos, this.orbitPivot);
     this.lookOff.subVectors(this.camLook, this.orbitPivot);
-    this.yawRotate(this.camOff, this.lookYaw);
-    this.yawRotate(this.lookOff, this.lookYaw);
+    this.yawRotate(this.camOff, this.viewYaw);
+    this.yawRotate(this.lookOff, this.viewYaw);
     if (Math.abs(this.lookPitch) > 0.001) {
       this.orbitRight.set(this.camOff.z, 0, -this.camOff.x);
       if (this.orbitRight.lengthSq() < 1e-8) this.orbitRight.set(1, 0, 0);

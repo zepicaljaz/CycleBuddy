@@ -6,6 +6,7 @@ releases.
 
 ## Unreleased
 
+- **Look back with a key:** hold L during a ride to look behind you, and let go to return. The view turns smoothly, in under half a second. It turns the view half a circle from wherever the mouse has it, so the two work together. It has a Look back row with the L key under the ride stats, next to Brake, and is listed in Help → Keyboard shortcuts.
 - **Krvavec from Grad to Plaža** on its real road: the Pogi Challenge climb from the end of Grad past Ambrož and Planina Jezerca to Plaža, with the published CyclingCols profile and a turnaround at the top. See `docs/REAL_ROADS.md`.
 - **Map** has a step between the nearby road and the full loop. Wider road is the same world-fixed view, about five times further out, still coloured by gradient. Press M to cycle: nearby road, wider road, full loop. The map zooms out and back in as the setting changes.
 - **First person** shows the handlebar. The rider's body stays hidden, so the view reads as the saddle.
