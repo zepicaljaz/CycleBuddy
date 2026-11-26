@@ -676,6 +676,9 @@ export class App {
     const now = performance.now();
     this.syncOverlayPointer();
     this.advanceSession(now, FRAME_CATCH_UP_SEC);
+    // Perf: the AI power meter reads the riders once per drawn frame, not every physics substep.
+    // A hidden tab draws no frames, so its catch-up never reads it (the first frame back settles it in one go).
+    this.session?.settleMeter();
     const world = this.world;
     // A 2 ms allowance, so a 60 Hz display lands on every second frame and not every third.
     if (world && !this.session && now - this.last < App.MENU_FRAME_MS - 2) {

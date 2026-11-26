@@ -306,12 +306,23 @@ export class RideSession {
     devices.updateGrade(this.feltGrade(3) * 100 * difficulty, now);
   }
 
+  // Perf: a physics substep only notes its time; the meter reads the riders once per drawn frame
+  // (settleMeter), never per substep or during a hidden tab's catch-up. Its only reader is the hover tag.
   private readMeter(dt: number): void {
-    this.meter.update(this.sim.racers, dt, (s) => this.route.gradeAt(s), (s) => this.route.elevationAt(s), this.config.career != null);
+    this.meter.defer(dt);
+  }
+
+  private readonly meterGrade = (s: number) => this.route.gradeAt(s);
+  private readonly meterElevation = (s: number) => this.route.elevationAt(s);
+
+  /** Brings the power meter up to the current physics step. Called once per drawn frame, and before a read. */
+  settleMeter(): void {
+    this.meter.settle(this.sim.racers, this.meterGrade, this.meterElevation, this.config.career != null);
   }
 
   /** Current W/kg of a rider, from the power meter. */
   wkgOf(index: number): number {
+    this.settleMeter();
     const r = this.sim.racers[index];
     return r ? this.meter.wkgOf(index, r.mass) : 0;
   }

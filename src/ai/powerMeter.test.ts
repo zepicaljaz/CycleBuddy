@@ -69,3 +69,51 @@ describe('PowerMeter', () => {
     expect(meter.wattsOf(0)).toBeLessThan(200);
   });
 });
+
+describe('PowerMeter deferred reads', () => {
+  const grade = () => 0.04;
+  const alt = () => 300;
+
+  it('reads nothing until settled, then once for all the deferred time', () => {
+    const deferred = new PowerMeter();
+    const direct = new PowerMeter();
+    const r = rider(68, 6);
+    deferred.update([r], 0.05, grade, alt);
+    direct.update([r], 0.05, grade, alt);
+    r.v = 6.4;
+    deferred.defer(0.05);
+    deferred.defer(0.05);
+    expect(deferred.wattsOf(0)).toBe(direct.wattsOf(0));
+    deferred.settle([r], grade, alt);
+    direct.update([r], 0.1, grade, alt);
+    expect(deferred.wattsOf(0)).toBe(direct.wattsOf(0));
+    // Nothing pending: a second settle changes nothing.
+    deferred.settle([r], grade, alt);
+    expect(deferred.wattsOf(0)).toBe(direct.wattsOf(0));
+  });
+
+  it('reads the same steady power once settled as a meter read every substep', () => {
+    const every = new PowerMeter();
+    const frames = new PowerMeter();
+    const r = rider(72, steadySpeed(280, 0.04, makeBikeParams(72), 300, 0));
+    for (let i = 0; i < 400; i++) {
+      every.update([r], 0.05, grade, alt);
+      frames.defer(0.05);
+      if (i % 3 === 2) frames.settle([r], grade, alt);
+    }
+    frames.settle([r], grade, alt);
+    expect(frames.wattsOf(0)).toBeCloseTo(every.wattsOf(0), 3);
+    expect(frames.wattsOf(0)).toBeCloseTo(280, 0);
+  });
+
+  it('after a long hidden-tab catch-up, the first reading is the current effort, not a stale one', () => {
+    const meter = new PowerMeter();
+    const r = rider(70, steadySpeed(150, 0.04, makeBikeParams(70), 300, 0));
+    for (let i = 0; i < 100; i++) meter.update([r], 0.05, grade, alt);
+    // 60 s in a background tab: the steps are noted, nobody reads them.
+    r.v = steadySpeed(320, 0.04, r.bike, 300, 0);
+    for (let i = 0; i < 1200; i++) meter.defer(0.05);
+    meter.settle([r], grade, alt);
+    expect(meter.wattsOf(0)).toBeCloseTo(320, 0);
+  });
+});
