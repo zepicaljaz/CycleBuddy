@@ -3056,7 +3056,7 @@ export class App {
           const side = r.isPlayer ? '' : s.config.career ? teamCode(r.team) : r.country;
           const name = r.isPlayer ? (this.profile.name || r.name) : r.name;
           const mate = !!myTeam && !r.isPlayer && r.team === myTeam;
-          return `<tr class="${r === s.player ? 'me' : mate ? 'mate' : ''}"><td class="pos">${i + 1}</td><td class="rider" title="${esc(name)}"><span class="dot" style="background:${r.colors.jersey}"></span>${esc(name)}</td><td>${esc(side)}</td><td class="num">${time}</td><td class="num">${gap}</td></tr>`;
+          return `<tr class="${r === s.player ? 'me' : mate ? 'teammate' : ''}"><td class="pos">${i + 1}</td><td class="rider" title="${esc(name)}"><span class="dot" style="background:${r.colors.jersey}"></span>${esc(name)}</td><td>${esc(side)}</td><td class="num">${time}</td><td class="num">${gap}</td></tr>`;
         })
         .join('');
       const place = s.player.finishTime !== null ? `You finished <b>${me + 1}${ordinal(me + 1)}</b> of ${st.length}` : 'You did not finish';
@@ -3069,7 +3069,7 @@ export class App {
           const value = unit === 'time' ? formatDuration(row.value) : String(row.value);
           const gap = unit === 'time' && i > 0 ? (Math.abs(row.value - leader) < 0.05 ? 's.t.' : `+${formatDuration(row.value - leader)}`) : '';
           const gapCell = unit === 'time' ? `<td class="num">${gap}</td>` : '';
-          const rowClass = row.riderId === 'player' ? 'me' : myTeam && row.teamId === myTeam ? 'mate' : '';
+          const rowClass = row.riderId === 'player' ? 'me' : myTeam && row.teamId === myTeam ? 'teammate' : '';
           return `<tr class="${rowClass}"><td class="pos">${i + 1}</td><td class="rider" title="${esc(row.name)}">${esc(row.name)}</td><td>${esc(teamCode(row.teamId))}</td><td class="num">${value}</td>${gapCell}</tr>`;
         }).join('') || `<tr><td class="empty" colspan="${unit === 'time' ? 5 : 4}">No points yet</td></tr>`;
         const gapHead = unit === 'time' ? '<th class="num">Gap</th>' : '';
@@ -3395,7 +3395,7 @@ export class App {
         this.career.rankSheet = button.dataset.sheet;
         this.render();
       } else if (act === 'rank-table' && button.dataset.table) {
-        this.career.rankTable = button.dataset.table as 'cont' | 'cyb' | 'wins' | 'teams';
+        this.career.rankTable = button.dataset.table as NonNullable<typeof this.career.rankTable>;
         this.render();
       } else if (act === 'skip') {
         this.career.skipNext();

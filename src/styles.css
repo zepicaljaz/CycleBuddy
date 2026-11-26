@@ -975,10 +975,11 @@ input[type=color] { width: 100%; height: 38px; padding: 2px; cursor: pointer; }
 .podiums article h3 small { margin-left: 8px; color: var(--muted); font-size: 13px; font-weight: 600; letter-spacing: 0; text-transform: none; }
 .rider-tools { display: flex; gap: 12px; align-items: center; }
 .rider-tools input { flex: 1; }
-#panel.screen-career { width: min(1100px, calc(100vw - 32px)); overflow: auto; }
+/* Career screens use the whole width; each page lays itself out for the space it gets. */
+#panel.screen-career { width: calc(100vw - 32px); overflow: auto; scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, 0.28) transparent; }
 #panel.screen-career.career-hub { background: none; border: none; box-shadow: none; backdrop-filter: none; top: 50%; bottom: auto; transform: translate(-50%, -50%); width: min(1320px, calc(100vw - 40px)); max-height: calc(100vh - 36px); }
 /* The season page is a solid column: it sits under the top bar like other panels and scrolls inside. */
-#panel.screen-career.career-hub { top: 78px; bottom: 24px; transform: translateX(-50%); max-height: none; width: min(920px, calc(100vw - 40px)); scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, 0.28) transparent; scrollbar-gutter: stable; }
+#panel.screen-career.career-hub { top: 78px; bottom: 24px; transform: translateX(-50%); max-height: none; width: calc(100vw - 32px); scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, 0.28) transparent; scrollbar-gutter: stable; }
 .career, .career-home, .career-list, .career-brief, .career-record { padding: 8px 22px 28px; display: flex; flex-direction: column; gap: 12px; }
 .day-cell.done { box-shadow: inset 0 0 0 2px rgba(255,255,255,0.7); }
 /* Career season page: next race, contract meter, season strip, links */
@@ -1030,7 +1031,7 @@ input[type=color] { width: 100%; height: 38px; padding: 2px; cursor: pointer; }
 .season-key { margin: 0; font-size: 12px; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; }
 .season-key .season-dot { width: 11px; height: 11px; margin-left: 8px; }
 .season-key .season-dot:first-child { margin-left: 0; }
-.season-links { display: flex; flex-wrap: wrap; gap: 4px 22px; padding-top: 14px; border-top: 1px solid var(--line); }
+.season-links { display: flex; flex-wrap: wrap; gap: 4px 22px; padding: 8px 0; border-top: 1px solid var(--line); }
 .season-links button { appearance: none; background: none; border: 0; padding: 6px 0; color: var(--text); font-family: var(--display); font-weight: 700; font-size: 17px; letter-spacing: 0.04em; text-transform: uppercase; cursor: pointer; border-bottom: 2px solid transparent; }
 .season-links button:hover, .season-links button:focus-visible { border-bottom-color: var(--accent); outline: none; }
 .season-links button.quiet { color: var(--muted); font-size: 14px; margin-left: auto; }
@@ -1919,7 +1920,12 @@ html.site-reveal .site-nav-actions { opacity: 1; transition: opacity .55s ease .
 .stand-summary b { font-family: var(--display); font-size: 26px; font-weight: 800; line-height: 1; color: var(--accent); }
 .rank-switch button { font-size: 15px; padding: 8px 14px; }
 .rank-about { margin: 8px 0 4px; font-size: 13px; }
-.rank-table { font-size: 15px; max-width: 760px; }
+.rank-table { font-size: 15px; width: 100%; table-layout: fixed; }
+.rank-table .c-pos { width: 4rem; }
+.rank-table .c-name { width: 40%; }
+.rank-table .c-name.wide { width: auto; }
+.rank-table .c-num { width: 9rem; }
+.rank-table td { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .rank-table .pos { width: 3rem; color: var(--muted); font-variant-numeric: tabular-nums; }
 .rank-table .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .rank-table .num small, .rank-table td .muted { font-size: 12px; }
@@ -1976,11 +1982,11 @@ html.site-reveal .site-nav-actions { opacity: 1; transition: opacity .55s ease .
 .team-row-meta strong { color: var(--accent); text-transform: uppercase; letter-spacing: 0.06em; }
 
 /* Teammates: a white mark next to your orange one, in every standings and results table */
-.standings tr.mate td { background: rgba(255, 255, 255, 0.07); }
-.standings tr.mate td:first-child { box-shadow: inset 3px 0 0 rgba(255, 255, 255, 0.75); }
-.race-results .standings tr.mate td { background: rgba(255, 255, 255, 0.08); }
-.race-results .standings tr.mate td:first-child { box-shadow: inset 3px 0 0 rgba(255, 255, 255, 0.75); }
-.rank-table tr.mate .pos, .brief-class tr.mate .pos { color: var(--text); }
+.standings tr.teammate td { background: rgba(255, 255, 255, 0.07); }
+.standings tr.teammate td:first-child { box-shadow: inset 3px 0 0 rgba(255, 255, 255, 0.75); }
+.race-results .standings tr.teammate td { background: rgba(255, 255, 255, 0.08); }
+.race-results .standings tr.teammate td:first-child { box-shadow: inset 3px 0 0 rgba(255, 255, 255, 0.75); }
+.rank-table tr.teammate .pos, .brief-class tr.teammate .pos { color: var(--text); }
 
 /* Brief: your squad with place overall and the gap to the leader */
 .career-brief .squad-list li { align-items: baseline; }
@@ -1993,3 +1999,42 @@ html.site-reveal .site-nav-actions { opacity: 1; transition: opacity .55s ease .
 .brief-class .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .brief-class tr.me td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
 .brief-class tr.gap td, .rank-table tr.gap td { padding: 0 6px; border-top: 0; color: var(--muted); line-height: 1; }
+
+/* Season page grid: one column on small screens; next race left, contract and season right when wide. */
+.career-home.season {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: "head" "links" "next" "contract" "season";
+  align-content: start;
+  column-gap: 40px;
+}
+.season-head { grid-area: head; }
+.season-links { grid-area: links; }
+.season-next { grid-area: next; }
+.season-contract { grid-area: contract; }
+.season-strip { grid-area: season; }
+@media (min-width: 1100px) {
+  .career-home.season {
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    grid-template-areas: "head head" "links links" "next contract" "next season";
+    grid-template-rows: auto auto auto 1fr;
+  }
+  .season-next .stage-profile { height: clamp(110px, 22vh, 220px); }
+}
+@media (min-width: 1600px) {
+  .career-home.season { padding: 22px 36px 28px; column-gap: 56px; }
+  .season-next h3 { font-size: 48px; }
+}
+
+/* Brief: what the race pays on the left, Start stage on the right, at the top of the page */
+.career-brief .brief-top { display: flex; align-items: center; justify-content: space-between; gap: 10px 24px; flex-wrap: wrap; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.career-brief .brief-top .brief-stake { flex: 1 1 420px; padding: 0; border-bottom: 0; }
+.career-brief .brief-top .brief-actions { padding: 0; margin-left: auto; }
+/* Race standings on the brief: three tables side by side when there is room, stacked when not */
+.career-brief .brief-results.rank-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 8px 28px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.career-brief .brief-results section { min-width: 0; }
+.brief-class { width: 100%; table-layout: fixed; }
+.brief-class .c-pos { width: 2.6rem; }
+.brief-class .c-team { width: 3.6rem; }
+.brief-class .c-num { width: 5.6rem; }
+.brief-class td { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

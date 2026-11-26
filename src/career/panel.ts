@@ -155,8 +155,9 @@ function slider(id: string, label: string, value: number, max = 6.2): string {
 }
 
 /**
- * The season page: the next race first and biggest, then how close the next contract is,
- * then the season month by month, then the other pages as plain links.
+ * The season page: the other pages as links along the top, then the next race first and
+ * biggest, how close the next contract is, and the season month by month. On a wide screen
+ * the next race takes the left column and the contract and season sit on the right.
  */
 function hubHtml(career: Career): string {
   const state = career.state!;
@@ -176,9 +177,6 @@ function hubHtml(career: Career): string {
         <p>${esc(DIVISION_LABEL[division])} · ${state.year}${current}</p>
       </div>
     </header>
-    ${hubNext(career)}
-    ${hubContract(state)}
-    ${hubSeason(season)}
     <nav class="season-links" aria-label="Career pages">
       <button type="button" data-career="tab" data-tab="calendar">Calendar</button>
       <button type="button" data-career="tab" data-tab="rankings">Standings</button>
@@ -189,6 +187,9 @@ function hubHtml(career: Career): string {
       ${simulate}
       <button type="button" class="quiet" data-career="download">Download save</button>
     </nav>
+    ${hubNext(career)}
+    ${hubContract(state)}
+    ${hubSeason(season)}
   </div>`;
 }
 
@@ -529,10 +530,10 @@ function rankingsHtml(career: Career, playerName: string): string {
   return `${tabs}${career.rankSheet === 'results' ? seasonResultsHtml(career) : rankingTables(career, playerName)}`;
 }
 
-type RankTable = 'cont' | 'cyb' | 'wins' | 'teams';
+type RankTable = 'cont' | 'cyb' | 'wins' | 'cyb-teams' | 'cont-teams';
 
 /** In this order on the page: CYB first, then Continental. */
-const RANK_LABEL: Record<RankTable, string> = { cyb: 'CYB', cont: 'Continental', wins: 'Wins', teams: 'Teams' };
+const RANK_LABEL: Record<RankTable, string> = { cyb: 'CYB', cont: 'Continental', wins: 'Wins', 'cyb-teams': 'CYB teams', 'cont-teams': 'Continental teams' };
 
 /** "18th of 210 · 86 points · 12 behind 10th", or why you are not on it yet. */
 function standingLine(map: Record<string, number> | undefined, unit: string): string {
@@ -552,23 +553,21 @@ function standingLine(map: Record<string, number> | undefined, unit: string): st
 function rankingTables(career: Career, playerName: string): string {
   const state = career.state!;
   const team = teamById(state.teamId);
-  const division = team?.division ?? 'continental';
   const table: RankTable = career.rankTable ?? 'cyb';
-  const own = division === 'world' ? 'cyb' : 'cont';
-  const teamBook = own === 'cyb' ? 'CYB' : 'Continental';
   const summary = `<section class="stand-summary" aria-label="Where you stand">
     <p><span>CYB ranking</span>${standingLine(state.cyb, 'points')}</p>
     <p><span>Continental ranking</span>${standingLine(state.cont, 'points')}</p>
     <p><span>Wins</span>${standingLine(state.wins, 'wins')}</p>
   </section>`;
-  const switcher = `<div class="sheet-tabs rank-switch" role="tablist" aria-label="Ranking">${(Object.keys(RANK_LABEL) as RankTable[]).map((key) => `<button type="button" role="tab" aria-selected="${key === table}" data-career="rank-table" data-table="${key}" class="${key === table ? 'on' : ''}">${key === 'teams' ? `${teamBook} teams` : RANK_LABEL[key]}</button>`).join('')}</div>`;
+  const switcher = `<div class="sheet-tabs rank-switch" role="tablist" aria-label="Ranking">${(Object.keys(RANK_LABEL) as RankTable[]).map((key) => `<button type="button" role="tab" aria-selected="${key === table}" data-career="rank-table" data-table="${key}" class="${key === table ? 'on' : ''}">${RANK_LABEL[key]}</button>`).join('')}</div>`;
   const about: Record<RankTable, string> = {
     cont: 'Every rider with a point from Pro and Continental races. Contract offers count them at 75 %.',
     cyb: 'Every rider with a point from World Tour races and the championships. Contract offers count them in full.',
     wins: 'Every rider with a race or stage win this season, in every division.',
-    teams: own === 'cyb' ? 'World Tour teams, on CYB points.' : 'Pro and Continental teams share one standing.',
+    'cyb-teams': 'World Tour teams, on their riders\' points.',
+    'cont-teams': 'Pro and Continental teams share one standing, on their riders\' points.',
   };
-  const body = table === 'teams' ? teamTableHtml(state, own) : riderRankHtml(table === 'cyb' ? state.cyb : table === 'wins' ? state.wins : state.cont ?? {}, table === 'wins' ? '' : 'pts', playerName, team?.name ?? '', state.teamId);
+  const body = table === 'cyb-teams' || table === 'cont-teams' ? teamTableHtml(state, table === 'cyb-teams' ? 'cyb' : 'cont') : riderRankHtml(table === 'cyb' ? state.cyb : table === 'wins' ? state.wins : state.cont ?? {}, table === 'wins' ? '' : 'pts', playerName, team?.name ?? '', state.teamId);
   return `${summary}${switcher}<p class="muted rank-about">${about[table]}</p>${body}
     <p class="muted rank-about">Your row is orange, your teammates' rows are marked white. Rankings start again each season.</p>`;
 }
@@ -584,7 +583,7 @@ function riderRankHtml(map: Record<string, number>, unit: string, playerName: st
     return `<tr class="${rowTone(row.id, rider?.teamId ?? '', myTeam)}"><td class="pos">${row.place}</td><td>${esc(name)}</td><td class="muted">${esc(teamName)}</td><td class="num">${row.value}${unit ? ` <small>${unit}</small>` : ''}</td></tr>`;
   };
   const gap = pinned ? `<tr class="gap" aria-hidden="true"><td colspan="4">⋮</td></tr>${line(pinned)}` : '';
-  return `<table class="standings rank-table"><thead><tr><th class="pos">#</th><th>Rider</th><th>Team</th><th class="num">${unit ? 'Points' : 'Wins'}</th></tr></thead><tbody>${top.map(line).join('')}${gap}</tbody></table>`;
+  return `<table class="standings rank-table"><colgroup><col class="c-pos"/><col class="c-name"/><col class="c-team"/><col class="c-num"/></colgroup><thead><tr><th class="pos">#</th><th>Rider</th><th>Team</th><th class="num">${unit ? 'Points' : 'Wins'}</th></tr></thead><tbody>${top.map(line).join('')}${gap}</tbody></table>`;
 }
 
 function teamTableHtml(state: CareerState, book: 'cyb' | 'cont'): string {
@@ -596,7 +595,7 @@ function teamTableHtml(state: CareerState, book: 'cyb' | 'cont'): string {
     const division = divisions.length > 1 ? ` <span class="muted">${esc(DIVISION_LABEL[row.division])}</span>` : '';
     return `${gap}<tr class="${row.id === state.teamId ? 'me' : ''}"><td class="pos">${row.place}</td><td>${esc(row.name)}${division}</td><td class="num">${row.value} <small>pts</small></td></tr>`;
   }).join('');
-  return `<table class="standings rank-table"><thead><tr><th class="pos">#</th><th>Team</th><th class="num">Points</th></tr></thead><tbody>${body}</tbody></table>`;
+  return `<table class="standings rank-table"><colgroup><col class="c-pos"/><col class="c-name wide"/><col class="c-num"/></colgroup><thead><tr><th class="pos">#</th><th>Team</th><th class="num">Points</th></tr></thead><tbody>${body}</tbody></table>`;
 }
 
 const FLAG_CC: Record<string, string> = {
@@ -704,10 +703,10 @@ function placeWord(place: number): string {
   return `${place}${suffix}`;
 }
 
-/** "me" for your row, "mate" for a rider on your team. */
+/** "me" for your row, "teammate" for a rider on your team. */
 function rowTone(riderId: string, teamId: string, myTeam: string): string {
   if (riderId === 'player') return 'me';
-  return myTeam && teamId === myTeam ? 'mate' : '';
+  return myTeam && teamId === myTeam ? 'teammate' : '';
 }
 
 function resultTable(title: string, rows: { riderId: string; name: string; teamId: string; value: number }[], unit: 'time' | 'pts', myTeam = ''): string {
@@ -876,7 +875,14 @@ function briefHtml(career: Career, playerName = 'You'): string {
         ${stat('Stage', `${active.stageIndex + 1}<small>/${race.stages.length}</small>`)}
       </dl>
     </header>
-    ${briefStake(state, race, active)}
+    <div class="brief-top">
+      ${briefStake(state, race, active)}
+      <div class="brief-actions">
+        ${active.stageIndex === 0 ? '<button class="brief-skip" type="button" data-career="skip">Skip this race</button>' : ''}
+        <button class="btn primary big" type="button" data-career="start">Start stage</button>
+      </div>
+    </div>
+    ${results}
     <div class="brief-map">
       <div class="brief-profile">
         <canvas class="route-profile stage-profile" data-stage="${race.id}:${active.stageIndex}"></canvas>
@@ -901,11 +907,6 @@ function briefHtml(career: Career, playerName = 'You'): string {
       <h4 class="tactic-title">Team orders</h4>
       <div class="tactic" role="radiogroup" aria-label="Team orders">${tactics}</div>
     </section>
-    ${results}
-    <div class="brief-actions">
-      ${active.stageIndex === 0 ? '<button class="brief-skip" type="button" data-career="skip">Skip this race</button>' : ''}
-      <button class="btn primary big" type="button" data-career="start">Start stage</button>
-    </div>
   </div>`;
 }
 
@@ -930,7 +931,7 @@ function squadStanding(state: CareerState, active: NonNullable<CareerState['acti
   if (racing) everyone.sort((a, b) => (a.place ?? 999) - (b.place ?? 999));
   return everyone.map((rider) => {
     const gc = racing ? `<span class="squad-gc"><b>${rider.place ? placeWord(rider.place) : '–'}</b> ${esc(rider.gap)}</span>` : '';
-    return `<li class="${rider.me ? 'me' : 'mate'}"><b>${esc(rider.name)}</b><span>${esc(rider.note)}</span>${gc}</li>`;
+    return `<li class="${rider.me ? 'me' : 'teammate'}"><b>${esc(rider.name)}</b><span>${esc(rider.note)}</span>${gc}</li>`;
   }).join('');
 }
 
@@ -948,7 +949,7 @@ function raceStandingTable(rows: ClassRow[], unit: 'time' | 'pts', myTeam: strin
       : `${row.value} pts`;
     return `${skipped}<tr class="${rowTone(row.riderId, row.teamId, myTeam)}"><td class="pos">${place}</td><td>${esc(name)}</td><td class="muted">${esc(teamCode(row.teamId))}</td><td class="num">${value}</td></tr>`;
   }).join('');
-  return `<table class="standings brief-class"><tbody>${body}</tbody></table>`;
+  return `<table class="standings brief-class"><colgroup><col class="c-pos"/><col class="c-name"/><col class="c-team"/><col class="c-num"/></colgroup><tbody>${body}</tbody></table>`;
 }
 
 /** On the brief: where you stand in this race, what it pays, and how far the next contract is. */

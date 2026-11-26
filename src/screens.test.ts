@@ -243,7 +243,7 @@ describe('career screens render', () => {
     career.commit([row('other', 'A. Rider', 90), row('player', 'You', 100, true)]);
     career.simulateAhead();
     career.tab = 'rankings';
-    for (const table of ['cont', 'cyb', 'wins', 'teams'] as const) {
+    for (const table of ['cyb', 'cont', 'wins', 'cyb-teams', 'cont-teams'] as const) {
       career.rankTable = table;
       const html = careerHtml(career, 'Test Rider');
       expectClean(html, `career standings ${table}`);
@@ -309,7 +309,7 @@ describe('career screens render', () => {
     expect(html).toContain('class="squad-gc"><b>12th</b> +1:40');
     expect(html).toContain('<b>13th</b> +3:03');
     expect(html).toMatch(/<tr class="me"><td class="pos">12<\/td>/);
-    expect(html).toMatch(/<tr class="mate"><td class="pos">13<\/td>/);
+    expect(html).toMatch(/<tr class="teammate"><td class="pos">13<\/td>/);
     expect(html).toContain('<tr class="gap"');
   });
 
@@ -328,7 +328,7 @@ describe('career screens render', () => {
     expectClean(html, 'standings, everyone');
     const ranked = Object.values(career.state!.cont).filter((value) => value > 0).length;
     expect((html.match(/<td class="pos">/g) ?? []).length).toBe(ranked);
-    expect(html).toContain('<tr class="mate">');
+    expect(html).toContain('<tr class="teammate">');
   });
 
   it('the season line on the race results', () => {

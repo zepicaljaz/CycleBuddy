@@ -314,7 +314,7 @@ export class Career {
   /** Standings page: the points tables, or the classifications of races already held. */
   rankSheet: 'rankings' | 'results' = 'rankings';
   /** Ranking shown on Standings. Null is the one your division scores in. */
-  rankTable: 'cont' | 'cyb' | 'wins' | 'teams' | null = null;
+  rankTable: 'cont' | 'cyb' | 'wins' | 'cyb-teams' | 'cont-teams' | null = null;
 
   load(): void {
     if (typeof localStorage === 'undefined') return;
