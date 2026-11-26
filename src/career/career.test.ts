@@ -11,7 +11,7 @@ import { getRouteDef } from '../routes/definitions';
 import { getRoute } from '../routes/route';
 import { FREE_RIDE_RISE, freeRideProfileSpan } from '../ui/profileChart';
 import { RIDERS, bestClimbers, riderName, ridersOf, teamStars, teamStrength } from './roster';
-import { simulateRace } from './simulate';
+import { quality, simulateRace } from './simulate';
 import { CONTINENTAL_TEAMS, PRO_TEAMS, ROSTER_SIZE, TEAMS, WORLD_TEAMS, teamsIn } from './teams';
 import { DEFAULT_COLORS } from '../world/riders';
 
@@ -854,6 +854,43 @@ describe('career season', () => {
 });
 
 describe('career results', () => {
+  it('decides races you do not ride on the AI riders\' ratings for that terrain', () => {
+    // Spearman rank correlation between rating order and finishing order.
+    const spearman = (a: number[], b: number[]) => {
+      const ranks = (list: number[]) => {
+        const order = list.map((value, index) => ({ value, index })).sort((x, y) => x.value - y.value);
+        const out = new Array<number>(list.length);
+        order.forEach((item, rank) => { out[item.index] = rank; });
+        return out;
+      };
+      const ra = ranks(a);
+      const rb = ranks(b);
+      const n = a.length;
+      const d2 = ra.reduce((sum, value, i) => sum + (value - rb[i]) ** 2, 0);
+      return 1 - (6 * d2) / (n * (n * n - 1));
+    };
+    const byId = new Map(RIDERS.map((rider) => [rider.id, rider]));
+    const all: number[] = [];
+    for (const race of RACES.filter((item) => item.level !== 'champ')) {
+      const stage = race.stages[0];
+      const seg = stageSegment(stage);
+      const punchy = seg.kind === 'road' && punchyStage(stage);
+      // The first day has no fatigue yet, so the order is ratings plus the small random spread.
+      const rows = simulateRace(race, 2026, 'SLO').stages[0].rows;
+      const scores = rows.map((row) => quality(byId.get(row.riderId)!, seg.finish, seg.kind, punchy));
+      const places = rows.map((_, index) => -index);
+      const rho = spearman(scores, places);
+      all.push(rho);
+      // Sprint fields are close in rating, so the small random spread moves riders more there.
+      expect(rho, `${race.name}: finish order should follow the ratings`).toBeGreaterThan(seg.finish === 'sprint' ? 0.6 : 0.75);
+      // The winner is one of the best-rated riders in the field for that terrain.
+      const better = scores.filter((score) => score > scores[0]).length;
+      expect(better, `${race.name}: winner rated too low`).toBeLessThan(Math.ceil(rows.length * 0.1));
+    }
+    all.sort((a, b) => a - b);
+    expect(all[Math.floor(all.length / 2)], 'typical race should follow the ratings closely').toBeGreaterThan(0.85);
+  });
+
   it('orders a simulated race by the race, never by name, even when the bunch shares a time', () => {
     for (const race of RACES.filter((item) => item.stages.length === 1 && item.level !== 'champ')) {
       const sim = simulateRace(race, 2026, 'SLO');
