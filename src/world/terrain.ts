@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import type { ChunkRequest, ChunkResult } from './terrainChunk';
 import type { FieldInput } from './terrainField';
-import type { Biome } from '../routes/types';
+import type { Biome, LandmarkBox } from '../routes/types';
 import { addWindSway, broadleafDetailed, broadleafSimple, cactus, pineDetailed, pineSimple, rock, rockWarm, shrub, spruceDetailed, spruceSimple } from './models';
 
 const NEAR = 512;
@@ -82,10 +82,13 @@ export class TerrainManager {
   private propGeoms: { detailed: THREE.BufferGeometry[]; simple: THREE.BufferGeometry[] };
   readonly windTime = { value: 0 };
   quality: TerrainQuality;
+  /** Landmark boxes: chunks touching one are split and drawn at 16 m cells at least. */
+  private readonly landmarks: LandmarkBox[];
   onProgress?: (loaded: number, wanted: number) => void;
 
   constructor(input: FieldInput, quality: TerrainQuality) {
     this.quality = quality;
+    this.landmarks = input.landmarks ?? [];
     this.group.name = 'terrain';
     this.material = new THREE.MeshStandardMaterial({
       vertexColors: true,
@@ -265,7 +268,8 @@ export class TerrainManager {
         const fz = (fcz + dz) * FAR;
         const fd = rectDistance(fx, fz, FAR, px, pz);
         if (fd > q.viewDistance) continue;
-        if (fd < q.splitDistance) {
+        const landmark = this.touchesLandmark(fx, fz, FAR);
+        if (fd < q.splitDistance || landmark) {
           for (let j = 0; j < 4; j++) {
             for (let i = 0; i < 4; i++) {
               const x0 = fx + i * NEAR;
@@ -274,8 +278,13 @@ export class TerrainManager {
               let lod: 0 | 1 | 2 = 2;
               if (d < q.lod0Distance) lod = 0;
               else if (d < q.splitDistance * 0.75) lod = 1;
+              // A landmark keeps 16 m cells however far it is. Beyond the split distance the
+              // rest of its far tile is split too, at 32 m, so the pieces meet without a gap.
+              const onLandmark = landmark && this.touchesLandmark(x0, z0, NEAR);
+              if (onLandmark && lod === 2) lod = 1;
               const segs = lod === 0 ? 64 : lod === 1 ? 32 : 16;
-              const spacing = (lod === 0 ? 9 : lod === 1 ? 15 : 26) / density;
+              const far = fd >= q.splitDistance;
+              const spacing = (far ? 48 : lod === 0 ? 9 : lod === 1 ? 15 : 26) / density;
               const trees = q.treeDistance === undefined || d < q.treeDistance;
               const treeSpacing = trees ? spacing : 0;
               // Tree spacing is in the key, so a new density or tree range rebuilds the chunk.
@@ -283,7 +292,7 @@ export class TerrainManager {
               desired.set(key, {
                 key, x0, z0, size: NEAR, segs, treeSpacing,
                 propDetail: lod === 0 ? 0 : 1,
-                treeScale: lod === 2 ? 1.25 : 1,
+                treeScale: far ? 1.7 : lod === 2 ? 1.25 : 1,
                 dist: d,
                 castShadow: d < 260,
               });
@@ -304,6 +313,11 @@ export class TerrainManager {
       }
     }
     this.desired = desired;
+  }
+
+  private touchesLandmark(x0: number, z0: number, size: number): boolean {
+    for (const b of this.landmarks) if (x0 < b.maxX && x0 + size > b.minX && z0 < b.maxZ && z0 + size > b.minZ) return true;
+    return false;
   }
 
   private pump() {

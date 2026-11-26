@@ -1,7 +1,7 @@
 import { ROUTE_DS } from '../routes/route';
 import { lerp, smoothstep } from '../util/math';
 import { Noise2D } from '../util/noise';
-import type { DemGrid, MapPolygon, SceneryDef, TrackPlaces } from '../routes/types';
+import type { DemGrid, LandmarkBox, MapPolygon, SceneryDef, TrackPlaces } from '../routes/types';
 
 export const ROAD_HALF_WIDTH = 3.8;
 
@@ -28,6 +28,8 @@ export interface FieldInput {
   pads?: Float32Array;
   /** OpenStreetMap lakes and parking lots, in the same local metres as the road. */
   places?: TrackPlaces;
+  /** Boxes drawn at a finer mesh even far away, so a famous peak keeps its shape (Tre Cime). */
+  landmarks?: LandmarkBox[];
 }
 
 const CLEAR_CELL = 64;
@@ -53,6 +55,9 @@ interface Tile {
 
 const key = (ix: number, iz: number) => (ix + 32768) * 65536 + (iz + 32768);
 
+/** What grows on the ground at a point. Scrub, scree and rock only come from a mapped road. */
+export type GroundCover = 'wood' | 'pasture' | 'forest' | 'scrub' | 'scree' | 'rock';
+
 interface MapArea {
   x: Float32Array;
   z: Float32Array;
@@ -77,6 +82,38 @@ function compileArea(p: MapPolygon): MapArea {
     maxZ = Math.max(maxZ, z[i]);
   }
   return { x, z, level: p.level ?? NaN, minX, maxX, minZ, maxZ };
+}
+
+/** Polygons bucketed on a 250 m grid, so a lookup only tests the few that reach that cell. */
+class AreaIndex {
+  private static readonly CELL = 250;
+  private readonly cells = new Map<number, MapArea[]>();
+  readonly size: number;
+
+  constructor(polys: MapPolygon[]) {
+    const C = AreaIndex.CELL;
+    for (const p of polys) {
+      const a = compileArea(p);
+      for (let i = Math.floor(a.minX / C); i <= Math.floor(a.maxX / C); i++) {
+        for (let j = Math.floor(a.minZ / C); j <= Math.floor(a.maxZ / C); j++) {
+          const k = AreaIndex.key(i, j);
+          let list = this.cells.get(k);
+          if (!list) this.cells.set(k, (list = []));
+          list.push(a);
+        }
+      }
+    }
+    this.size = polys.length;
+  }
+
+  private static key(i: number, j: number): number {
+    return (i + 32768) * 65536 + (j + 32768);
+  }
+
+  has(x: number, z: number): boolean {
+    const list = this.cells.get(AreaIndex.key(Math.floor(x / AreaIndex.CELL), Math.floor(z / AreaIndex.CELL)));
+    return list ? insideAny(list, x, z) : false;
+  }
 }
 
 function insideAny(areas: MapArea[], x: number, z: number): boolean {
@@ -180,6 +217,15 @@ export class TerrainField {
   private readonly lakes: MapArea[] = [];
   private readonly lots: MapArea[] = [];
   private readonly woods: MapArea[] = [];
+  /** Mapped scrub, scree and bare rock, and whether the map covers everything (no generated forest). */
+  private readonly scrub: AreaIndex | null;
+  private readonly scree: AreaIndex | null;
+  private readonly rock: AreaIndex | null;
+  private readonly coverMapped: { minX: number; maxX: number; minZ: number; maxZ: number } | null;
+  /** Mapped meadows and clearings, checked before the woods inside the mapped box. */
+  private readonly openIndex: AreaIndex | null;
+  /** The woods again, bucketed, when there are many of them. */
+  private readonly woodIndex: AreaIndex | null;
   /** Radius of the open verge at this road sample, or 0. The way back is included. */
   private openRadius: Float32Array | null = null;
 
@@ -190,6 +236,13 @@ export class TerrainField {
     for (const lake of input.places?.lakes ?? []) this.lakes.push(compileArea(lake));
     for (const lot of input.places?.lots ?? []) this.lots.push(compileArea(lot));
     for (const wood of input.places?.cover?.wood ?? []) this.woods.push(compileArea(wood));
+    const cover = input.places?.cover;
+    this.scrub = cover?.scrub?.length ? new AreaIndex(cover.scrub) : null;
+    this.scree = cover?.scree?.length ? new AreaIndex(cover.scree) : null;
+    this.rock = cover?.rock?.length ? new AreaIndex(cover.rock) : null;
+    this.coverMapped = cover?.mapped ?? null;
+    this.woodIndex = this.coverMapped && this.woods.length ? new AreaIndex(cover!.wood) : null;
+    this.openIndex = this.coverMapped && cover!.open.length ? new AreaIndex(cover!.open) : null;
     if (input.clear) this.setClearings(input.clear);
     this.scenery = input.scenery;
     this.rx = input.x;
@@ -833,8 +886,15 @@ export class TerrainField {
    * an open stretch, and which sits inside that stretch's radius, is grazed.
    * Everywhere else keeps the generated forest.
    */
-  groundCover(x: number, z: number, y: number): 'wood' | 'pasture' | 'forest' {
-    if (insideAny(this.woods, x, z)) return 'wood';
+  groundCover(x: number, z: number, y: number): GroundCover {
+    const box = this.coverMapped;
+    const mapped = box !== null && x >= box.minX && x <= box.maxX && z >= box.minZ && z <= box.maxZ;
+    if (mapped && this.openIndex?.has(x, z)) return 'pasture';
+    if (this.woodIndex ? this.woodIndex.has(x, z) : insideAny(this.woods, x, z)) return 'wood';
+    if (this.scrub?.has(x, z)) return 'scrub';
+    if (this.rock?.has(x, z)) return 'rock';
+    if (this.scree?.has(x, z)) return 'scree';
+    if (mapped) return 'pasture';
     const near = this.openRadius ? this.nearestRoad(x, z) : null;
     if (near && near.d <= (this.openRadius?.[near.i] ?? 0)) return 'pasture';
     const line = this.scenery.pastureAbove;

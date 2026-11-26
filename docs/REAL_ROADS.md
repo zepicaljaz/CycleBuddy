@@ -18,6 +18,10 @@ add the next one.
 | Hairpin signs 1–24 | The 24 sharpest bends of the real line | Positions approximate |
 | Forests, meadows, houses, Russian Chapel | Still generated | No (next step: OSM land use) |
 
+That table is Vršič. Tre Cime goes further: the road height and the terrain near it come
+from a LiDAR survey, and woods, mugo pine, scree and rock are taken from OpenStreetMap. See
+"Tre Cime di Lavaredo from Misurina" below.
+
 ## The pipeline
 
 `node scripts/real-track/build.mjs vrsic` does everything offline. The game only reads the
@@ -180,6 +184,90 @@ Built with `node scripts/real-track/build.mjs giau`. Same rules as Vršič, with
 - Towns, measured from the valley end: Selva di Cadore on the opening street (the square is about 160 m along). The pass is not a town. There is one restaurant there, the same cabin used on the cols, and the OpenStreetMap parking stays. Rifugio Fedare is beside the road at about 1,990 m. It is not a town.
 - Parking from OpenStreetMap: three lots at the pass, and the lot at Rifugio Piezza (Da Aurelio) at about 2,150 m. The mountain is the limestone colours. The treeline is 2,000 m, so the forest holds to Fedare and the top is open meadow. Woods and houses are still generated.
 
+## Tre Cime di Lavaredo from Misurina
+
+Built with `node scripts/real-track/build.mjs trecime`. Same pipeline as Vršič, with one rule
+changed for this road only, at Domen's request: **the road height is measured, not taken from a
+published drawing.** The best published profile (cols-cyclisme) gives one gradient every 500 m,
+and it smooths away the 18 % ramp to Lago d'Antorno that the Giro quotes. The source is the
+Veneto LiDAR survey, and the result has to pass every published figure listed below.
+
+**Terrain data.** Regione del Veneto, DTM LIDAR 5 m (geoportal idt2.regione.veneto.it →
+Download → Modelli digitali → DTM LIDAR 5M; IODL 2.0). 24 tiles of 2 × 2 km (`12_2K_0033` to
+`12_2K_0145`, the ids are in `data/dem-cache/veneto-lidar5/tiles.txt`) are downloaded once to
+`data/dem-cache/veneto-lidar5/`. That folder is not in git. Each tile downloads from
+`.../idt/download/layerDownload/downloadDtmLidar5?dataDtmLidarId=<id_pol>`. The tile index is the
+WFS layer `rv:c0101071_lidar5m` on `idt2-geoserver.regione.veneto.it`. The tiles are ESRI ASCII
+grids in the region's "Fuso 12": transverse Mercator, central meridian 12° E, **scale 1.0**,
+false easting 3,000,000 m (`scripts/real-track/lidar.mjs`). With the usual UTM scale of 0.9996,
+everything lands about 2 km too far south. Three checks fix where the data sits:
+
+- Shifting the tiles even 2 m in any direction makes the OpenStreetMap road rougher in the
+  LiDAR. The road is smoothest exactly where the projection puts it.
+- Inside their mapped outlines both lakes are flat to within 0.3 m: Lago di Misurina
+  1,747.6 m, Lago d'Antorno 1,867.8 m (published 1,866 m).
+- The summits come out within 3–9 m of their official heights: Cima Grande 2,995.9 m
+  (2,999), Cima Ovest 2,965.6 (2,973), Cima Piccola 2,848.8 (2,857). Bilinear sampling on a
+  5 m grid rounds the very tops off slightly.
+
+**The line.** The SP 49 (Via Monte Piana) from its south end at Lago di Misurina, along the
+lake, then Via Monte Piana up to Lago d'Antorno, then Strada per il Rifugio Auronzo, the toll
+road. The timed climb starts where Via Monte Piana leaves the SP 49 at the north end of the
+lake, 1.13 km into the ride. The 1.13 km along the lake is Misurina (section 0).
+
+**The road height.** The LiDAR is sampled along the 1 m line and smoothed with a Gaussian of
+σ 12 m. That takes out the 5 m cell steps, kerbs and culverts and keeps a 100 m ramp at its real
+gradient. Measured: 7.20 km, 1,760 m to 2,322.5 m, 562 m gain, 613 m of climbing in total,
+7.8 % average. Checks, all printed by the builder and held in `src/routes/real/trecime.test.ts`:
+
+| Published | Source | LiDAR road |
+|---|---|---|
+| 7.2 km, 547 m | Giro d'Italia 2023 | 7.20 km, 562 m |
+| 7.5 km, 568 m | Haute Route | — |
+| up to 18 % in the first 1.5 km | Giro / Cyclingnews | 19.3 % over 20 m at 1.19 km |
+| steepest kilometre 14.1 % | CyclingUp | 14.0 % |
+| steepest 250 m 16 % | CyclingUp | 15.2 % |
+| the road drops 37 m after the ramp | CyclingUp | 40.7 m |
+| about 12 % for the last 4 km | Giro / Cyclingnews | 11.9 % |
+| last piece 10.6 % | cols-cyclisme | 10.6 % |
+| Rifugio Auronzo 2,320 m | the hut | 2,322.5 m |
+
+The cols-cyclisme drawing is 7.89 km to 2,349 m. That height is not on the paved road: the
+loop round the hut tops out at 2,322 m. Its 500 m pieces still match the LiDAR road within
+about 2 points when the two are lined up on the summit. Lined up from the start they drift,
+because the drawing is 0.7 km longer.
+
+**The top.** No balloon. The ride uses the real one-way loop past the parking: up Forcella
+Longeres to the hut, round it, down the parking aisles and the short paved spur back to the
+junction (`topLoopWays`). The climb finishes at the highest point of that loop, by the hut.
+The bottom turn, in Misurina, is the usual small balloon.
+
+**Terrain grids.** 10 m from the LiDAR over 46.567–46.63 N, 12.237–12.323 E (road, lakes and
+the towers), 25 m from the LiDAR within 4 km of the road, 100 m Terrain Tiles out to 15 km. The
+Veneto survey stops at the regional border, which crosses the towers. North of it (the north
+faces, Monte Paterno) the 30 m tiles take over, shifted by how far they sit from the LiDAR along
+the border edge. The shift fades out over 600 m, so there is no step. The South Tyrol 2.5 m model
+would fill that side properly. It is not used yet.
+
+**The towers.** `landmarks` in the track: a box from Sasso di Landro to Punta di Frida. Terrain
+chunks that touch it are always drawn at 16 m cells, from anywhere on the ride (`terrain.ts`).
+The tile around them is split too, at 32 m, so the pieces meet. From Misurina the towers would
+otherwise be one 64 m chunk. That costs a few thousand triangles more, and only on this road.
+
+**Land cover.** OpenStreetMap woods (ways and multipolygons, with clearings as holes), meadows,
+mugo pine (`natural=scrub`), scree and bare rock, in `data/osm/tre-cime-landcover.json`. The
+polygons are simplified to 6 m, and patches under about 2,000 m² are dropped. They go in their
+own file, `src/assets/terrain/tre-cime-misurina.cover.json` (about 380 KB), which loads with the
+terrain and is not bundled with the game. Inside the box the cover was fetched for
+(`cover.mapped`), trees grow only in the mapped woods. Mugo pine is dark green with no trees,
+scree is the pale rubble and rock the limestone rock colour. Outside the box the forest is
+generated as on every other road.
+
+**Places.** Lago di Misurina and Lago d'Antorno (OpenStreetMap multipolygons, water at the LiDAR
+level), the parking within 250 m of the road (`lotsWithin`), Misurina as the town on the
+opening stretch. There is no published numbered hairpin series. Signs count up on the sharp
+bends.
+
 ## Hairpins and the ground mesh
 
 The grass is an 8 m grid. On a straight the bank starts about 18 m out, so a
@@ -287,6 +375,10 @@ Built with `node scripts/real-track/build.mjs krvavec`. Same rules as Vršič, w
    (`source_segments`) and sources.
 4. Run the script. Check that the length is within ~2 % of the published value and that
    the hairpin count matches. Add a test like `track.test.ts`.
+5. Optional, and only with Domen's OK: `lidar` takes the road height from a LiDAR survey
+   instead of the published profile (Tre Cime). The builder then prints the measured profile
+   next to the published one. Hold it to every published figure in a test, like
+   `trecime.test.ts`.
 
 ## Credits and licence
 

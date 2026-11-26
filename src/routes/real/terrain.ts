@@ -1,5 +1,5 @@
 import type { Route } from '../route';
-import type { DemGrid } from '../types';
+import type { DemGrid, TrackCover } from '../types';
 
 /**
  * Height grids for real roads ship as small binary files (heights in decimetres,
@@ -10,7 +10,20 @@ const FILES = import.meta.glob('../../assets/terrain/*.bin', { query: '?url', im
   () => Promise<string>
 >;
 
+const COVER = import.meta.glob('../../assets/terrain/*.cover.json', { query: '?url', import: 'default' }) as Record<
+  string,
+  () => Promise<string>
+>;
+
 const cache = new Map<string, Promise<DemGrid[] | null>>();
+const coverCache = new Map<string, Promise<TrackCover | null>>();
+
+async function fetchCover(file: string): Promise<TrackCover | null> {
+  const key = Object.keys(COVER).find((k) => k.endsWith(`/${file}`));
+  if (!key) return null;
+  const res = await fetch(await COVER[key]());
+  return res.ok ? ((await res.json()) as TrackCover) : null;
+}
 
 async function fetchGrids(file: string, grids: NonNullable<NonNullable<Route['def']['track']>['terrain']>['grids']): Promise<DemGrid[] | null> {
   const key = Object.keys(FILES).find((k) => k.endsWith(`/${file}`));
@@ -32,7 +45,7 @@ async function fetchGrids(file: string, grids: NonNullable<NonNullable<Route['de
   return out;
 }
 
-/** Loads the real terrain for a track route onto `route.terrain`. Generated routes are left alone. */
+/** Loads the real terrain (and any land cover file) for a track route onto `route.terrain` and `route.cover`. Generated routes are left alone. */
 export async function loadRouteTerrain(route: Route): Promise<void> {
   const t = route.def.track?.terrain;
   if (!t || route.terrain) return;
@@ -41,5 +54,14 @@ export async function loadRouteTerrain(route: Route): Promise<void> {
     p = fetchGrids(t.file, t.grids).catch(() => null);
     cache.set(t.file, p);
   }
+  let c: Promise<TrackCover | null> | undefined;
+  if (t.cover) {
+    c = coverCache.get(t.cover);
+    if (!c) {
+      c = fetchCover(t.cover).catch(() => null);
+      coverCache.set(t.cover, c);
+    }
+  }
   route.terrain = await p;
+  if (c) route.cover = await c;
 }

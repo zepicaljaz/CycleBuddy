@@ -78,9 +78,11 @@ Also on the home screen: **Analytics** (overview, fitness, power, rides, climbs,
   gradients don't add up to its gain is dropped (`checkClimb`).
 - **Real road 1:1:** Vršič, Alpe d'Huez, Passo dello Stelvio from Prato, Mont Ventoux from
   Bédoin, Col du Tourmalet from Luz-Saint-Sauveur, Alto de l'Angliru from La Vega, Col du
-  Galibier from Valloire, Passo Giau from Selva di Cadore and Krvavec from Grad to Plaža run
-  on their real roads (OpenStreetMap line, published profile, real terrain). Free ride lists
-  them under **Real climbs**. How they are built: `docs/REAL_ROADS.md`.
+  Galibier from Valloire, Passo Giau from Selva di Cadore, Krvavec from Grad to Plaža and Tre
+  Cime di Lavaredo from Misurina run on their real roads (OpenStreetMap line, published profile,
+  real terrain). Tre Cime is measured on the Veneto LiDAR survey instead of a published drawing,
+  with 10 m terrain around the three towers. Free ride lists them under **Real climbs**. How
+  they are built: `docs/REAL_ROADS.md`.
 - **Time trials:** a start ramp, riders leave one by one (the GC leader last), each on their own
   clock, with a broom car behind the last rider.
 
@@ -98,7 +100,7 @@ cyclebuddy/
 ├── server/                    Node API: accounts, sessions, ride sync, static files
 ├── api/index.js                Vercel: every /api/... request runs the same API handler
 ├── vercel.json                Vercel: build, page routes, asset caching
-├── scripts/real-track/        Offline builder for real roads (OSM + elevation)
+├── scripts/real-track/        Offline builder for real roads (OSM + elevation; Veneto LiDAR for Tre Cime)
 ├── scripts/smoke.mjs          After a build: checks the production server serves the game
 ├── tests/                     House-rule tests (versions, README map, no secrets, no alert())
 ├── .github/workflows/test.yml Checks every pull request: types, tests, build, smoke
@@ -159,7 +161,7 @@ cyclebuddy/
 | `routes/definitions.ts`, `moreWorlds.ts`, `careerWorlds.ts` | Every loop's definition (sections, styles, towns) |
 | `routes/regions.ts` | The six Free ride landscapes, the loops in each, and the Real climbs category |
 | `routes/sections.ts`, `grades.ts`, `types.ts`, `validate.ts` | Section shapes, gradient resolution, types, definition checks |
-| `routes/real/` | Real climbs and stages: `climbs.json`, `stages.json`, checks (`data.ts`), builders (`build.ts`), real tracks (`tracks/`), terrain loading (`terrain.ts`) |
+| `routes/real/` | Real climbs and stages: `climbs.json`, `stages.json`, checks (`data.ts`), builders (`build.ts`), real tracks (`tracks/`), terrain and land-cover loading (`terrain.ts`); Tre Cime's own checks in `trecime.test.ts` |
 
 **The 3D world** (`world/`)
 
@@ -167,7 +169,7 @@ cyclebuddy/
 |---|---|
 | `world.ts` | Owns the scene: camera modes, the per-frame update, race finish and crowd |
 | `graphics.ts` | Renderer, quality presets, post-processing, dynamic resolution during rides |
-| `terrain.ts`, `terrainChunk.ts`, `terrainWorker.ts`, `terrainField.ts` | Terrain tiles built in workers with levels of detail and trees; the height field (with real elevation for real roads) |
+| `terrain.ts`, `terrainChunk.ts`, `terrainWorker.ts`, `terrainField.ts` | Terrain tiles built in workers with levels of detail and trees; the height field (with real elevation for real roads), mapped land cover (woods, mugo pine, scree, rock) and landmark peaks drawn finer from any distance |
 | `scenery.ts` | Roadside: towns, fences (culled per 500 m cell), race crowd (culled per 400 m cell), finish, signs |
 | `climbs.ts` | Climb furniture: km bornes, hairpin numbers, stone walls, graffiti |
 | `riders.ts`, `riderBody.ts`, `bikes.ts` | Instanced riders with three levels of detail; body and bike models |

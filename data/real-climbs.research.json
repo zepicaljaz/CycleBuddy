@@ -1681,31 +1681,35 @@
    "side": "Misurina",
    "country": "Italy",
    "region": "Veneto (Belluno, Dolomites)",
-   "length_km": 7.89,
-   "start_elevation_m": 1756,
-   "summit_elevation_m": 2349,
-   "elevation_gain_m": 593,
-   "total_ascent_m": 626,
-   "avg_grade_pct": 7.5,
-   "max_grade_pct": 13.8,
-   "max_grade_note": "steepest 500 m segment",
+   "length_km": 7.2,
+   "start_elevation_m": 1760,
+   "summit_elevation_m": 2322,
+   "elevation_gain_m": 562,
+   "total_ascent_m": 613,
+   "avg_grade_pct": 7.8,
+   "max_grade_pct": 14.4,
+   "max_grade_note": "steepest 500 m of the LiDAR road; 19 % over 20 m on the ramp to Lago d'Antorno",
    "hairpins": null,
    "km_grades": [
-    3.7,
-    7.4,
-    -3.3,
-    5.1,
-    10.8,
-    13.6,
+    6.9,
+    3.4,
+    -2.1,
+    8.9,
     11.6,
-    11.6
+    13.4,
+    12.4,
+    8.8
    ],
-   "last_km_length_km": 0.89,
+   "last_km_length_km": 0.2,
    "gain_check": {
-    "sum_of_km_grades_m": 592,
-    "elevation_gain_m": 593,
-    "diff_pct": 0.17,
-    "independent_references": []
+    "sum_of_km_grades_m": 563,
+    "elevation_gain_m": 562,
+    "diff_pct": 0.2,
+    "independent_references": [
+     "Giro d'Italia 2023 stage 19: 7.2 km, 547 m",
+     "Haute Route: 7.5 km, 568 m",
+     "CyclingUp: steepest km 14.1 %, steepest 250 m 16 %, 37 m drop after the Antorno ramp"
+    ]
    },
    "source_segments": [
     [
@@ -1789,13 +1793,17 @@
      10.6
     ]
    ],
-   "description": "From Lake Misurina the road rolls past Lago d'Antorno and the toll gate, dips slightly, then the last 4 km climb at 11-13 % straight up to Rifugio Auronzo at the foot of the three famous rock towers. The Giro has finished here several times, often in snow.",
+   "description": "From the north end of Lago di Misurina a ramp of up to 19 % lifts the road to Lago d'Antorno. It drops 40 m past the toll gate, then the last 4 km climb at 12-14 % to Rifugio Auronzo, under the south faces of the three towers. The Giro has finished here several times, often in snow.",
    "famous_for": "Giro summit finish below the Three Peaks; brutal last 4 km",
    "sources": [
+    "https://idt2.regione.veneto.it/nuovo-dtm-derivato-da-dati-lidar/",
+    "https://www.giroditalia.it/en/archivio/stage-19-of-the-giro-ditalia-2023-longarone-tre-cime-di-lavaredo-rif-auronzo/",
+    "https://www.cyclingnews.com/races/giro-d-italia-2023/stage-19/preview/",
+    "https://cyclingup.eu/english/Italy_Alps/Tre_Cime_di_Lavaredo-south.php",
     "https://www.cols-cyclisme.com/dolomites/italie/tre-cime-di-lavaredo-depuis-misurina-c1356.htm",
     "https://profils.cols-cyclisme.com/1356.gif"
    ],
-   "notes": "Read from the profile image (elevations every 500 m). Includes a 33 m descent between km 2 and km 3, so elevation_gain_m is net (start to top); total_ascent_m counts all climbing. If you prefer the Lago d'Antorno start, drop the first 1.5 km (start at 1,852 m)."
+   "notes": "Measured, not read from a drawing: the road height is the Regione del Veneto LiDAR terrain model (DTM LIDAR 5 m, IODL 2.0) along the OpenStreetMap line, smoothed over ~12 m (scripts/real-track/build.mjs trecime, docs/REAL_ROADS.md). The climb runs from the junction where Via Monte Piana leaves the SP 49 at the north end of Lago di Misurina (1,760 m) to the top of the one-way loop at Rifugio Auronzo (2,322 m; the hut is tagged 2,333 m, its terrace is higher than the road). source_segments are still the cols-cyclisme drawing (7.89 km to 2,349 m, read every 500 m): the builder prints them beside the measured road. 2,349 m is not on the paved road."
   },
   {
    "id": "angliru-la-vega",

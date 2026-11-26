@@ -17,7 +17,7 @@ Domen's brother's indoor cycling game. Read `README.md`, `ARCHITECTURE.md`, `CHA
 - Don't use race trademarks as product names. Stages say what they were modelled on in `inspiredBy`.
 - UI: no card grids, pills or emoji. Big type you can read from the saddle; numbers in tabular figures.
 - Don't deploy or publish anything without asking.
-- Real roads (1:1): built offline by `scripts/real-track/build.mjs`; method, choices and how to add one are in `docs/REAL_ROADS.md`. Road gradient comes from the published profile, never raw terrain data. Keep `ATTRIBUTION.md` current when adding a data source. At hairpins the ground must stay a slope: no wall against the verge, no fin, no hole. The rules are in that doc under "Hairpins and the ground mesh".
+- Real roads (1:1): built offline by `scripts/real-track/build.mjs`; method, choices and how to add one are in `docs/REAL_ROADS.md`. Road gradient comes from the published profile, never raw terrain data. The one exception, approved by Domen, is Tre Cime: the Veneto LiDAR survey, held to every published figure (see that doc). Keep `ATTRIBUTION.md` current when adding a data source. At hairpins the ground must stay a slope: no wall against the verge, no fin, no hole. The rules are in that doc under "Hairpins and the ground mesh".
 
 ## Vercel
 

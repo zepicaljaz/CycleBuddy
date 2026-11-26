@@ -399,42 +399,52 @@
  {
   "id": "tre-cime-misurina",
   "name": "Tre Cime di Lavaredo (Rifugio Auronzo)",
+  "treeline": 2100,
+  "snowline": 3100,
+  "biome": "limestone",
   "side": "Misurina",
   "country": "Italy",
   "region": "Veneto (Belluno, Dolomites)",
-  "lengthKm": 7.89,
-  "startElevation": 1756,
-  "summitElevation": 2349,
-  "gain": 593,
-  "avgGrade": 7.5,
-  "maxGrade": 13.8,
+  "lengthKm": 7.2,
+  "startElevation": 1760,
+  "summitElevation": 2322,
+  "gain": 562,
+  "avgGrade": 7.8,
+  "maxGrade": 14.4,
   "hairpins": 5,
   "hairpinsKnown": false,
   "kmGrades": [
-   3.7,
-   7.4,
-   -3.3,
-   5.1,
-   10.8,
-   13.6,
+   6.9,
+   3.4,
+   -2.1,
+   8.9,
    11.6,
-   11.6
+   13.4,
+   12.4,
+   8.8
   ],
-  "lastKmLength": 0.89,
-  "description": "From Lake Misurina the road rolls past Lago d'Antorno and the toll gate, dips slightly, then the last 4 km climb at 11-13 % straight up to Rifugio Auronzo at the foot of the three famous rock towers. The Giro has finished here several times, often in snow.",
-  "famousFor": "Giro summit finish below the Three Peaks; brutal last 4 km",
+  "lastKmLength": 0.2,
+  "description": "From the north end of Lago di Misurina a ramp of up to 19 % lifts the road to Lago d'Antorno. It drops 40 m past the toll gate, then the last 4 km climb at 12-14 % to Rifugio Auronzo, under the south faces of the three towers. The Giro has finished here several times, often in snow.",
+  "famousFor": "Giro summit finish below the Three Peaks; 4 km at 12-14 % to Rifugio Auronzo",
   "sources": [
-   "https://www.cols-cyclisme.com/dolomites/italie/tre-cime-di-lavaredo-depuis-misurina-c1356.htm",
-   "https://profils.cols-cyclisme.com/1356.gif"
+   "https://idt2.regione.veneto.it/nuovo-dtm-derivato-da-dati-lidar/",
+   "https://www.giroditalia.it/en/archivio/stage-19-of-the-giro-ditalia-2023-longarone-tre-cime-di-lavaredo-rif-auronzo/",
+   "https://www.cyclingnews.com/races/giro-d-italia-2023/stage-19/preview/",
+   "https://cyclingup.eu/english/Italy_Alps/Tre_Cime_di_Lavaredo-south.php",
+   "https://www.cols-cyclisme.com/dolomites/italie/tre-cime-di-lavaredo-depuis-misurina-c1356.htm"
   ],
-  "maxGradeNote": "steepest 500 m segment"
+  "maxGradeNote": "steepest 500 m of the LiDAR road; 19 % over 20 m on the ramp to Lago d'Antorno"
  },
  {
   "id": "angliru-la-vega",
   "name": "Alto de l'Angliru",
   "treeline": 1500,
   "openAlong": [
-   { "fromM": 5000, "toM": 6000, "radius": 80 }
+   {
+    "fromM": 5000,
+    "toM": 6000,
+    "radius": 80
+   }
   ],
   "side": "La Vega (Riosa)",
   "country": "Spain",

@@ -1,6 +1,6 @@
 import { clamp, mulberry32 } from '../util/math';
 import { Noise2D } from '../util/noise';
-import type { ClimbDef, DemGrid, RouteDef, SectionDef, SectionStyle, TrackDef } from './types';
+import type { ClimbDef, DemGrid, RouteDef, SectionDef, SectionStyle, TrackCover, TrackDef } from './types';
 import { routeDefProblems } from './validate';
 
 export const ROUTE_DS = 2; // metres between route samples
@@ -663,6 +663,8 @@ export class Route {
   readonly bounds: { minX: number; maxX: number; minZ: number; maxZ: number; minY: number; maxY: number };
   /** Real height grids around a track road, loaded before the world is built. Null for generated roads. */
   terrain: DemGrid[] | null = null;
+  /** Mapped land cover kept in its own file (Tre Cime), loaded with the terrain. */
+  cover: TrackCover | null = null;
 
   constructor(def: RouteDef) {
     this.def = def;

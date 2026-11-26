@@ -1,7 +1,7 @@
 import type { Biome } from '../routes/types';
 import { clamp, smoothstep } from '../util/math';
 import { Noise2D } from '../util/noise';
-import { ROAD_HALF_WIDTH, type TerrainField } from './terrainField';
+import { ROAD_HALF_WIDTH, type GroundCover, type TerrainField } from './terrainField';
 
 export interface ChunkRequest {
   id: number;
@@ -178,6 +178,7 @@ export class ChunkBuilder {
       const biome = sc.biome ?? 'alpine';
       const pal = BIOMES[biome];
       const arid = biome === 'desert';
+      let cover: GroundCover = 'forest';
       const treeline = sc.treeline + n.noise(cx / 700, cz / 700) * 120;
       const alt = smoothstep(sc.treeline - 900, sc.treeline + 150, cy);
       mix(pal.grassLow, pal.grassHigh, alt, col);
@@ -186,10 +187,12 @@ export class ChunkBuilder {
         const dune = n.noise(cx / 160, cz / 160) * 0.5 + 0.5;
         mix(col, pal.sand, dune * 0.5, col);
       } else {
-        const cover = field.groundCover(cx, cz, cy);
+        cover = field.groundCover(cx, cz, cy);
         let forest = smoothstep(1 - sc.forestDensity * 1.25, 1.1 - sc.forestDensity, forestN * 0.5 + 0.5) * (1 - smoothstep(treeline - 120, treeline + 40, cy));
-        if (cover === 'pasture') forest = 0;
+        if (cover === 'pasture' || cover === 'scree' || cover === 'rock') forest = 0;
         else if (cover === 'wood') forest = Math.max(forest, 0.82);
+        // Mugo pine: the dark green of the forest without the trees.
+        else if (cover === 'scrub') forest = 0.9;
         mix(col, pal.forest, forest * 0.75, col);
       }
       const aboveTree = smoothstep(treeline + 100, treeline + 450, cy);
@@ -208,6 +211,12 @@ export class ChunkBuilder {
         mix(GRAVEL, GRAVEL_DARK, patch * 0.55, tmp);
         mix(col, tmp, smoothstep(screeAt - 25, screeAt + 30, cy), col);
       }
+      // Mapped scree and bare rock (Tre Cime): the pale rubble fans and the rock of the towers.
+      if (cover === 'scree') {
+        const patch = n.noise(cx / 22, cz / 22) * 0.5 + 0.5;
+        mix(pal.scree, pal.rock, patch * 0.45, tmp);
+        mix(col, tmp, 0.9, col);
+      } else if (cover === 'rock') mix(col, pal.rock, 0.85, col);
       const onScree = screeAt != null && cy > screeAt - 25;
       const rocky = smoothstep(0.86, 0.68, ny) * (arid ? 1.15 : 1) * (onScree ? 0.28 : 1);
       mix(col, mix(pal.rock, pal.rockDark, smoothstep(0.7, 0.45, ny), tmp), Math.min(1, rocky), col);
@@ -419,7 +428,7 @@ export class ChunkBuilder {
         const cover = field.groundCover(x, z, h);
         let density = smoothstep(1 - sc.forestDensity * 1.25, 1.1 - sc.forestDensity, forestN);
         if (cover === 'wood') density = Math.max(density, 0.9);
-        const altFade = cover === 'pasture' ? 0 : 1 - smoothstep(treeline - 200, treeline + 30, h);
+        const altFade = cover === 'pasture' || cover === 'scrub' || cover === 'scree' || cover === 'rock' ? 0 : 1 - smoothstep(treeline - 200, treeline + 30, h);
         const biome = sc.biome ?? 'alpine';
         const lx = x - req.x0;
         const lz = z - req.z0;

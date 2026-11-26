@@ -59,6 +59,7 @@ describe('real road climbs', () => {
       'krvavec-cerklje',
       'stelvio-prato',
       'tourmalet-luz',
+      'tre-cime-misurina',
       'ventoux-bedoin',
       'vrsic-kranjska-gora',
     ]);

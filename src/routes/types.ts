@@ -104,12 +104,33 @@ export interface MapPolygon {
   level?: number;
 }
 
+/** A box in the road's frame that the terrain draws finer than distance alone would. */
+export interface LandmarkBox {
+  name: string;
+  minX: number;
+  maxX: number;
+  minZ: number;
+  maxZ: number;
+}
+
 /** Meadow and woodland polygons taken from OpenStreetMap, in the road's frame. */
 export interface TrackCover {
   /** Grazed ground: meadow, grass, grassland, scrub, farmland. No trees. */
   open: MapPolygon[];
   /** Hand-mapped woodland. */
   wood: MapPolygon[];
+  /** Mugo pine and other low scrub: dark green, no trees. */
+  scrub?: MapPolygon[];
+  /** Loose scree and gravel fans. */
+  scree?: MapPolygon[];
+  /** Bare rock: cliffs and the faces of the peaks. */
+  rock?: MapPolygon[];
+  /**
+   * Inside this box the map covers everything: trees grow only in the mapped woods,
+   * mapped meadows and clearings stay open even inside a wood, and unmapped ground is
+   * open (Tre Cime). Outside it, and without it, the forest is generated as usual.
+   */
+  mapped?: { minX: number; maxX: number; minZ: number; maxZ: number };
 }
 
 /** Lakes, parking and land cover taken from OpenStreetMap and stored in the road's frame. */
@@ -141,9 +162,16 @@ export interface TrackDef {
   /** Published number of hairpins on the climb; the sharpest bends of the real line get the signs. */
   hairpinCount?: number;
   /** Height grids (fine first) in a binary file under src/assets/terrain, loaded when the ride starts. */
-  terrain?: { file: string; grids: DemGridInfo[] };
+  terrain?: {
+    file: string;
+    grids: DemGridInfo[];
+    /** Land cover too large to ship with the road, in its own file beside the grids. */
+    cover?: string;
+  };
   /** Where the data comes from, for the credits. */
   source?: string;
+  /** Peaks drawn at a finer mesh from any distance (the three towers at Tre Cime). */
+  landmarks?: LandmarkBox[];
 }
 
 export interface RouteDef {

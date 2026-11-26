@@ -8,12 +8,14 @@
 //   node scripts/real-track/build.mjs galibier
 //   node scripts/real-track/build.mjs giau
 //   node scripts/real-track/build.mjs krvavec
+//   node scripts/real-track/build.mjs trecime
 // Output: src/routes/real/tracks/<id>.json (road line, elevation, sections) and
 // src/assets/terrain/<id>.bin (height grids around the road). See ATTRIBUTION.md.
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { demSampler } from './dem.mjs';
+import { lidarSampler } from './lidar.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const R = 6371000;
@@ -245,6 +247,40 @@ const CONFIGS = {
       { name: 'Ambrož pod Krvavcem', fromM: 8000, toM: 9000 },
     ],
   },
+  trecime: {
+    id: 'tre-cime-misurina',
+    climbId: 'tre-cime-misurina',
+    // SP 49 (Via Monte Piana) from the south end of Lago di Misurina, Via Monte Piana
+    // up to Lago d'Antorno, then Strada per il Rifugio Auronzo (the toll road).
+    osm: 'data/osm/tre-cime-road.json',
+    places: 'data/osm/tre-cime-places.json',
+    cover: 'data/osm/tre-cime-landcover.json',
+    // Scree, bare rock and mugo pine scrub are mapped here, so they are kept too.
+    coverRock: true,
+    // The road height comes from the Veneto LiDAR terrain model (5 m cells), not from
+    // the published profile. Only for this road; the checks it has to pass are printed
+    // below and written down in docs/REAL_ROADS.md.
+    lidar: 'data/dem-cache/veneto-lidar5/raw',
+    // A 10 m grid from the same survey around the road and the three towers.
+    detail: { south: 46.567, north: 46.63, west: 12.237, east: 12.323, cell: 10 },
+    // SP 49 where it starts at the south end of the lake, in Misurina.
+    from: { lat: 46.5766503, lon: 12.2505232 },
+    // Junction below Rifugio Auronzo where the one-way loop past the hut starts and ends.
+    to: { lat: 46.6121329, lon: 12.2942138 },
+    // Where Via Monte Piana leaves the SP 49 at the north end of the lake: the timed climb.
+    climbStart: { lat: 46.5861176, lon: 12.2540668 },
+    // The real one-way loop: past the parking to the hut, round it, back down through
+    // the car park to the junction. Way ids in riding order; the summit is its top.
+    topLoopWays: [25487505, 1178266940, 1178266939, 306448699, 1178266938, 826563816, 25487507, 1122061320],
+    minRadius: 0,
+    // Lots further from the road than this (other valleys, trailheads) are left out.
+    lotsWithin: 250,
+    // The three towers, from Sasso di Landro to Punta di Frida: drawn at 16 m cells
+    // from anywhere on the ride, so they keep their shape from Misurina.
+    landmarks: [{ name: 'Tre Cime di Lavaredo', south: 46.6125, north: 46.6235, west: 12.286, east: 12.3125 }],
+    hairpins: 'up',
+    towns: [{ name: 'Misurina', fromM: 0, toM: 900 }],
+  },
 };
 
 const cfg = CONFIGS[process.argv[2]];
@@ -399,6 +435,82 @@ const FINE_KM = 4, COARSE_KM = 15;
 const demFine = await demSampler(grow(lineBox, FINE_KM + 0.5), 13, cache);
 const demCoarse = await demSampler(grow(lineBox, COARSE_KM + 0.5), 11, cache);
 const demAtXZ = (x, z, dem = demFine) => { const p = toLL(x, z); return dem(p.lat, p.lon); };
+// LiDAR where the survey has data, the 30 m tiles elsewhere.
+const lidar = cfg.lidar ? lidarSampler(path.join(ROOT, cfg.lidar)) : null;
+const lidarAtXZ = (x, z) => { const p = toLL(x, z); return lidar(p.lat, p.lon); };
+// The survey stops at the regional border. Past it the 30 m tiles take over, shifted by
+// how far they sit from the LiDAR along that edge, so a peak cut by the border has no
+// step in it. The shift fades out over 600 m. It is measured on a 50 m grid.
+let edgeShift = null;
+if (lidar && cfg.detail) {
+  const { south, north, west, east } = cfg.detail;
+  const a = toXZ({ lat: north, lon: west }), b = toXZ({ lat: south, lon: east });
+  const C = 50;
+  const w = Math.ceil((b.x - a.x) / C) + 1, h = Math.ceil((b.z - a.z) / C) + 1;
+  const diff = new Float32Array(w * h).fill(NaN);
+  for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) {
+    const x = a.x + i * C, z = a.z + j * C;
+    const v = lidarAtXZ(x, z);
+    if (!Number.isNaN(v)) diff[j * w + i] = v - demAtXZ(x, z);
+  }
+  const R = 12; // cells: 600 m
+  const shift = new Float32Array(w * h);
+  for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) {
+    if (!Number.isNaN(diff[j * w + i])) continue;
+    let s = 0, sw = 0, dmin = Infinity;
+    for (let b2 = -R; b2 <= R; b2++) for (let a2 = -R; a2 <= R; a2++) {
+      const ii = i + a2, jj = j + b2;
+      if (ii < 0 || jj < 0 || ii >= w || jj >= h) continue;
+      const d = diff[jj * w + ii];
+      if (Number.isNaN(d)) continue;
+      const r = Math.hypot(a2, b2);
+      dmin = Math.min(dmin, r);
+      const wt = 1 / (r * r);
+      s += d * wt; sw += wt;
+    }
+    if (sw) shift[j * w + i] = (s / sw) * Math.max(0, 1 - dmin / R);
+  }
+  edgeShift = (x, z) => {
+    const fx = (x - a.x) / C, fz = (z - a.z) / C;
+    if (fx < 0 || fz < 0 || fx >= w - 1 || fz >= h - 1) return 0;
+    const i = Math.floor(fx), j = Math.floor(fz), tx = fx - i, tz = fz - j;
+    const v = (k) => shift[k];
+    return (v(j * w + i) * (1 - tx) + v(j * w + i + 1) * tx) * (1 - tz) + (v((j + 1) * w + i) * (1 - tx) + v((j + 1) * w + i + 1) * tx) * tz;
+  };
+}
+const groundAtXZ = (x, z) => {
+  if (!lidar) return demAtXZ(x, z);
+  const v = lidarAtXZ(x, z);
+  return Number.isNaN(v) ? demAtXZ(x, z) + (edgeShift ? edgeShift(x, z) : 0) : v;
+};
+if (lidar) console.log(`LiDAR: ${lidar.tiles} tiles from ${cfg.lidar}`);
+
+// The real one-way loop at the top, as a ring that starts and ends at `to`.
+let loopRing = null;
+if (cfg.topLoopWays) {
+  const byId = new Map(ways.map((w) => [w.id, w]));
+  const same = (a, b) => key(a) === key(b);
+  let at = cfg.to;
+  const ringLL = [cfg.to];
+  for (const id of cfg.topLoopWays) {
+    const w = byId.get(id);
+    if (!w) throw new Error('top loop way missing: ' + id);
+    const g = same(w.geometry[0], at) ? w.geometry : same(w.geometry.at(-1), at) ? [...w.geometry].reverse() : null;
+    if (!g) throw new Error(`top loop way ${id} does not continue from the previous one`);
+    if (w.tags?.oneway === 'yes' && g !== w.geometry) throw new Error(`top loop rides one-way ${id} the wrong way`);
+    ringLL.push(...g.slice(1));
+    at = g.at(-1);
+  }
+  if (!same(at, cfg.to)) throw new Error('top loop does not close');
+  let ring = resample(ringLL.map(toXZ), 1);
+  // Round the parking-aisle corners; both ends stay pinned on the junction.
+  ring = blur(ring, 2.5);
+  loopRing = resample(ring, 1);
+  // Resampling stops short of the last vertex. Close the ring on the junction exactly.
+  const end = toXZ(cfg.to);
+  if (Math.hypot(loopRing.at(-1).x - end.x, loopRing.at(-1).z - end.z) > 0.05) loopRing.push(end);
+  loopRing[0] = { ...end };
+}
 
 // Where the climb starts and ends on the line.
 const cs = toXZ(climbStartLL);
@@ -406,7 +518,10 @@ let s0 = 0, best = Infinity;
 line.forEach((p, i) => { const d = Math.hypot(p.x - cs.x, p.z - cs.z); if (d < best) { best = d; s0 = cum[i]; } });
 // The summit: the mapped pass point, or else the highest point of the DEM in the last 1.5 km.
 let s1 = L, top = -Infinity;
-if (cfg.summit) {
+if (loopRing) {
+  // The climb runs to the end of the line and on into the loop; its top is found there.
+  top = groundAtXZ(line.at(-1).x, line.at(-1).z);
+} else if (cfg.summit) {
   const sp = toXZ(cfg.summit);
   let bestS = Infinity;
   line.forEach((p, i) => { const d = Math.hypot(p.x - sp.x, p.z - sp.z); if (d < bestS) { bestS = d; s1 = cum[i]; } });
@@ -423,40 +538,123 @@ if (process.env.LENGTH_ONLY) { console.log(`climb ${(climbLen / 1000).toFixed(3)
 const pubLen = climb.length_km * 1000;
 console.log(`road ${(L / 1000).toFixed(2)} km · climb on OSM ${(climbLen / 1000).toFixed(2)} km vs published ${(pubLen / 1000).toFixed(2)} km (${(((climbLen - pubLen) / pubLen) * 100).toFixed(1)} %) · DEM summit ${top.toFixed(0)} m`);
 
-// Road elevation. Climb: the published segments laid along the real line.
-// Before it: the DEM, smoothed, eased onto the climb's start elevation.
-const segs = climb.source_segments; // [fromKm, toKm, grade%]
-const scale = climbLen / (segs.at(-1)[1] * 1000);
-const yAt = new Float64Array(line.length);
 const demRoad = line.map((p) => demAtXZ(p.x, p.z));
 const smooth = (arr, half) => arr.map((_, i) => {
   let s = 0, n = 0;
   for (let k = Math.max(0, i - half); k <= Math.min(arr.length - 1, i + half); k++) { s += arr[k]; n++; }
   return s / n;
 });
-const demSmooth = smooth(demRoad, 150);
 const i0 = cum.findIndex((c) => c >= s0);
 const i1 = cum.findIndex((c) => c >= s1 - 0.5);
-const shift = cfg.startElevation - demSmooth[i0];
-for (let i = 0; i <= i0; i++) yAt[i] = s0 > 0 ? demSmooth[i] + shift * (cum[i] / s0) : cfg.startElevation;
-let elev = cfg.startElevation;
-let seg = 0;
-for (let i = i0 + 1; i < line.length; i++) {
-  const km = (cum[i] - s0) / scale / 1000;
-  while (seg < segs.length - 1 && km > segs[seg][1]) seg++;
-  const g = i <= i1 ? segs[seg][2] / 100 : 0;
-  elev += g * (cum[i] - cum[i - 1]);
-  yAt[i] = elev;
+let y;
+// Heights on the top loop, and the index of its highest point (the summit).
+let loopY = null;
+let loopTop = 0;
+if (lidar) {
+  // Road height from the LiDAR survey along the real line. A Gaussian over about
+  // 12 m takes out the 5 m cell steps, kerbs and culverts and keeps a 100 m ramp
+  // at its real gradient. Points are 1 m apart, so sigma is in metres.
+  const SIGMA = 12;
+  const gauss = (arr, sigma, ring) => {
+    const r = Math.ceil(sigma * 3);
+    const n = arr.length;
+    return arr.map((_, i) => {
+      let s = 0, sw = 0;
+      for (let k = -r; k <= r; k++) {
+        let j = i + k;
+        if (ring) j = (j + n - 1) % (n - 1);
+        else if (j < 0 || j >= n) continue;
+        const w = Math.exp(-(k * k) / (2 * sigma * sigma));
+        s += arr[j] * w;
+        sw += w;
+      }
+      return s / sw;
+    });
+  };
+  y = gauss(line.map((p) => groundAtXZ(p.x, p.z)), SIGMA, false);
+  if (loopRing) {
+    // The ring closes on itself, so it is smoothed round the join. Both of its ends
+    // are then pinned onto the end of the line over the first and last 30 m.
+    loopY = gauss(loopRing.map((p) => groundAtXZ(p.x, p.z)), SIGMA, true);
+    const n = loopY.length;
+    const d0 = y.at(-1) - loopY[0];
+    const d1 = y.at(-1) - loopY[n - 1];
+    loopY = loopY.map((v, k) => v + d0 * Math.max(0, 1 - k / 30) + d1 * Math.max(0, 1 - (n - 1 - k) / 30));
+    loopY.forEach((v, k) => { if (v > loopY[loopTop]) loopTop = k; });
+  }
+  // ---- checks against the published figures
+  const prof = [];
+  for (let i = i0; i < line.length; i++) prof.push({ s: cum[i] - s0, y: y[i] });
+  if (loopRing) {
+    let s = prof.at(-1).s;
+    for (let k = 1; k <= loopTop; k++) {
+      s += Math.hypot(loopRing[k].x - loopRing[k - 1].x, loopRing[k].z - loopRing[k - 1].z);
+      prof.push({ s, y: loopY[k] });
+    }
+  } else prof.length = i1 - i0 + 1;
+  const len = prof.at(-1).s;
+  const yAtS = (s) => {
+    let lo = 0, hi = prof.length - 1;
+    while (hi - lo > 1) { const m = (lo + hi) >> 1; if (prof[m].s <= s) lo = m; else hi = m; }
+    const a = prof[lo], b = prof[hi];
+    return a.y + ((b.y - a.y) * (s - a.s)) / (b.s - a.s || 1);
+  };
+  let ascent = 0;
+  for (let k = 1; k < prof.length; k++) ascent += Math.max(0, prof[k].y - prof[k - 1].y);
+  console.log(`LiDAR climb: ${(len / 1000).toFixed(2)} km, ${prof[0].y.toFixed(1)} m to ${prof.at(-1).y.toFixed(1)} m, gain ${(prof.at(-1).y - prof[0].y).toFixed(0)} m, total ascent ${ascent.toFixed(0)} m, average ${(((prof.at(-1).y - prof[0].y) / len) * 100).toFixed(1)} %`);
+  const steepest = (win) => {
+    let best = { g: -Infinity, at: 0 };
+    for (let s = 0; s + win <= len; s += 5) { const g = ((yAtS(s + win) - yAtS(s)) / win) * 100; if (g > best.g) best = { g, at: s }; }
+    return `${best.g.toFixed(1)} % at ${(best.at / 1000).toFixed(2)} km`;
+  };
+  console.log(`  steepest 20 m ${steepest(20)} · 100 m ${steepest(100)} · 250 m ${steepest(250)} · 500 m ${steepest(500)} · 1 km ${steepest(1000)}`);
+  let peak = -Infinity, drop = 0, dropAt = 0;
+  for (const p of prof) { peak = Math.max(peak, p.y); if (peak - p.y > drop) { drop = peak - p.y; dropAt = p.s; } }
+  console.log(`  largest drop ${drop.toFixed(1)} m, bottom at ${(dropAt / 1000).toFixed(2)} km · last 400 m ${(((prof.at(-1).y - yAtS(len - 400)) / 400) * 100).toFixed(1)} %`);
+  const rows = [];
+  const pub = climb.source_segments ?? [];
+  for (let s = 0, k = 0; s < len; s += 500, k++) {
+    const e = Math.min(len, s + 500);
+    const g = ((yAtS(e) - yAtS(s)) / (e - s)) * 100;
+    const p = pub[k];
+    rows.push(`${(s / 1000).toFixed(1)}–${(e / 1000).toFixed(2)} km ${g.toFixed(1).padStart(5)} %${p ? `  (cols-cyclisme ${p[0]}–${p[1]}: ${p[2]} %)` : ''}`);
+  }
+  console.log('  every 500 m from the start:\n    ' + rows.join('\n    '));
+  const back = [];
+  for (let k = 0; k < Math.min(9, pub.length); k++) {
+    const e = len - k * 500, s = Math.max(0, e - 500);
+    const p = pub[pub.length - 1 - k];
+    back.push(`last ${((len - s) / 1000).toFixed(1)} km piece ${(((yAtS(e) - yAtS(s)) / (e - s)) * 100).toFixed(1)} % (cols-cyclisme ${p[0]}–${p[1]}: ${p[2]} %)`);
+  }
+  console.log('  aligned on the summit:\n    ' + back.join('\n    '));
+} else {
+  // Road elevation. Climb: the published segments laid along the real line.
+  // Before it: the DEM, smoothed, eased onto the climb's start elevation.
+  const segs = climb.source_segments; // [fromKm, toKm, grade%]
+  const scale = climbLen / (segs.at(-1)[1] * 1000);
+  const yAt = new Float64Array(line.length);
+  const demSmooth = smooth(demRoad, 150);
+  const shift = cfg.startElevation - demSmooth[i0];
+  for (let i = 0; i <= i0; i++) yAt[i] = s0 > 0 ? demSmooth[i] + shift * (cum[i] / s0) : cfg.startElevation;
+  let elev = cfg.startElevation;
+  let seg = 0;
+  for (let i = i0 + 1; i < line.length; i++) {
+    const km = (cum[i] - s0) / scale / 1000;
+    while (seg < segs.length - 1 && km > segs[seg][1]) seg++;
+    const g = i <= i1 ? segs[seg][2] / 100 : 0;
+    elev += g * (cum[i] - cum[i - 1]);
+    yAt[i] = elev;
+  }
+  // Soften the steps between segments over ~30 m, keeping the overall rise.
+  const grades = [];
+  for (let i = 1; i < line.length; i++) grades.push((yAt[i] - yAt[i - 1]) / (cum[i] - cum[i - 1] || 1));
+  const gs = smooth(grades, 15);
+  y = [yAt[0]];
+  for (let i = 1; i < line.length; i++) y.push(y[i - 1] + gs[i - 1] * (cum[i] - cum[i - 1]));
+  const drift = cfg.summitElevation - y[i1];
+  for (let i = i0; i < line.length; i++) y[i] += drift * Math.min(1, (cum[i] - s0) / climbLen);
 }
-// Soften the steps between segments over ~30 m, keeping the overall rise.
-const grades = [];
-for (let i = 1; i < line.length; i++) grades.push((yAt[i] - yAt[i - 1]) / (cum[i] - cum[i - 1] || 1));
-const gs = smooth(grades, 15);
-const y = [yAt[0]];
-for (let i = 1; i < line.length; i++) y.push(y[i - 1] + gs[i - 1] * (cum[i] - cum[i - 1]));
-const drift = cfg.summitElevation - y[i1];
-for (let i = i0; i < line.length; i++) y[i] += drift * Math.min(1, (cum[i] - s0) / climbLen);
-console.log(`road elevation: start ${y[i0].toFixed(0)} m, summit ${y[i1].toFixed(0)} m, DEM along the climb off by ${(Math.sqrt(line.slice(i0, i1).reduce((a, p, k) => a + (y[i0 + k] - demRoad[i0 + k]) ** 2, 0) / (i1 - i0))).toFixed(1)} m (rms)`);
+console.log(`road elevation: start ${y[i0].toFixed(0)} m, summit ${(loopY ? loopY[loopTop] : y[i1]).toFixed(0)} m, 30 m tiles along the climb off by ${(Math.sqrt(line.slice(i0, i1).reduce((a, p, k) => a + (y[i0 + k] - demRoad[i0 + k]) ** 2, 0) / (i1 - i0))).toFixed(1)} m (rms)`);
 
 // ---------------------------------------------------------------- the loop: up, turn, back down, turn
 // A balloon loop at each end, so the descent is the same road back.
@@ -477,17 +675,25 @@ function balloon(at, heading, side, radius) {
   return pts;
 }
 const headingAt = (i, back) => Math.atan2(line[i].z - line[i - back].z, line[i].x - line[i - back].x);
-const topEnd = cfg.balloonAtEnd ? line.length - 1 : Math.min(line.length - 1, i1 + 40);
-const topLoop = balloon(line[topEnd], headingAt(topEnd, 8), 1, 16);
+const topEnd = loopRing || cfg.balloonAtEnd ? line.length - 1 : Math.min(line.length - 1, i1 + 40);
+const topLoop = loopRing ? null : balloon(line[topEnd], headingAt(topEnd, 8), 1, 16);
 const botLoop = balloon(line[0], headingAt(8, 8) + Math.PI, 1, 16);
 const err = (lp, at) => Math.hypot(lp.at(-1).x - at.x, lp.at(-1).z - at.z).toFixed(2);
-console.log(`balloon closure error: top ${err(topLoop, line[topEnd])} m, bottom ${err(botLoop, line[0])} m`);
+console.log(`balloon closure error: top ${loopRing ? `real loop ${err(loopRing, line[topEnd])}` : err(topLoop, line[topEnd])} m, bottom ${err(botLoop, line[0])} m`);
 
 const loop = [];
 const push = (p, yy, sec) => loop.push({ x: p.x, z: p.z, y: yy, sec });
-for (let i = 0; i <= topEnd; i++) push(line[i], y[i], i < i0 ? 0 : i <= i1 ? 1 : 2);
-for (const p of topLoop) push(p, y[topEnd], 2);
-for (let i = topEnd - 1; i >= 1; i--) push(line[i], y[i], 2);
+if (loopRing) {
+  // Up the line and on round the real loop to its highest point (the finish), the
+  // rest of the loop back to the junction, then down the same road.
+  for (let i = 0; i <= topEnd; i++) push(line[i], y[i], i < i0 ? 0 : 1);
+  for (let k = 1; k < loopRing.length - 1; k++) push(loopRing[k], loopY[k], k <= loopTop ? 1 : 2);
+  for (let i = topEnd; i >= 1; i--) push(line[i], y[i], 2);
+} else {
+  for (let i = 0; i <= topEnd; i++) push(line[i], y[i], i < i0 ? 0 : i <= i1 ? 1 : 2);
+  for (const p of topLoop) push(p, y[topEnd], 2);
+  for (let i = topEnd - 1; i >= 1; i--) push(line[i], y[i], 2);
+}
 for (const p of botLoop.slice(0, -1)) push(p, y[0], 2);
 
 // Every 4 m on straights, every metre or so in bends (no more than 4° between points).
@@ -525,27 +731,54 @@ let pins = 0;
 console.log(`hairpins found on the climb: ${pins} (published ${climb.hairpins})`);
 
 // ---------------------------------------------------------------- height grids, pulled onto the road
-function grid(dem, km, cell) {
+function grid(dem, km, cell, sample) {
   let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
   for (const p of line) { minX = Math.min(minX, p.x); maxX = Math.max(maxX, p.x); minZ = Math.min(minZ, p.z); maxZ = Math.max(maxZ, p.z); }
   const m = km * 1000;
   const x0 = Math.floor((minX - m) / cell) * cell, z0 = Math.floor((minZ - m) / cell) * cell;
   const w = Math.ceil((maxX + m - x0) / cell) + 1, h = Math.ceil((maxZ + m - z0) / cell) + 1;
   const data = new Float32Array(w * h);
-  for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) data[j * w + i] = demAtXZ(x0 + i * cell, z0 + j * cell, dem);
-  return { x0, z0, cell, w, h, data };
+  for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) data[j * w + i] = sample ? sample(x0 + i * cell, z0 + j * cell) : demAtXZ(x0 + i * cell, z0 + j * cell, dem);
+  return { x0, z0, cell, w, h, data, lidar: !!sample };
 }
-const fine = grid(demFine, FINE_KM, 25);
+// Mean of the LiDAR over a cell (a 3 x 3 pattern), so a coarse cell is not one 5 m spot.
+const groundMean = (cell) => (x, z) => {
+  let s = 0;
+  for (let a = -1; a <= 1; a++) for (let b = -1; b <= 1; b++) s += groundAtXZ(x + (a * cell) / 3, z + (b * cell) / 3);
+  return s / 9;
+};
+const fine = grid(demFine, FINE_KM, 25, lidar ? groundMean(25) : null);
 const coarse = grid(demCoarse, COARSE_KM, 100);
-// Near the road, move the terrain onto the road's elevation (the DEM is 30 m data
-// and can't hold a road bench). Fades out by 600 m.
+// The detail grid: the LiDAR at 10 m around the road and the towers. It is fine
+// first in the file, so the game uses it wherever it reaches.
+let detail = null;
+if (lidar && cfg.detail) {
+  const { south, north, west, east, cell } = cfg.detail;
+  const a = toXZ({ lat: north, lon: west }), b = toXZ({ lat: south, lon: east });
+  const x0 = Math.floor(a.x / cell) * cell, z0 = Math.floor(a.z / cell) * cell;
+  const w = Math.ceil((b.x - x0) / cell) + 1, h = Math.ceil((b.z - z0) / cell) + 1;
+  const data = new Float32Array(w * h);
+  const mean = groundMean(cell);
+  for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) data[j * w + i] = mean(x0 + i * cell, z0 + j * cell);
+  detail = { x0, z0, cell, w, h, data, lidar: true };
+}
+const grids = [detail, fine, coarse].filter(Boolean);
+// Near the road, move the terrain onto the road's elevation. The 30 m tiles can't
+// hold a road bench; on the LiDAR this only takes out the road smoothing. Fades out by 600 m.
 {
   const samples = [];
-  for (let i = 0; i < line.length; i += 8) samples.push({ x: line[i].x, z: line[i].z, r: y[i] - demRoad[i] });
+  const lidarRoad = lidar ? line.map((p) => groundAtXZ(p.x, p.z)) : demRoad;
+  for (let i = 0; i < line.length; i += 8) samples.push({ x: line[i].x, z: line[i].z, rD: y[i] - demRoad[i], rL: y[i] - lidarRoad[i] });
+  if (loopRing) {
+    for (let k = 0; k < loopRing.length; k += 8) {
+      const p = loopRing[k];
+      samples.push({ x: p.x, z: p.z, rD: loopY[k] - demAtXZ(p.x, p.z), rL: loopY[k] - groundAtXZ(p.x, p.z) });
+    }
+  }
   const H = 100;
   const hash = new Map();
   for (const s of samples) { const k = `${Math.floor(s.x / H)},${Math.floor(s.z / H)}`; if (!hash.has(k)) hash.set(k, []); hash.get(k).push(s); }
-  for (const g of [fine, coarse]) {
+  for (const g of grids) {
     for (let j = 0; j < g.h; j++) {
       for (let i = 0; i < g.w; i++) {
         const x = g.x0 + i * g.cell, z = g.z0 + j * g.cell;
@@ -556,7 +789,7 @@ const coarse = grid(demCoarse, COARSE_KM, 100);
             const d2 = (s.x - x) ** 2 + (s.z - z) ** 2;
             dmin = Math.min(dmin, d2);
             const wgt = Math.exp(-d2 / (2 * 90 * 90));
-            ws += wgt; rs += wgt * s.r;
+            ws += wgt; rs += wgt * (g.lidar ? s.rL : s.rD);
           }
         }
         if (ws < 1e-9) continue;
@@ -568,8 +801,7 @@ const coarse = grid(demCoarse, COARSE_KM, 100);
   }
 }
 const toU16 = (g) => Uint16Array.from(g.data, (v) => Math.max(0, Math.min(65535, Math.round(v * 10))));
-const f16 = toU16(fine), c16 = toU16(coarse);
-const bin = Buffer.concat([Buffer.from(f16.buffer), Buffer.from(c16.buffer)]);
+const bin = Buffer.concat(grids.map((g) => Buffer.from(toU16(g).buffer)));
 fs.mkdirSync(path.join(ROOT, 'src/assets/terrain'), { recursive: true });
 fs.writeFileSync(path.join(ROOT, `src/assets/terrain/${cfg.id}.bin`), bin);
 
@@ -645,7 +877,15 @@ if (cfg.places) {
     }
     if (!near.length) throw new Error(`${lake.name} is not beside the road`);
     near.sort((a, b) => a - b);
-    const level = Math.round((near[Math.floor(near.length / 2)] - 0.8) * 10) / 10;
+    let level = Math.round((near[Math.floor(near.length / 2)] - 0.8) * 10) / 10;
+    if (lidar) {
+      // The survey gives the water surface itself: the median inside the shore line.
+      const xs = ring.x, zs = ring.z;
+      const water = [];
+      for (let x = Math.min(...xs); x < Math.max(...xs); x += 8) for (let z = Math.min(...zs); z < Math.max(...zs); z += 8) if (insideRing(x, z, ring)) water.push(groundAtXZ(x, z));
+      water.sort((a, b) => a - b);
+      if (water.length) level = Math.min(level, Math.round(water[water.length >> 1] * 10) / 10);
+    }
     console.log(`lake ${lake.name}: shore ${shore.toFixed(1)} m from the road centre, water ${level.toFixed(1)} m`);
     lakes.push({ name: lake.name, level, ...ring });
   }
@@ -654,6 +894,7 @@ if (cfg.places) {
     const ring = projectRing(lot.ring);
     let shore = Infinity;
     for (let i = 0; i < line.length; i += 2) shore = Math.min(shore, ringDistance(line[i].x, line[i].z, ring));
+    if (cfg.lotsWithin && shore > cfg.lotsWithin) continue;
     if (lot.viewpoint) {
       const p = toXZ(lot.viewpoint);
       const d = ringDistance(p.x, p.z, ring);
@@ -672,19 +913,67 @@ if (cfg.places) {
 }
 
 const OPEN_COVER = new Set(['meadow', 'grass', 'grassland', 'farmland', 'scrub']);
+// Douglas–Peucker on a projected ring, so a mapped scree fan is tens of points, not hundreds.
+function simplifyRing(ring, tol) {
+  const n = ring.x.length;
+  if (n < 8) return ring;
+  const keep = new Uint8Array(n);
+  keep[0] = keep[n - 1] = 1;
+  const stack = [[0, n - 1]];
+  while (stack.length) {
+    const [i, j] = stack.pop();
+    const ax = ring.x[i], az = ring.z[i], dx = ring.x[j] - ax, dz = ring.z[j] - az;
+    const l = Math.hypot(dx, dz) || 1;
+    let far = -1, fd = tol;
+    for (let k = i + 1; k < j; k++) {
+      const d = Math.abs((ring.x[k] - ax) * dz - (ring.z[k] - az) * dx) / l;
+      if (d > fd) { fd = d; far = k; }
+    }
+    if (far >= 0) { keep[far] = 1; stack.push([i, far], [far, j]); }
+  }
+  const x = [], z = [];
+  for (let k = 0; k < n; k++) if (keep[k]) { x.push(ring.x[k]); z.push(ring.z[k]); }
+  return { x, z };
+}
+let coverFile = null;
 if (cfg.cover) {
   const src = JSON.parse(fs.readFileSync(path.join(ROOT, cfg.cover), 'utf8'));
   const open = [];
   const wood = [];
+  const scrub = [];
+  const scree = [];
+  const rock = [];
   for (const el of src.elements ?? []) {
     if (el.type !== 'way' || !el.geometry?.length) continue;
     const tags = el.tags ?? {};
     if (String(tags.source ?? '').includes('CORINE')) continue;
     const kind = tags.landuse || tags.natural;
-    const cls = kind === 'forest' || kind === 'wood' ? 'wood' : OPEN_COVER.has(kind) ? 'open' : null;
+    let cls = kind === 'forest' || kind === 'wood' ? 'wood' : OPEN_COVER.has(kind) ? 'open' : null;
+    if (cfg.coverRock) {
+      // Mugo pine is mapped as scrub. Scree, shingle and bare rock are the mountain itself.
+      if (kind === 'scrub') cls = 'scrub';
+      else if (kind === 'heath') cls = 'open';
+      else if (kind === 'scree' || kind === 'shingle') cls = 'scree';
+      else if (kind === 'bare_rock') cls = 'rock';
+      // A hole in a wood is a clearing. Holes in rock, scree or scrub are left out.
+      if (tags.inner === 'yes') cls = cls === 'wood' ? 'open' : null;
+    } else if (tags.inner === 'yes') cls = null;
     if (!cls) continue;
-    const ring = projectRing(el.geometry.map((p) => [p.lat, p.lon]));
+    let ring = projectRing(el.geometry.map((p) => [p.lat, p.lon]));
     if (ring.x.length < 3) continue;
+    if (cfg.coverRock) {
+      // The whole mapped area is kept: trees there grow only in the mapped woods.
+      // Patches under ~2,000 m² are a few terrain cells and are left out; the rest
+      // is simplified to 6 m, about the size of a near terrain cell.
+      let area = 0;
+      for (let i = 0, j = ring.x.length - 1; i < ring.x.length; j = i++) area += (ring.x[j] + ring.x[i]) * (ring.z[j] - ring.z[i]);
+      if (Math.abs(area / 2) < 2000) continue;
+      ring = simplifyRing(ring, 6);
+      if (ring.x.length < 3) continue;
+      const poly = { name: tags.name || kind, ...ring };
+      ({ wood, open, scrub, scree, rock })[cls].push(poly);
+      continue;
+    }
     let shore = Infinity;
     let inside = false;
     for (let i = 0; i < line.length; i += 4) {
@@ -698,14 +987,32 @@ if (cfg.cover) {
     console.log(`cover ${cls} ${poly.name}: ${dist.toFixed(0)} m, ${ring.x.length} pts`);
   }
   if (!places) places = { lakes: [], lots: [] };
-  places.cover = { open, wood };
-  console.log(`cover kept ${open.length} open and ${wood.length} wood (CORINE forest left out)`);
+  if (cfg.coverRock) {
+    // The box the land cover was fetched for, a little inside its edge.
+    const bb = src.bbox;
+    const a = toXZ({ lat: bb.north, lon: bb.west }), b = toXZ({ lat: bb.south, lon: bb.east });
+    const mapped = { minX: Math.round(a.x + 200), maxX: Math.round(b.x - 200), minZ: Math.round(a.z + 200), maxZ: Math.round(b.z - 200) };
+    // Inside the box unmapped ground is open anyway, so a meadow only matters where
+    // it cuts into a wood.
+    const box = (r) => ({ minX: Math.min(...r.x), maxX: Math.max(...r.x), minZ: Math.min(...r.z), maxZ: Math.max(...r.z) });
+    const woodBoxes = wood.map(box);
+    const cuts = open.filter((o) => { const b = box(o); return woodBoxes.some((w) => b.minX < w.maxX && b.maxX > w.minX && b.minZ < w.maxZ && b.maxZ > w.minZ); });
+    open.length = 0;
+    open.push(...cuts);
+    // Too large to ship with the road: it goes in its own file, loaded with the terrain.
+    coverFile = { open, wood, scrub, scree, rock, mapped };
+    const pts = (l) => l.reduce((s, p) => s + p.x.length, 0);
+    console.log(`cover kept ${wood.length} wood (${pts(wood)} pts), ${open.length} open (${pts(open)}), ${scrub.length} scrub (${pts(scrub)}), ${scree.length} scree (${pts(scree)}), ${rock.length} rock (${pts(rock)}); mapped box ${mapped.maxX - mapped.minX} x ${mapped.maxZ - mapped.minZ} m`);
+  } else {
+    places.cover = { open, wood };
+    console.log(`cover kept ${open.length} open and ${wood.length} wood (CORINE forest left out)`);
+  }
 }
 
 function creditLine(places) {
   const bits = ['Road line'];
   if (places?.lakes?.length) bits.push('lake');
-  if (places?.cover && (places.cover.open.length || places.cover.wood.length)) bits.push('land cover');
+  if (coverFile || (places?.cover && (places.cover.open.length || places.cover.wood.length))) bits.push('land cover');
   if (places?.lots?.length) bits.push('parking');
   const what = bits.length === 1 ? bits[0] : `${bits.slice(0, -1).join(', ')} and ${bits.at(-1)}`;
   return `${what} © OpenStreetMap contributors (ODbL). `;
@@ -719,8 +1026,10 @@ const track = {
   id: cfg.id,
   source:
     creditLine(places) +
-    'Terrain: Terrain Tiles (SRTM, Copernicus EU-DEM). Road profile: ' +
-    climb.sources[0],
+    (lidar
+      ? 'Terrain and road profile: Regione del Veneto – L.R. n. 28/76 – Formazione della Carta Tecnica Regionale (DTM LiDAR 5 m, IODL 2.0); Terrain Tiles (SRTM, Copernicus EU-DEM) further out. Checked against ' +
+        climb.sources[0]
+      : 'Terrain: Terrain Tiles (SRTM, Copernicus EU-DEM). Road profile: ' + climb.sources[0]),
   origin: { lat: +lat0.toFixed(7), lon: +lon0.toFixed(7) },
   ...(places ? { places } : {}),
   ...(cfg.climbFromSection != null ? { climbFromSection: cfg.climbFromSection } : {}),
@@ -735,9 +1044,25 @@ const track = {
   sec: out5.map((p) => p.sec),
   terrain: {
     file: `${cfg.id}.bin`,
-    grids: [fine, coarse].map(({ x0, z0, cell, w, h }) => ({ x0, z0, cell, w, h })),
+    grids: grids.map(({ x0, z0, cell, w, h }) => ({ x0, z0, cell, w, h })),
+    ...(coverFile ? { cover: `${cfg.id}.cover.json` } : {}),
   },
+  ...(cfg.landmarks
+    ? {
+        landmarks: cfg.landmarks.map((b) => {
+          const a = toXZ({ lat: b.north, lon: b.west }), c = toXZ({ lat: b.south, lon: b.east });
+          return { name: b.name, minX: Math.round(a.x), maxX: Math.round(c.x), minZ: Math.round(a.z), maxZ: Math.round(c.z) };
+        }),
+      }
+    : {}),
 };
 fs.mkdirSync(path.join(ROOT, 'src/routes/real/tracks'), { recursive: true });
 fs.writeFileSync(path.join(ROOT, `src/routes/real/tracks/${cfg.id}.json`), JSON.stringify(track));
-console.log(`wrote track (${(JSON.stringify(track).length / 1024).toFixed(0)} KB) and terrain (${(bin.length / 1024).toFixed(0)} KB, fine ${fine.w}×${fine.h}, coarse ${coarse.w}×${coarse.h})`);
+if (coverFile) {
+  const r = (v) => Math.round(v);
+  const slim = Object.fromEntries(Object.entries(coverFile).map(([k, v]) => [k, Array.isArray(v) ? v.map((p) => ({ name: p.name, x: p.x.map(r), z: p.z.map(r) })) : v]));
+  const text = JSON.stringify(slim);
+  fs.writeFileSync(path.join(ROOT, `src/assets/terrain/${cfg.id}.cover.json`), text);
+  console.log(`wrote land cover (${(text.length / 1024).toFixed(0)} KB, loaded with the terrain)`);
+}
+console.log(`wrote track (${(JSON.stringify(track).length / 1024).toFixed(0)} KB) and terrain (${(bin.length / 1024).toFixed(0)} KB, ${grids.map((g) => `${g.cell} m ${g.w}×${g.h}`).join(', ')})`);
