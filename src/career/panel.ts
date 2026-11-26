@@ -1,6 +1,6 @@
-import { brandLogo } from '../brand';
 import { canEnter, formatDate, MONTHS, monthsFor, raceDays, RACES, stageWindow, terrainBadge, terrainBand, terrainLabel, type RaceDef } from './calendar';
 import { RIDERS, riderName, riderTrait, ridersOf, teamBest, teamLeader, teamStars, type Rider } from './roster';
+import { contractProgress, racePayout, seasonProgress, type SeasonProgress, type SeasonRaceStatus } from './progress';
 import { teammatesFor, rankingRows, teamRanking, type Career } from './season';
 import { aiField, eligibleMates, favoursPunch, rate, startMateCount } from './squad';
 import { DIVISION_BLURB, DIVISION_LABEL, FOCUS_LABEL, ROSTER_SIZE, teamById, teamCode, teamsIn } from './teams';
@@ -132,52 +132,151 @@ function slider(id: string, label: string, value: number, max = 6.2): string {
   </label>`;
 }
 
+/**
+ * The season page: the next race first and biggest, then how close the next contract is,
+ * then the season month by month, then the other pages as plain links.
+ */
 function hubHtml(career: Career): string {
   const state = career.state!;
   const team = teamById(state.teamId);
-  const next = state.active ? RACES.find((race) => race.id === state.active?.raceId) : career.nextEntered();
-  const points = state.cyb.player ?? 0;
-  const rank = Object.keys(state.cyb).length ? 1 + Object.values(state.cyb).filter((value) => value > points).length : null;
-  const entered = state.entered.filter((id) => !state.done.includes(id)).length;
-  const waiting = !state.active && !next && !!career.nextOpen();
-  const stageIndex = state.active?.stageIndex ?? 0;
-  const stage = next?.stages[stageIndex];
-  const rideLabel = state.active
-    ? `Stage ${stageIndex + 1} of ${next?.stages.length ?? 1}${stage && (next?.stages.length ?? 0) > 1 ? ` · ${stage.name}` : ''}`
-    : next
-      ? `${formatDate(next.month, next.day)} · ${next.stages.length > 1 ? `${next.stages.length} stages` : 'one day'}`
-      : waiting
-        ? 'Tick a race on the calendar'
-        : 'Every race on your list is done';
-  const rideTitle = state.active ? 'Continue' : next ? 'Next race' : waiting ? 'No race ticked' : 'Season done';
-  const rideAct = state.active || next ? 'brief' : 'tab';
-  const rideTab = state.active || next ? '' : ' data-tab="calendar"';
-  return `<div class="career-home">
-    <div class="home-brand">
-      ${brandLogo()}
-      <p>${esc(team?.name ?? 'Career')} · ${state.year}</p>
-      <p class="home-rider">${esc(DIVISION_LABEL[team?.division ?? 'continental'])} · ${points} CYB${rank ? ` · rank ${rank}` : ''} · ${entered} races left</p>
-    </div>
-    <nav class="home-menu">
-      <button class="menu-card" type="button" data-career="${rideAct}"${rideTab}><b>${rideTitle}</b><span>${esc(next ? `${next.name}. ${rideLabel}` : rideLabel)}</span>${next && stage ? hubStage(next, stageIndex) : ''}</button>
-      <button class="menu-card" type="button" data-career="tab" data-tab="calendar"><b>Calendar</b><span>The months, the days, and the profile of every stage</span></button>
-      <button class="menu-card" type="button" data-career="tab" data-tab="rankings"><b>Standings</b><span>CYB for the World Tour, Continental for Pro and Continental</span></button>
-      <button class="menu-card" type="button" data-career="tab" data-tab="record"><b>Record</b><span>Your results, and who won each race</span></button>
-      <button class="menu-card quiet" type="button" data-career="tab" data-tab="team"><b>My team</b><span>${esc(team?.name ?? 'Squad')}, the riders and their ratings</span></button>
-      <button class="menu-card quiet" type="button" data-career="tab" data-tab="riders"><b>All teams</b><span>Every team, then the riders on that team</span></button>
-      <button class="menu-card quiet" type="button" data-career="tab" data-tab="field"><b>All riders</b><span>Every rider, so you can sort who leads each attribute</span></button>
-      <button class="menu-card quiet" type="button" data-career="download"><b>Download save</b><span>A file of this career, kept on your computer</span></button>
-      ${!state.active && career.nextOpen() && !career.nextEntered() ? '<button class="menu-card quiet" type="button" data-career="advance"><b>Simulate</b><span>Races you unticked are ridden without you</span></button>' : ''}
+  const division = team?.division ?? 'continental';
+  const season = seasonProgress(state);
+  const current = season.current ? ` · ${MONTHS[season.current]}` : '';
+  const kit = team ? jerseyFigure(team.kit.jersey, team.kit.accent, team.kit.shorts, team.kit.helmet) : '';
+  const simulate = !state.active && career.nextOpen() && !career.nextEntered()
+    ? '<button type="button" data-career="advance">Simulate the rest</button>'
+    : '';
+  return `<div class="career-home season">
+    <header class="season-head">
+      ${kit}
+      <div>
+        <h2>${esc(team?.name ?? 'Career')}</h2>
+        <p>${esc(DIVISION_LABEL[division])} · ${state.year}${current}</p>
+      </div>
+    </header>
+    ${hubNext(career)}
+    ${hubContract(state)}
+    ${hubSeason(season)}
+    <nav class="season-links" aria-label="Career pages">
+      <button type="button" data-career="tab" data-tab="calendar">Calendar</button>
+      <button type="button" data-career="tab" data-tab="rankings">Standings</button>
+      <button type="button" data-career="tab" data-tab="record">Record</button>
+      <button type="button" data-career="tab" data-tab="team">My team</button>
+      <button type="button" data-career="tab" data-tab="riders">All teams</button>
+      <button type="button" data-career="tab" data-tab="field">All riders</button>
+      ${simulate}
+      <button type="button" class="quiet" data-career="download">Download save</button>
     </nav>
   </div>`;
 }
 
-function hubStage(race: RaceDef, stageIndex: number): string {
+function hubNext(career: Career): string {
+  const state = career.state!;
+  const race = state.active ? RACES.find((item) => item.id === state.active?.raceId) : career.nextEntered();
+  if (!race) {
+    const waiting = !!career.nextOpen();
+    return `<section class="season-next empty">
+      <p class="season-label">${waiting ? 'No race ticked' : 'Season done'}</p>
+      <h3>${waiting ? 'Pick your next race' : 'Every race on your list is done'}</h3>
+      <p class="season-when">${waiting ? 'Tick a race on the calendar to ride it. Races you leave unticked are ridden without you.' : 'The offers for next season come when the last race of the year is over.'}</p>
+      <div class="season-go">${waiting ? '<button class="btn primary big" type="button" data-career="tab" data-tab="calendar">Open the calendar</button>' : ''}</div>
+    </section>`;
+  }
+  const stageIndex = state.active?.stageIndex ?? 0;
   const stage = race.stages[stageIndex];
-  if (!stage) return '';
-  const window = stageWindow(stage);
-  const band = terrainBand(window.ascent, window.km);
-  return `<span class="ride-stage"><canvas class="route-profile stage-profile" data-stage="${race.id}:${stageIndex}"></canvas><span class="badge ${terrainBadge('road', band)}">${esc(terrainLabel('road', band))}</span></span>`;
+  const window = stage ? stageWindow(stage) : null;
+  const band = window ? terrainBand(window.ascent, window.km) : null;
+  const when = raceDays(race, state.year)[stageIndex] ?? { month: race.month, day: race.day };
+  const length = race.stages.length > 1 ? `Stage ${stageIndex + 1} of ${race.stages.length}` : 'One day';
+  const facts = [
+    formatDate(when.month, when.day),
+    length,
+    window ? `${window.km.toFixed(1)} km` : '',
+    window ? `${Math.round(window.ascent)} m up` : '',
+    window && band ? terrainLabel(window.kind, band) : '',
+  ].filter(Boolean).join(' · ');
+  const plainStage = stage ? stage.name.replace(/^Stage \d+\s*·\s*/, '') : '';
+  const stageName = race.stages.length > 1 && plainStage && plainStage !== race.name ? `<p class="season-stage">${esc(plainStage)}</p>` : '';
+  const pay = racePayout(race);
+  const stake = [
+    `Win <b>+${pay.win}</b>`,
+    pay.stageWin ? `stage win <b>+${pay.stageWin}</b>` : '',
+    pay.tenth ? `10th <b>+${pay.tenth}</b>` : '',
+  ].filter(Boolean).join(' · ');
+  const gc = state.active && stageIndex > 0 ? overallLine(state.active.gc) : '';
+  return `<section class="season-next">
+    <p class="season-label">${state.active ? 'Race in progress' : 'Next race'}</p>
+    <h3>${esc(race.name)}</h3>
+    ${stageName}
+    <p class="season-when">${esc(facts)}</p>
+    ${stage ? `<canvas class="route-profile stage-profile" data-stage="${race.id}:${stageIndex}"></canvas>` : ''}
+    <div class="season-go">
+      <p class="season-stake">${gc ? `${gc}<br/>` : ''}${stake} contract points</p>
+      <button class="btn primary big" type="button" data-career="brief">${state.active ? 'Continue the race' : 'Race brief'}</button>
+    </div>
+  </section>`;
+}
+
+/** "4th overall, 0:42 behind" after the first stage of a stage race. */
+function overallLine(gc: ClassRow[]): string {
+  const index = gc.findIndex((row) => row.riderId === 'player');
+  if (index < 0) return '';
+  if (index === 0) return 'You lead the race overall';
+  const gap = gc[index].value - gc[0].value;
+  return `You are ${placeWord(index + 1)} overall, ${clock(gap)} behind`;
+}
+
+function hubContract(state: CareerState): string {
+  const progress = contractProgress(state);
+  const pct = (value: number) => `${Math.min(100, (value / progress.scale) * 100).toFixed(1)}%`;
+  const marks = progress.steps.map((step) => `<span class="meter-mark${progress.points >= step.at ? ' passed' : ''}" style="left:${pct(step.at)}"><b>${step.at}</b><small>${esc(step.label)}</small></span>`).join('');
+  const goal = progress.next
+    ? `<b>${progress.next.left}</b> to ${esc(progress.next.goal)}`
+    : progress.division === 'world'
+      ? 'Enough for extra World Tour offers'
+      : 'Enough for a World Tour offer';
+  const note = progress.division === 'world'
+    ? 'World Tour races and the championships count in full.'
+    : 'World Tour races and the championships count in full. Pro and Continental races count at 75 %. Offers come at the end of the season.';
+  return `<section class="season-contract" aria-label="Contract">
+    <p class="season-label">Contract</p>
+    <div class="contract-top">
+      <p class="contract-points"><b>${progress.points}</b> points</p>
+      <p class="contract-goal">${goal}</p>
+    </div>
+    <div class="meter" role="meter" aria-valuemin="0" aria-valuemax="${progress.scale}" aria-valuenow="${progress.points}" aria-label="Contract points">
+      <span class="meter-fill" style="width:${pct(progress.points)}"></span>
+      ${marks}
+    </div>
+    <p class="muted contract-note">${note}</p>
+  </section>`;
+}
+
+const STATUS_WORD: Record<SeasonRaceStatus, string> = {
+  ridden: 'ridden', skipped: 'skipped', now: 'in progress', next: 'next', planned: 'ticked',
+};
+
+function hubSeason(season: SeasonProgress): string {
+  if (!season.months.length) {
+    return `<section class="season-strip"><p class="season-label">Season</p><p class="muted">No races ticked. Open the calendar to pick your season.</p></section>`;
+  }
+  const months = season.months.map((month) => {
+    const dots = month.races.map((race) => {
+      const label = `${race.name}, ${formatDate(race.month, race.day)}: ${race.place ? `you were ${placeWord(race.place)}` : STATUS_WORD[race.status]}`;
+      const top = race.place != null && race.place <= 10 ? ' top' : '';
+      const mark = race.place != null && race.place <= 3 ? `<i>${race.place}</i>` : '';
+      return `<span class="season-dot ${race.status}${top}" title="${esc(label)}"><span class="sr">${esc(label)}</span>${mark}</span>`;
+    }).join('');
+    return `<li class="${month.month === season.current ? 'current' : ''}"><b>${esc(month.name.slice(0, 3))}</b><span class="season-dots">${dots}</span></li>`;
+  }).join('');
+  const best = season.best ? ` · best <b>${placeWord(season.best.place)}</b>, ${esc(season.best.race)}` : '';
+  const tally = season.ridden ? ` · ${season.wins} ${season.wins === 1 ? 'win' : 'wins'} · ${season.topTen} top 10` : '';
+  return `<section class="season-strip">
+    <p class="season-label">Season</p>
+    <ol class="season-months">${months}</ol>
+    <p class="season-tally"><b>${season.ridden}</b> of <b>${season.total}</b> raced${best}${tally}</p>
+    <p class="season-key muted"><span class="season-dot ridden"></span> ridden <span class="season-dot ridden top"></span> top 10 <span class="season-dot next"></span> next <span class="season-dot planned"></span> ticked <span class="season-dot skipped"></span> skipped</p>
+  </section>`;
 }
 
 const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
