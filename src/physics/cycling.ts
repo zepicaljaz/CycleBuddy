@@ -8,6 +8,15 @@ export const DEFAULT_CRR = 0.004;
 export const MAX_SPEED = 200 / 3.6; // 200 km/h, so a test ride can cover a route quickly
 /** Extra deceleration while braking, in m/s². Stronger than a 16% descent (~1.6 m/s²), so holding the brake reaches a stop. From 40 km/h on the flat it takes about four seconds. */
 export const BRAKE_DECEL = 2.8;
+/** Below this speed (m/s) pedal force is no longer power over speed, so a standing start is not a catapult. */
+const FORCE_FLOOR_SPEED = 1;
+/**
+ * In the bottom gear a slow rider can still push this hard (N), enough for the steepest ramps at
+ * walking pace. Without it anyone under about 1.5 W/kg stops dead on 12% and never moves again.
+ */
+const BOTTOM_GEAR_FORCE = 250;
+/** The slowest speed (m/s) the bottom gear turns power into force at. */
+const BOTTOM_GEAR_SPEED = 0.3;
 
 export interface BikeParams {
   /** Rider + bike mass in kg. */
@@ -101,7 +110,9 @@ export function stepSpeed(
   brake = 0,
 ): number {
   const braking = brake > 0;
-  const drive = braking ? 0 : (Math.max(0, power) * DRIVETRAIN_EFFICIENCY) / Math.max(v, 1.0);
+  const wheel = Math.max(0, power) * DRIVETRAIN_EFFICIENCY;
+  let drive = braking ? 0 : wheel / Math.max(v, FORCE_FLOOR_SPEED);
+  if (!braking && v < FORCE_FLOOR_SPEED) drive = Math.max(drive, Math.min(wheel / Math.max(v, BOTTOM_GEAR_SPEED), BOTTOM_GEAR_FORCE));
   const resist = resistiveForce(v, grade, bike, altitude, draft);
   // ~1 kg of extra effective mass for wheel rotational inertia
   const accel = (drive - resist) / (bike.mass + 1) - Math.max(0, brake);

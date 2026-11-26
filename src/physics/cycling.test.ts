@@ -26,6 +26,14 @@ describe('cycling physics', () => {
     expect(steadySpeed(0, 0.02, bike)).toBe(0);
   });
 
+  it('keeps a weak rider moving up a steep ramp instead of stalling', () => {
+    // 1 W/kg on 12.8%, the steepest stretch of Vršič.
+    let v = 0;
+    for (let i = 0; i < 2000; i++) v = stepSpeed(v, 70, 0.128, bike, 0.05);
+    expect(v).toBeGreaterThan(0.5);
+    expect(v).toBeCloseTo(steadySpeed(70, 0.128, bike), 1);
+  });
+
   it('stepSpeed converges to steady speed', () => {
     let v = 0;
     for (let i = 0; i < 2000; i++) v = stepSpeed(v, 250, 0.03, bike, 0.05);
