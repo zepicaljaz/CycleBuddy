@@ -10,7 +10,8 @@ import { clearLocalAccountData } from '../storage/localOwner';
 import { exportBackup, importBackup } from '../storage/backup';
 import { downloadBytes, rideFileName } from '../storage/download';
 import { IndexedDbStorage } from '../storage/indexedDb';
-import type { AnalyticsPage, AnalyticsState } from '../analytics/view';
+import type { AnalyticsPage, AnalyticsState, VolumeMetric } from '../analytics/view';
+import type { AnalyticsRange, PowerData } from '../analytics/metrics';
 import type { RideKind, RideSortKey } from '../analytics/model';
 import type { ClimbEffort, Profile, RideCamera, RideSample, RideSummary, StorageProvider } from '../storage/types';
 import { formatDuration, uuid } from '../util/math';
@@ -64,10 +65,6 @@ const FRAME_CATCH_UP_SEC = 5;
 const BACKGROUND_CATCH_UP_SEC = 75;
 
 const DIFFICULTY_LABEL: Record<Difficulty, string> = { flat: 'Flat', hilly: 'Hilly', mountain: 'Mountain', epic: 'Epic' };
-
-function clampShift(value: number, max: number): number {
-  return Math.max(0, Math.min(max, value));
-}
 
 function cssEscape(value: string): string {
   if (typeof CSS !== 'undefined' && typeof CSS.escape === 'function') return CSS.escape(value);
@@ -321,10 +318,11 @@ export class App {
   private analyticsDay: string | null = null;
   private analyticsSegment = 'all';
   private analyticsRouteId = '';
-  private analyticsMonthShift = 0;
-  private analyticsWeekShift = 0;
-  private analyticsSessionShift = 0;
-  private analyticsPowerShift = 0;
+  private analyticsRange: AnalyticsRange = '3m';
+  private analyticsVolume: VolumeMetric = 'time';
+  /** Best efforts and zone time per ride, keyed by ride id and the FTP they were scored with. */
+  private analyticsPower = new Map<string, PowerData>();
+  private analyticsPowerLoading = false;
   private analyticsRides: RideSummary[] = [];
   private analyticsEfforts: ClimbEffort[] = [];
   private analyticsSamples = new Map<string, RideSample[]>();
@@ -763,10 +761,6 @@ export class App {
       this.analyticsYear = today.getFullYear();
       this.analyticsMonthIndex = today.getMonth();
       this.analyticsDay = null;
-      this.analyticsMonthShift = 0;
-      this.analyticsWeekShift = 0;
-      this.analyticsSessionShift = 0;
-      this.analyticsPowerShift = 0;
     }
     if (screen === 'free' && this.screen !== 'free') this.freeRegion = freeRegion ?? null;
     if (screen === 'career' && this.screen === 'home') this.enterCareer();
@@ -1991,10 +1985,8 @@ export class App {
       day: this.analyticsDay,
       segmentId: this.analyticsSegment,
       routeId: this.analyticsRouteId,
-      monthShift: this.analyticsMonthShift,
-      weekShift: this.analyticsWeekShift,
-      sessionShift: this.analyticsSessionShift,
-      powerShift: this.analyticsPowerShift,
+      range: this.analyticsRange,
+      volume: this.analyticsVolume,
       now: new Date(),
     };
   }
@@ -2005,25 +1997,74 @@ export class App {
     if (this.screen !== 'history') return;
     if (this.analyticsPage === 'calendar') await this.ensureMonthSamples();
     if (this.screen !== 'history') return;
+    const missingPower = this.analyticsPage === 'power' && this.missingPowerRides().length > 0;
     const scroller = this.panel.querySelector('.panel-body');
     const top = keepScroll ? (scroller?.scrollTop ?? 0) : 0;
     this.panel.innerHTML = `
       ${this.header('Analytics', 'Free rides, training, hill climbs and career stages saved on your account.')}
       <div class="panel-body analytics-body">
-        ${an().analyticsHtml(this.analyticsRides, this.analyticsEfforts, this.analyticsState(), { ftp: this.profile.ftp, samples: this.analyticsSamples })}
+        ${an().analyticsHtml(this.analyticsRides, this.analyticsEfforts, this.analyticsState(), {
+          ftp: this.profile.ftp,
+          weightKg: this.profile.weightKg,
+          samples: this.analyticsSamples,
+          power: this.ridePowerMap(),
+          powerLoading: missingPower,
+        })}
       </div>`;
     const next = this.panel.querySelector('.panel-body');
     if (next) next.scrollTop = top;
     this.bindAnalytics();
+    if (missingPower) void this.loadRangePower();
+  }
+
+  private powerKey(ride: RideSummary, ftpOf: (ride: RideSummary) => number): string {
+    return `${ride.id}:${Math.round(ftpOf(ride))}`;
+  }
+
+  /** Power data of the saved rides, keyed by ride id only. */
+  private ridePowerMap(): Map<string, PowerData> {
+    const ftpOf = an().ftpTimeline(this.analyticsRides, this.profile.ftp);
+    const out = new Map<string, PowerData>();
+    for (const ride of this.analyticsRides) {
+      const data = this.analyticsPower.get(this.powerKey(ride, ftpOf));
+      if (data) out.set(ride.id, data);
+    }
+    return out;
+  }
+
+  private missingPowerRides(): RideSummary[] {
+    const ftpOf = an().ftpTimeline(this.analyticsRides, this.profile.ftp);
+    return an()
+      .powerRides(this.analyticsRides, this.analyticsRange, new Date())
+      .filter((ride) => !this.analyticsPower.has(this.powerKey(ride, ftpOf)));
+  }
+
+  /** Reads the samples of every ride in the range once, and keeps only the numbers the Power page needs. */
+  private async loadRangePower(): Promise<void> {
+    if (this.analyticsPowerLoading) return;
+    this.analyticsPowerLoading = true;
+    try {
+      const ftpOf = an().ftpTimeline(this.analyticsRides, this.profile.ftp);
+      for (const ride of this.missingPowerRides()) {
+        if (this.screen !== 'history' || this.analyticsPage !== 'power') return;
+        const samples = this.analyticsSamples.get(ride.id) ?? (await this.storage.getRideSamples(ride.id)) ?? [];
+        this.analyticsPower.set(this.powerKey(ride, ftpOf), an().powerData(samples, ftpOf(ride)));
+      }
+    } catch (err) {
+      console.error('Reading ride power failed', err);
+    } finally {
+      this.analyticsPowerLoading = false;
+    }
+    if (this.screen === 'history' && this.analyticsPage === 'power' && !this.missingPowerRides().length) void this.paintAnalytics(true);
   }
 
   private bindAnalytics(): void {
     $$('[data-analytics]', this.panel).forEach((button) =>
       button.addEventListener('click', () => {
         const page = button.dataset.analytics;
-        if (page !== 'dashboard' && page !== 'rides' && page !== 'segments' && page !== 'calendar') return;
+        if (!an().ANALYTICS_PAGES.includes(page as AnalyticsPage)) return;
         if (page === this.analyticsPage) return;
-        this.analyticsPage = page;
+        this.analyticsPage = page as AnalyticsPage;
         this.paintAnalytics(false);
       }),
     );
@@ -2037,12 +2078,36 @@ export class App {
     $$('[data-sort]', this.panel).forEach((button) =>
       button.addEventListener('click', () => {
         const key = button.dataset.sort;
-        if (key !== 'name' && key !== 'date' && key !== 'type' && key !== 'distance' && key !== 'time' && key !== 'elevation' && key !== 'power' && key !== 'segmentPower') return;
+        if (!an().RIDE_SORT_KEYS.includes(key as RideSortKey)) return;
         if (this.analyticsSort === key) this.analyticsSortDesc = !this.analyticsSortDesc;
         else {
-          this.analyticsSort = key;
+          this.analyticsSort = key as RideSortKey;
           this.analyticsSortDesc = key !== 'name' && key !== 'type';
         }
+        this.paintAnalytics(true);
+      }),
+    );
+    this.panel.querySelector<HTMLSelectElement>('[data-sort-select]')?.addEventListener('change', (event) => {
+      const key = (event.target as HTMLSelectElement).value;
+      if (!an().RIDE_SORT_KEYS.includes(key as RideSortKey)) return;
+      this.analyticsSort = key as RideSortKey;
+      this.analyticsSortDesc = key !== 'name' && key !== 'type';
+      this.paintAnalytics(true);
+    });
+    $$('[data-range]', this.panel).forEach((button) =>
+      button.addEventListener('click', () => {
+        const range = button.dataset.range;
+        if (range !== '6w' && range !== '3m' && range !== '6m' && range !== '1y' && range !== 'all') return;
+        if (range === this.analyticsRange) return;
+        this.analyticsRange = range;
+        this.paintAnalytics(true);
+      }),
+    );
+    $$('[data-volume]', this.panel).forEach((button) =>
+      button.addEventListener('click', () => {
+        const metric = button.dataset.volume;
+        if (!an().VOLUME_METRICS.includes(metric as VolumeMetric)) return;
+        this.analyticsVolume = metric as VolumeMetric;
         this.paintAnalytics(true);
       }),
     );
@@ -2061,19 +2126,6 @@ export class App {
         const next = button.dataset.route || '';
         if (next !== this.analyticsRouteId) this.analyticsSegment = 'all';
         this.analyticsRouteId = next;
-        this.paintAnalytics(true);
-      }),
-    );
-    $$('[data-window]', this.panel).forEach((button) =>
-      button.addEventListener('click', () => {
-        if (button.hasAttribute('disabled')) return;
-        const step = button.dataset.window === 'power' ? an().POWER_PAGE : 1;
-        const dir = button.dataset.dir === 'prev' ? step : -step;
-        const now = new Date();
-        if (button.dataset.window === 'month') this.analyticsMonthShift = clampShift(this.analyticsMonthShift + dir, an().maxMonthShift(this.analyticsRides, now));
-        else if (button.dataset.window === 'week') this.analyticsWeekShift = clampShift(this.analyticsWeekShift + dir, an().maxWeekShift(this.analyticsRides, now));
-        else if (button.dataset.window === 'sessions') this.analyticsSessionShift = clampShift(this.analyticsSessionShift + dir, an().maxWeekShift(this.analyticsRides, now));
-        else if (button.dataset.window === 'power') this.analyticsPowerShift = clampShift(this.analyticsPowerShift + dir, an().maxPowerSkip(this.analyticsRides.length));
         this.paintAnalytics(true);
       }),
     );
@@ -2159,11 +2211,15 @@ export class App {
         const samples = this.analyticsSamples.get(id) ?? (await this.storage.getRideSamples(id)) ?? [];
         this.analyticsSamples.set(id, samples);
         if (!row.isConnected) return;
-        const trace = an().rideTraceHtml(samples, this.profile.ftp);
+        const ride = rides.find((item) => item.id === id);
+        const ftp = ride ? an().ftpTimeline(rides, this.profile.ftp)(ride) : this.profile.ftp;
+        const trace = an().rideTraceHtml(samples, ftp, this.profile.weightKg);
         const profile = row.querySelector('[data-detail-profile]');
         const power = row.querySelector('[data-detail-power]');
+        const extra = row.querySelector('[data-detail-extra]');
         if (profile) profile.innerHTML = trace.profile;
         if (power) power.innerHTML = trace.power;
+        if (extra) extra.innerHTML = trace.extra;
         row.dataset.ready = '1';
       }),
     );

@@ -2,6 +2,7 @@ import { ROUTES } from '../routes/definitions';
 import type { Difficulty } from '../routes/types';
 import type { ClimbEffort, RideSummary } from '../storage/types';
 import { flattenWorkouts, planById } from '../training/plans';
+import { rideLoad, type RideLoad } from './metrics';
 import { routeElevations } from './shape';
 
 /** How a saved ride was started. Career stages are stored as races, with the stage name as the title. */
@@ -14,7 +15,9 @@ export const KIND_LABEL: Record<RideKind, string> = {
   career: 'Career',
 };
 
-export type RideSortKey = 'name' | 'date' | 'type' | 'distance' | 'time' | 'elevation' | 'power' | 'segmentPower';
+export type RideSortKey = 'name' | 'date' | 'type' | 'distance' | 'time' | 'elevation' | 'power' | 'np' | 'load' | 'segmentPower';
+
+export const RIDE_SORT_KEYS: RideSortKey[] = ['name', 'date', 'type', 'distance', 'time', 'elevation', 'power', 'np', 'load', 'segmentPower'];
 
 export interface Totals {
   sessions: number;
@@ -65,9 +68,6 @@ export interface SegmentChoice {
   routeName: string;
 }
 
-export const POWER_WINDOW = 16;
-export const POWER_PAGE = 8;
-
 export const DIFFICULTY_LABEL: Record<Difficulty, string> = {
   flat: 'Flat',
   hilly: 'Hilly',
@@ -80,6 +80,7 @@ export interface RideRow {
   kind: RideKind;
   /** Time-weighted average of the segment efforts on this ride. */
   segmentPower: number | null;
+  load: RideLoad;
 }
 
 export interface SegmentAttempt {
@@ -238,30 +239,9 @@ export function weeklySeries(rides: RideSummary[], now: Date, weeks = 12, shift 
   return points;
 }
 
-/** How far the 12-month window can slide back and still end on a month with a ride. */
-export function maxMonthShift(rides: RideSummary[], now: Date): number {
-  const oldest = oldestRide(rides);
-  if (!oldest) return 0;
-  return Math.max(0, (now.getFullYear() - oldest.getFullYear()) * 12 + (now.getMonth() - oldest.getMonth()));
-}
 
-export function maxWeekShift(rides: RideSummary[], now: Date): number {
-  const oldest = oldestRide(rides);
-  if (!oldest) return 0;
-  const weeks = Math.round((mondayOf(now).getTime() - mondayOf(oldest).getTime()) / (7 * 86400000));
-  return Math.max(0, weeks);
-}
 
-/** Newest rides first are skipped, then the window is drawn oldest to newest. */
-export function powerTrend(rides: RideSummary[], skip = 0, count = POWER_WINDOW): RideSummary[] {
-  const ordered = byNewest(rides);
-  const start = Math.max(0, Math.min(skip, Math.max(0, ordered.length - 1)));
-  return ordered.slice(start, start + count).reverse();
-}
 
-export function maxPowerSkip(rideCount: number, window = POWER_WINDOW): number {
-  return Math.max(0, rideCount - window);
-}
 
 export function delta(current: number, previous: number): Delta {
   if (!(previous > 0)) return { current, previous, pct: current > 0 ? null : 0 };
@@ -322,7 +302,7 @@ export function segmentCatalog(efforts: ClimbEffort[]): { routes: RouteChoice[];
   };
 }
 
-export function rideRows(rides: RideSummary[], efforts: ClimbEffort[]): RideRow[] {
+export function rideRows(rides: RideSummary[], efforts: ClimbEffort[], ftpOf: (ride: RideSummary) => number = () => 200): RideRow[] {
   const byRide = new Map<string, { powerTime: number; time: number }>();
   for (const effort of efforts) {
     const time = num(effort.timeSec);
@@ -338,6 +318,7 @@ export function rideRows(rides: RideSummary[], efforts: ClimbEffort[]): RideRow[
       ride,
       kind: rideKind(ride),
       segmentPower: agg && agg.time > 0 ? agg.powerTime / agg.time : null,
+      load: rideLoad(ride, ftpOf(ride)),
     };
   });
 }
@@ -360,6 +341,10 @@ export function sortRideRows(rows: RideRow[], key: RideSortKey, desc: boolean): 
         return num(row.ride.ascentM);
       case 'power':
         return num(row.ride.avgPower);
+      case 'np':
+        return row.load.np;
+      case 'load':
+        return row.load.tss;
       case 'segmentPower':
         return row.segmentPower;
     }
@@ -546,15 +531,6 @@ export function formatDay(iso: string): string {
   return at.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
-function oldestRide(rides: RideSummary[]): Date | null {
-  let oldest: Date | null = null;
-  for (const ride of rides) {
-    const at = new Date(ride.startedAt);
-    if (Number.isNaN(at.getTime())) continue;
-    if (!oldest || at < oldest) oldest = at;
-  }
-  return oldest;
-}
 
 function num(value: number): number {
   return Number.isFinite(value) ? value : 0;

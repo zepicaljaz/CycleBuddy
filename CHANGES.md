@@ -6,6 +6,7 @@ releases.
 
 ## Unreleased
 
+- **Analytics, rebuilt** for phones, tablets and the big screen. Six tabs: Overview (form today, this week vs last, weekly load, recent rides, totals), Fitness (fitness, fatigue and form over 6 weeks to all time, volume by time, load, distance or climbing, week by week, aerobic efficiency), Power (best 5 s to 1 h in W and W/kg, power curve against the period before, FTP estimate, time in zones), Rides (NP and load per ride; the detail adds IF, VI, kJ, heart rate, best efforts, zones and decoupling), Climbs and Calendar (with load per week). Each ride's load uses the FTP you had that day. How it is all worked out: `docs/ANALYTICS.md`.
 - **Krvavec from Grad to Plaža** on its real road: the Pogi Challenge climb from the end of Grad past Ambrož and Planina Jezerca to Plaža, with the published CyclingCols profile and a turnaround at the top. See `docs/REAL_ROADS.md`.
 - **Map** has a step between the nearby road and the full loop. Wider road is the same world-fixed view, about five times further out, still coloured by gradient. Press M to cycle: nearby road, wider road, full loop. The map zooms out and back in as the setting changes.
 - **First person** shows the handlebar. The rider's body stays hidden, so the view reads as the saddle.

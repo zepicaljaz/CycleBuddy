@@ -92,7 +92,7 @@ export const HELP_SECTIONS: HelpSection[] = [
   <li><b>Top centre:</b> current climb, then time, distance, elevation already climbed, average power and average speed. On a free ride the bar moves forward as you ride, and after a turn the next climb is the one ahead of you.</li>
   <li><b>Top right:</b> race standings around you with time gaps. The leader stays on the top row and last place on the bottom row. A free ride shows lap and ride stats instead.</li>
   <li><b>Bottom:</b> elevation profile, coloured by steepness (green easy &rarr; red/purple very steep).</li>
-  <li><b>Segments:</b> every named climb records a time, like a Strava segment. On a free ride you can start at kilometre 0, or at the bottom or the top of a climb. Compare attempts under <b>Analytics → Segment analyzer</b>. A career stage keeps each named climb you ride all the way through.</li>
+  <li><b>Segments:</b> every named climb records a time, like a Strava segment. On a free ride you can start at kilometre 0, or at the bottom or the top of a climb. Compare attempts under <b>Analytics → Climbs</b>. A career stage keeps each named climb you ride all the way through.</li>
 </ul>
 
 <h3>Garage</h3>
@@ -150,7 +150,7 @@ export const HELP_SECTIONS: HelpSection[] = [
 <h3>The game is slow or stutters</h3>
 <p>Lower <b>Graphics quality</b> in Settings (Medium is a good choice for laptops). Plug your laptop into power, and close other heavy browser tabs.</p>
 <h3>Where are my rides stored?</h3>
-<p>On your account. Sign in on another browser and the same rides are there. A copy also stays in the browser you rode on, so a finished ride is still on this computer if the connection drops. Use <b>Analytics &rarr; All rides &rarr; Export backup</b> when you want a file, and upload important rides to Strava or Garmin as .FIT files.</p>
+<p>On your account. Sign in on another browser and the same rides are there. A copy also stays in the browser you rode on, so a finished ride is still on this computer if the connection drops. Use <b>Analytics &rarr; Rides &rarr; Export backup</b> when you want a file, and upload important rides to Strava or Garmin as .FIT files.</p>
 `,
   },
 ];

@@ -64,7 +64,8 @@ export interface WorkoutCue {
   step: WorkoutStep;
 }
 
-const ZONES = [
+/** Power zones as a share of FTP. Analytics and the workout bars use the same table. */
+export const ZONES = [
   { max: 0.55, name: 'Recovery', color: '#7f93a8' },
   { max: 0.76, name: 'Endurance', color: '#3cba78' },
   { max: 0.88, name: 'Tempo', color: '#e6c14a' },

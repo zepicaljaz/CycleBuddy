@@ -74,10 +74,8 @@ function state(page: AnalyticsPage): AnalyticsState {
     day: null,
     segmentId: '',
     routeId: '',
-    monthShift: 0,
-    weekShift: 0,
-    sessionShift: 0,
-    powerShift: 0,
+    range: '3m',
+    volume: 'time',
     now: new Date(Date.UTC(2026, 10, 16, 12)),
   };
 }
@@ -97,7 +95,7 @@ describe('menu screens render', () => {
     expectClean(homeHtml({ name: '', weightKg: 0, ftp: 0, trainer: '' }, ''), 'home (empty rider)');
   });
 
-  for (const page of ['dashboard', 'rides', 'segments', 'calendar'] as AnalyticsPage[]) {
+  for (const page of ['dashboard', 'fitness', 'power', 'rides', 'segments', 'calendar'] as AnalyticsPage[]) {
     it(`analytics ${page}: with rides and with none`, () => {
       expectClean(analyticsHtml(RIDES, EFFORTS, state(page)), `analytics ${page}`);
       expectClean(analyticsHtml([], [], state(page)), `analytics ${page} (no rides)`);

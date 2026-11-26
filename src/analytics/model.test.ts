@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { ClimbEffort, RideSummary } from '../storage/types';
 import { analyticsHtml, type AnalyticsState } from './view';
-import { activityChart, axisMax } from './charts';
+import { axisMax, columnChart, curveChart } from './charts';
 import {
   careerSegmentsPending,
   completedGoals,
@@ -9,10 +9,8 @@ import {
   delta,
   formatKm,
   formatMoving,
-  maxMonthShift,
   monthGrid,
   monthlyActivity,
-  powerTrend,
   rideKind,
   rideRows,
   ridesBefore,
@@ -106,11 +104,9 @@ describe('totals', () => {
     expect(trained?.avgPower).toBe(200);
     expect(trained?.distanceM).toBe(5000);
     expect(monthlyActivity(rides, now, 12, 1).at(-1)?.key).toBe('2026-10');
-    expect(maxMonthShift(rides, now)).toBeGreaterThan(0);
     expect(ridesBefore(rides, now, 30).map((item) => item.id)).toEqual(['old']);
     expect(delta(12, 10).pct).toBeCloseTo(20);
     expect(delta(4, 0).pct).toBeNull();
-    expect(powerTrend(rides, 0, 2).map((item) => item.id)).toEqual(['new', 'today']);
   });
 });
 
@@ -204,49 +200,31 @@ describe('formatting and charts', () => {
     expect(axisMax(0)).toBe(1);
     expect(axisMax(3)).toBe(5);
     expect(axisMax(120)).toBe(200);
-    const chart = activityChart(
+    const cols = columnChart(
       [
-        { label: 'Oct 19', title: 'Oct 19', distanceM: 0, ascentM: 0, sessions: 0 },
-        { label: 'Oct 26', title: 'Oct 26', distanceM: 0, ascentM: 0, sessions: 0 },
-        { label: 'Nov 2', title: 'Nov 2', distanceM: 80000, ascentM: 1100, sessions: 3 },
-        { label: 'Nov 9', title: 'Nov 9', distanceM: 85000, ascentM: 900, sessions: 3 },
-        { label: 'Nov 16', title: 'Nov 16', distanceM: 0, ascentM: 0, sessions: 0 },
+        { label: 'A', value: 0, title: 'A' },
+        { label: 'B', value: 120, title: 'B\nload 120', text: '120' },
       ],
-      'Weekly activity',
+      'Weekly load',
+      'Nothing yet',
+      (value) => String(value),
     );
-    for (const color of ['#8ec8ff', '#ff7f2a']) {
-      const ys = lineYs(chart, color);
-      expect(ys.length).toBeGreaterThan(0);
-      expect(Math.max(...ys)).toBeLessThanOrEqual(184);
-    }
-    const compared = activityChart(
+    expect(cols).toContain('data-tip="B&#10;load 120"');
+    expect(cols).toContain('height:80.0%');
+    expect(columnChart([{ label: 'A', value: 0, title: 'A' }], 'x', 'Nothing yet', String)).toContain('Nothing yet');
+    const curve = curveChart(
       [
-        { label: 'Steep', title: 'Steep', distanceM: 10000, ascentM: 300, sessions: 1 },
-        { label: 'Flat', title: 'Flat', distanceM: 10000, ascentM: 75, sessions: 1 },
+        { sec: 1, watts: 800, rideId: 'a', at: null },
+        { sec: 60, watts: 400, rideId: 'a', at: null },
       ],
-      'Compared',
+      [],
+      80,
     );
-    const distance = lineYs(compared, '#ff7f2a');
-    const elevation = lineYs(compared, '#8ec8ff');
-    expect(elevation[0]).toBeLessThan(distance[0]);
-    expect(elevation[elevation.length - 1]).toBeGreaterThan(distance[distance.length - 1]);
-    const matched = activityChart(
-      [
-        { label: 'A', title: 'A', distanceM: 20000, ascentM: 300, sessions: 1 },
-        { label: 'B', title: 'B', distanceM: 10000, ascentM: 150, sessions: 1 },
-      ],
-      'Matched',
-    );
-    expect(lineYs(matched, '#ff7f2a')).toEqual(lineYs(matched, '#8ec8ff'));
-    expect(compared).toContain('class="chart-guide"');
-    expect(compared).toContain('data-x=');
+    expect(curve).toContain('class="chart-guide"');
+    expect(curve).toContain('10.00 W/kg');
   });
 });
 
-function lineYs(chart: string, color: string): number[] {
-  const path = chart.match(new RegExp(`<path d="([^"]+)" fill="none" stroke="${color}"`));
-  return [...(path?.[1] ?? '').matchAll(/,(-?\d+(?:\.\d+)?)/g)].map((match) => Number(match[1]));
-}
 
 describe('ride traces', () => {
   it('splits power into timed blocks and colours the road by its gradient', () => {
@@ -313,37 +291,36 @@ describe('analytics pages', () => {
     day: null,
     segmentId: 'all',
     routeId: '',
-    monthShift: 0,
-    weekShift: 0,
-    sessionShift: 0,
-    powerShift: 0,
+    range: '3m',
+    volume: 'time',
     now,
   });
 
   it('builds the dashboard, the ride table, the segment chart and the calendar from the same rides', () => {
     const dashboard = analyticsHtml(rides, efforts, state('dashboard'));
-    expect(dashboard).toContain('Dashboard');
-    expect(dashboard).toContain('All rides');
-    expect(dashboard).toContain('Segment analyzer');
-    expect(dashboard).toContain('Calendar');
-    expect(dashboard).toContain('Total sessions');
-    expect(dashboard).toContain('Distance ridden');
-    expect(dashboard).toContain('Elevation gain');
-    expect(dashboard).toContain('Moving time');
-    expect(dashboard).toContain('Last 30 days');
-    expect(dashboard).toContain('Monthly activity');
+    for (const tab of ['Overview', 'Fitness', 'Power', 'Rides', 'Climbs', 'Calendar']) expect(dashboard).toContain(`>${tab}</button>`);
+    expect(dashboard).toContain('Form today');
+    expect(dashboard).toContain('This week');
+    expect(dashboard).toContain('Weekly load');
     expect(dashboard).toContain('Recent rides');
-    expect(dashboard).not.toContain('Completed goals');
-    expect(dashboard).toContain('Power trend');
-    expect(dashboard).toContain('Weekly activity');
-    expect(dashboard).toContain('150 m of climbing for every 10 km');
-    expect(dashboard).toContain('Weekly sessions');
-    expect(dashboard).toContain('data-window="month"');
+    expect(dashboard).toContain('Totals');
     expect(dashboard).toContain('data-tip=');
     expect(dashboard).toContain('France Tour · Stage 13');
 
+    const fitness = analyticsHtml(rides, efforts, state('fitness'));
+    expect(fitness).toContain('Fitness and fatigue');
+    expect(fitness).toContain('data-range="6w"');
+    expect(fitness).toContain('data-volume="load"');
+    expect(fitness).toContain('Week by week');
+    expect(fitness).toContain('Aerobic efficiency');
+
+    const power = analyticsHtml(rides, efforts, state('power'));
+    expect(power).toContain('Best power');
+    expect(power).toContain('Power curve');
+    expect(power).toContain('Time in zones');
+
     const table = analyticsHtml(rides, efforts, state('rides'));
-    for (const column of ['Name', 'Date', 'Type', 'Distance', 'Time', 'Elevation gain', 'Average power', 'Power on segments']) {
+    for (const column of ['Ride', 'Date', 'Distance', 'Time', 'Climbing', 'Avg W', 'NP', 'Load']) {
       expect(table).toContain(column);
     }
     expect(table).toContain('Free ride');
@@ -352,6 +329,8 @@ describe('analytics pages', () => {
     expect(table).toContain('Career');
     expect(table).toContain('Export backup');
     expect(table).toContain('More details');
+    expect(table).toContain('Power on climbs');
+    expect(table).toContain('data-sort-select');
 
     const segments = analyticsHtml(rides, efforts, state('segments'));
     expect(segments).toContain('Alpe d’Huez');
@@ -359,8 +338,8 @@ describe('analytics pages', () => {
     expect(segments).toContain('id="segment-find"');
     expect(segments).toContain('>Search</button>');
     expect(segments).not.toContain('route-sketch');
-    expect(segments).toContain('Average speed');
-    expect(segments).toContain('Average power');
+    expect(segments).toContain('Speed');
+    expect(segments).toContain('W/kg');
     expect(segments).toContain('Hill-climb race: Alpe');
 
     const calendar = analyticsHtml(rides, efforts, state('calendar'));
