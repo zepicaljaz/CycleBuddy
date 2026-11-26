@@ -192,7 +192,11 @@ function overviewPage(rides: RideSummary[], rows: RideRow[], state: AnalyticsSta
           <div><dt>Fatigue</dt><dd>${Math.round(today.fatigue)}</dd><span>Last 7 days</span></div>
           <div><dt>FTP</dt><dd>${Math.round(context.ftp)}<small>W</small></dd><span>${wkg == null ? '&nbsp;' : `${wkg.toFixed(2)} W/kg`}</span></div>
         </dl>
-        <p class="an-foot">${lastTest ? `Last FTP test ${esc(formatDay(lastTest.at))}.` : 'No FTP test yet. Load and zones use the FTP in your profile.'} <button type="button" class="an-link" data-analytics="fitness">How fitness is worked out</button></p>
+        <p class="an-foot">${lastTest ? `Last FTP test ${esc(formatDay(lastTest.at))}.` : 'No FTP test yet. Load and zones use the FTP in your profile.'}</p>
+        <div class="an-hero-help">
+          ${learningNote(series.length)}
+          ${glossary(['form', 'fitness', 'fatigue', 'load', 'ftp'], series.length < LEARNING_DAYS)}
+        </div>
       </section>
 
       <section class="an-section">
@@ -217,7 +221,7 @@ function overviewPage(rides: RideSummary[], rows: RideRow[], state: AnalyticsSta
         </section>
         <section class="an-section">
           <div class="an-head"><h3>Weekly load</h3><span class="muted">12 weeks</span></div>
-          <p class="chart-note">Training load per week. One hour at your FTP is 100.</p>
+          <p class="chart-note">How hard each week was. One hour flat out at your FTP counts 100, an easy hour about 50.</p>
           ${columnChart(
             weekLoad.map((week) => ({
               label: week.label,
@@ -276,6 +280,7 @@ function fitnessPage(rides: RideSummary[], state: AnalyticsState, ftpOf: (ride: 
   return `
     <div class="analytics-stack">
       ${rangeControl(state.range)}
+      ${learningNote(series.length)}
       <section class="an-section">
         <div class="an-head"><h3>Fitness and fatigue</h3></div>
         ${
@@ -293,12 +298,7 @@ function fitnessPage(rides: RideSummary[], state: AnalyticsState, ftpOf: (ride: 
         <h4 class="an-sub">Form</h4>
         ${shown.length ? formChart(shown) : ''}
         ${formLegend()}
-        <details class="an-explain">
-          <summary>How this is worked out</summary>
-          <p>Every ride gets a <b>load</b> score from its power: one hour at your FTP scores 100, an easy hour about 50. Your FTP on that day is used, so a new FTP test does not rewrite older rides.</p>
-          <p><b>Fitness</b> is your average daily load over roughly the last six weeks, <b>fatigue</b> over the last week. <b>Form</b> is yesterday's fitness minus yesterday's fatigue: positive means rested, negative means you are carrying training.</p>
-          <p>A fitness <b>ramp</b> of up to about 5 a week is a steady build. Much more for several weeks is hard to recover from.</p>
-        </details>
+        ${glossary(['load', 'fitness', 'fatigue', 'form', 'ramp'])}
       </section>
 
       <section class="an-section">
@@ -326,7 +326,7 @@ function fitnessPage(rides: RideSummary[], state: AnalyticsState, ftpOf: (ride: 
 
       <section class="an-section">
         <div class="an-head"><h3>Aerobic efficiency</h3><span class="muted">${efPoints.length} ${efPoints.length === 1 ? 'ride' : 'rides'}</span></div>
-        <p class="chart-note">Watts per heartbeat (normalized power ÷ average heart rate) on rides of 20 minutes or more. A line that climbs means more power for the same effort.</p>
+        <p class="chart-note">Power per heartbeat (normalized power ÷ average heart rate) on rides of 20 minutes or more. Each dot is a ride. If the dashed line climbs, you make more power for the same effort: you are getting fitter.</p>
         ${dotChart(efPoints, start, state.now, 'Aerobic efficiency per ride.', 'Ride with a heart-rate strap to see this. It needs two rides of 20 minutes or more.')}
       </section>
     </div>`;
@@ -421,6 +421,7 @@ function powerPage(rides: RideSummary[], state: AnalyticsState, context: Analyti
     <div class="analytics-stack">
       ${rangeControl(state.range)}
       ${loading}
+      ${glossary(['best', 'wkg', 'curve', 'estimate', 'zones'])}
       <section class="an-section">
         <div class="an-head"><h3>Best power</h3><span class="muted">${withData.length} of ${inRange.length} rides read</span></div>
         <dl class="an-figures five">
@@ -506,6 +507,7 @@ function ridesPage(rows: RideRow[], state: AnalyticsState): string {
         ${kindChip('all', 'All', rows.length, state.kind)}
         ${KINDS.map((kind) => kindChip(kind, KIND_LABEL[kind], counts[kind], state.kind)).join('')}
       </div>
+      ${glossary(['avgw', 'np', 'load', 'intensity', 'variability', 'work', 'efficiency', 'decoupling'])}
       <p class="analytics-summary">${filtered.length} ${filtered.length === 1 ? 'ride' : 'rides'} · ${formatKm(sum.distanceM)} · ${formatAscent(sum.ascentM)} · ${formatMoving(sum.movingSec)} · load ${Math.round(load)}</p>
       <label class="an-sort">Sort by
         <select data-sort-select aria-label="Sort rides by">
@@ -564,7 +566,7 @@ function rideTr(row: RideRow): string {
     ['Power on climbs', row.segmentPower == null ? '—' : `${Math.round(row.segmentPower)} W`],
   ];
   if (ride.race && ride.race.finishTimeSec != null) facts.push(['Result', `P${ride.race.position} of ${ride.race.field}`]);
-  return `<tr class="ride-row">
+  return `<tr class="an-ride-row">
     <td class="name" title="${esc(ride.title)}"><span class="name-line">${esc(ride.title)}</span><span class="name-sub">${kindBadge(row.kind)}<span class="when-inline">${esc(formatDay(ride.startedAt))}</span></span><button class="ride-open" type="button" data-more="${esc(ride.id)}" aria-expanded="false">${CARET}<span>More details</span></button></td>
     <td class="when"><span class="when-day">${esc(formatDay(ride.startedAt))}</span><span class="when-time">${esc(formatClock(ride.startedAt))}</span></td>
     <td class="num" data-label="Distance">${(num(ride.distanceM) / 1000).toFixed(1)} km</td>
@@ -822,13 +824,54 @@ function legend(items: [string, string][]): string {
 
 function formLegend(): string {
   const bands: [string, string][] = [
-    ['transition', 'Very fresh, above +25'],
-    ['fresh', 'Fresh, +5 to +25'],
-    ['neutral', 'Neutral, −10 to +5'],
-    ['optimal', 'Building, −10 to −30'],
-    ['risk', 'Overreaching, below −30'],
+    ['transition', 'Very fresh: above +25'],
+    ['fresh', 'Fresh: +5 to +25'],
+    ['neutral', 'Balanced: −10 to +5'],
+    ['optimal', 'Training: −10 to −30'],
+    ['risk', 'Very tired: below −30'],
   ];
   return `<ul class="an-bands">${bands.map(([id, label]) => `<li class="band-${id}"><i></i>${label}</li>`).join('')}</ul>`;
+}
+
+/** Fitness needs about six weeks of rides before form means much. */
+const LEARNING_DAYS = 42;
+
+function learningNote(days: number): string {
+  if (days >= LEARNING_DAYS) return '';
+  const left = LEARNING_DAYS - days;
+  return `<p class="an-learning"><b>Still learning your fitness.</b> CycleBuddy has ${days} ${days === 1 ? 'day' : 'days'} of your riding. Fitness and fatigue start at zero on your first ride here, and fatigue catches up in a week while fitness takes about six. Until then form reads lower than you feel, so trust your legs for about ${left} more ${left === 1 ? 'day' : 'days'}. Rides from other apps count once you import their .fit files under Rides.</p>`;
+}
+
+type Term =
+  | 'form' | 'fitness' | 'fatigue' | 'load' | 'ramp' | 'ftp' | 'wkg' | 'avgw' | 'np' | 'intensity'
+  | 'variability' | 'work' | 'efficiency' | 'decoupling' | 'best' | 'curve' | 'estimate' | 'zones';
+
+const TERMS: Record<Term, [string, string]> = {
+  form: ['Form', 'Fitness minus fatigue, as of yesterday. It is not a score where higher is better. Negative means you rode more than usual this week: normal while training, and you can still feel good. Positive means you are rested: good before a race or an FTP test. Below −30, rest. Above +25, fitness is fading.'],
+  fitness: ['Fitness', 'How much you have trained lately: your average daily load over about the last six weeks, with recent days counting a little more. It rises slowly when you ride often and falls slowly when you stop. Compare it with your own earlier numbers, not with other riders.'],
+  fatigue: ['Fatigue', 'The same average, but over about the last seven days. It jumps after hard rides and drops after a few easy days.'],
+  load: ['Load', 'How hard a ride was, as one number. It counts how long you rode and how hard, compared with your FTP. One hour flat out at your FTP is 100, an easy hour about 50, two steady hours about 130. Riding harder raises it faster than riding longer.'],
+  ramp: ['Ramp', 'How much fitness changed in the last seven days. Up to about +5 a week is a steady build. Much more, week after week, is hard to recover from.'],
+  ftp: ['FTP', 'Functional threshold power: the power you can hold for about an hour. Load, intensity and zones are all measured against it, so keep it current with an FTP test under Training plans.'],
+  wkg: ['W/kg', 'Watts per kilogram of body weight. On a climb this decides who is faster, so it is how riders of different sizes compare.'],
+  avgw: ['Avg W', 'Average power over the whole ride, easy parts included.'],
+  np: ['NP', 'Normalized power: average power adjusted for surges. Hard efforts tire you more than their average suggests, so a ride with attacks has an NP above its average. It is the steady power that would feel as hard.'],
+  intensity: ['Intensity', 'NP divided by your FTP. About 0.65 is easy, 0.75 to 0.85 steady endurance, 0.95 to 1.05 a race or an all-out hour.'],
+  variability: ['Variability', 'NP divided by average power. 1.00 is perfectly steady. Above 1.10 is a stop-and-go ride, like a race with attacks.'],
+  work: ['Work', 'Energy you put into the pedals, in kilojoules. Roughly the food calories the ride used.'],
+  efficiency: ['Efficiency', 'Power per heartbeat: NP divided by average heart rate. If it rises over the weeks, you are getting fitter. Needs a heart-rate strap.'],
+  decoupling: ['Power to heart rate', 'How much power per heartbeat dropped from the first half of a ride to the second. Under 5% on a steady ride means your endurance held.'],
+  best: ['Best power', 'The highest average power you held for that long, anywhere inside a ride. 5 s is a sprint, 1 min a short steep climb, 5 min a hard climb, 20 min and 1 h are close to your FTP.'],
+  curve: ['Power curve', 'Your best power for every length of effort: short efforts on the left, long ones on the right. Higher is better. The dashed line is the period before, so you can see what improved.'],
+  estimate: ['Estimated FTP', '95% of your best 20 minutes, the usual quick estimate. If it is clearly above the FTP in your profile, an FTP test will raise it.'],
+  zones: ['Zones', 'Power ranges set from your FTP, from easy Recovery to all-out Sprint. Time in zones shows how your riding was spread. Mostly Endurance and Tempo with a little hard work builds fitness well.'],
+};
+
+function glossary(terms: Term[], open = false): string {
+  return `<details class="an-explain"${open ? ' open' : ''}>
+    <summary>What these numbers mean</summary>
+    <dl class="an-glossary">${terms.map((term) => `<div><dt>${TERMS[term][0]}</dt><dd>${TERMS[term][1]}</dd></div>`).join('')}</dl>
+  </details>`;
 }
 
 function compareRow(label: string, ...values: string[]): string {

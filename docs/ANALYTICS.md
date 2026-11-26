@@ -49,8 +49,12 @@ labels are HTML text that stays readable at any width.
 - **Fitness (CTL)** and **fatigue (ATL)** are exponentially weighted daily load with time
   constants of 42 and 7 days: `x += (load − x) / days`. **Form (TSB)** is yesterday's fitness
   minus yesterday's fatigue (the TrainingPeaks convention).
-- **Form bands** (the ones Intervals.icu uses): above +25 very fresh, +5 to +25 fresh,
-  −10 to +5 neutral, −10 to −30 building, below −30 overreaching.
+- **Form bands** (the ranges Intervals.icu uses): above +25 very fresh, +5 to +25 fresh,
+  −10 to +5 balanced, −10 to −30 training, below −30 very tired. Form is not a score: negative
+  is normal while training, positive is what you want before a race or a test.
+- **Short history.** Fitness and fatigue start at zero on the first saved ride. Fatigue catches
+  up in about a week, fitness in about six, so form reads low at first. Until there are 42 days
+  of history the page says so, and the explanations on the Overview are open.
 - **Ramp** = fitness today minus fitness 7 days ago.
 - **Efficiency factor (EF)** = NP / average heart rate, on rides of 20 min or more with HR.
 - **Pw:HR decoupling** = (power/HR in the first half − in the second half) / first half. Needs

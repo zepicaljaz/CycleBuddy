@@ -304,6 +304,10 @@ describe('analytics pages', () => {
     expect(dashboard).toContain('Weekly load');
     expect(dashboard).toContain('Recent rides');
     expect(dashboard).toContain('Totals');
+    // A short history says form reads low, and opens the explanations.
+    expect(dashboard).toContain('Still learning your fitness');
+    expect(dashboard).toContain('<details class="an-explain" open>');
+    expect(dashboard).toContain('What these numbers mean');
     expect(dashboard).toContain('data-tip=');
     expect(dashboard).toContain('France Tour · Stage 13');
 
@@ -331,6 +335,10 @@ describe('analytics pages', () => {
     expect(table).toContain('More details');
     expect(table).toContain('Power on climbs');
     expect(table).toContain('data-sort-select');
+    expect(table).toContain('What these numbers mean');
+    // Not the old History list's .ride-row, which turned table rows into a grid.
+    expect(table).toContain('<tr class="an-ride-row">');
+    expect(table).not.toContain('class="ride-row"');
 
     const segments = analyticsHtml(rides, efforts, state('segments'));
     expect(segments).toContain('Alpe d’Huez');

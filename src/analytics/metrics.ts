@@ -240,11 +240,11 @@ export function loadSeries(rides: RideSummary[], ftpOf: (ride: RideSummary) => n
 
 /** The common reading of form (TSB), from "very fresh" down to "overreaching". */
 export function formBand(form: number): FormBand {
-  if (form > 25) return { id: 'transition', label: 'Very fresh', advice: 'Rested for a long time. Fitness is starting to fade.' };
-  if (form > 5) return { id: 'fresh', label: 'Fresh', advice: 'Good day for a race, a test or a hard climb.' };
-  if (form >= -10) return { id: 'neutral', label: 'Neutral', advice: 'Holding steady. Fine for any ride.' };
-  if (form >= -30) return { id: 'optimal', label: 'Building', advice: 'Training is adding fitness. Keep recovery days in.' };
-  return { id: 'risk', label: 'Overreaching', advice: 'Fatigue is high. Ride easy or rest for a few days.' };
+  if (form > 25) return { id: 'transition', label: 'Very fresh', advice: 'You have rested a long time. Fitness slowly fades, so it is a good time to ride again.' };
+  if (form > 5) return { id: 'fresh', label: 'Fresh', advice: 'Rested legs. A good day for a race, an FTP test or a best time on a climb.' };
+  if (form >= -10) return { id: 'neutral', label: 'Balanced', advice: 'You are riding about as much as usual. Fine for any ride.' };
+  if (form >= -30) return { id: 'optimal', label: 'Training', advice: 'You rode more than usual this week, so fitness is growing. Normal while training, and you can still feel good.' };
+  return { id: 'risk', label: 'Very tired', advice: 'Much more riding than usual. Take a few easy days.' };
 }
 
 /** Change in fitness over the last seven days. Up to about 5 a week is a steady build. */
