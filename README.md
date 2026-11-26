@@ -188,7 +188,7 @@ cyclebuddy/
 
 | Folder | What it does |
 |---|---|
-| `career/` | `season.ts` (career state, classifications), `calendar.ts` (races, stages, terrain bands), `panel.ts` (career screens incl. the race brief), `simulate.ts` (races you don't ride), `squad.ts`, `roster.ts`, `teams.ts`, `jerseys.ts`, `classify.ts` |
+| `career/` | `season.ts` (career state, classifications), `calendar.ts` (races, stages, terrain bands), `panel.ts` (career screens incl. the season page and the race brief), `progress.ts` (contract meter and season strip numbers), `simulate.ts` (races you don't ride), `squad.ts`, `roster.ts`, `teams.ts`, `jerseys.ts`, `classify.ts` |
 | `training/` | Plans, workouts, FTP test, progress ticks |
 | `analytics/` | The Analytics page, loaded only when opened: `model.ts` (numbers), `view.ts` (HTML), `charts.ts`, `shape.ts` |
 | `storage/` | IndexedDB with a memory fallback, account ride sync, FIT import/export, backups |

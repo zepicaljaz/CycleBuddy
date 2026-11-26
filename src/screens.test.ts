@@ -4,6 +4,7 @@
 import { describe, expect, it } from 'vitest';
 import { analyticsHtml, type AnalyticsPage, type AnalyticsState } from './analytics/view';
 import { Career } from './career/season';
+import { RACES } from './career/calendar';
 import { careerHtml } from './career/panel';
 import type { CareerTab } from './career/season';
 import { homeHtml, HOME_KEYS } from './game/homeView';
@@ -136,6 +137,45 @@ describe('career screens render', () => {
       career.tab = tab;
       expectClean(careerHtml(career, 'Test Rider'), `career ${tab}`);
     }
+  });
+
+  it('the season page mid-season: next race, contract meter, season strip, a stage race in progress', () => {
+    const career = new Career();
+    career.create('slorising', 'SLO', 3.4, 3.8, 4.3);
+    const row = (riderId: string, name: string, time: number, isPlayer = false) => ({
+      riderId, name, teamId: 'slorising', country: 'SLO', age: 24, time, sprint: 0, kom: 0, isPlayer,
+    });
+    career.state!.active = { raceId: 'opening-classic', stageIndex: 0, gc: [], sprint: [], kom: [], stageWinners: [] };
+    career.commit([row('other', 'A. Rider', 90), row('player', 'You', 100, true)]);
+    career.state!.cont = { player: 120 };
+    career.tab = 'hub';
+    let html = careerHtml(career, 'Test Rider');
+    expectClean(html, 'career season page');
+    expect(html).toContain('class="season-next"');
+    expect(html).toContain('role="meter"');
+    expect(html).toContain('to a Pro offer');
+    expect(html).toContain('season-dot ridden top');
+    expect(html).not.toContain('menu-card');
+
+    const stageRace = career.state!.entered.map((id) => RACES.find((race) => race.id === id)!).find((race) => race.stages.length > 1)!;
+    const gcRow = (riderId: string, name: string, value: number) => ({ riderId, name, teamId: 'slorising', country: 'SLO', age: 24, value });
+    career.state!.active = {
+      raceId: stageRace.id, stageIndex: 1, sprint: [], kom: [], stageWinners: [],
+      gc: [gcRow('other', 'A. Rider', 3600), gcRow('player', 'You', 3642)],
+    };
+    html = careerHtml(career, 'Test Rider');
+    expectClean(html, 'career season page, stage race');
+    expect(html).toContain('Continue the race');
+    expect(html).toContain('2nd overall, 0:42 behind');
+  });
+
+  it('the season page when nothing is ticked', () => {
+    const career = new Career();
+    career.create('slorising', 'SLO', 3.4, 3.8, 4.3);
+    for (const id of [...career.state!.entered]) career.setEnter(id, false);
+    const html = careerHtml(career, 'Test Rider');
+    expectClean(html, 'career season page, empty');
+    expect(html).toContain('Open the calendar');
   });
 
   it('the race brief: stats, pace, teammates table, team orders, start', () => {
