@@ -106,6 +106,7 @@ cyclebuddy/
 ├── public/route-previews/     Still image of each loop, for the Free ride picker
 ├── logo/                      Logo source files
 ├── docs/REAL_ROADS.md         How real roads are built
+├── docs/CAREER_UI_PLAN.md     Career screens: what is there, and the redesign plan
 ├── README.md                  This file: what is where
 ├── ARCHITECTURE.md            How the parts fit together
 ├── CONTRIBUTING.md            How we work: branches, pull requests, versions (read this first)
@@ -324,5 +325,6 @@ A new feature comes with a test for it. A bug fix comes with a test that fails w
 | `CHANGES.md` | What changed in each version |
 | `NEXT_STEPS.md` | What to do next |
 | `docs/REAL_ROADS.md` | Building a real road 1:1 |
+| `docs/CAREER_UI_PLAN.md` | Career screens today and the redesign plan |
 | `ATTRIBUTION.md` | Credits for map, elevation and other data |
 | `data/real-climbs.research.json` | Raw climb research: source segments, notes, references |
