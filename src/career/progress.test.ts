@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { canEnter, RACES } from './calendar';
 import { CONT_OFFER_WEIGHT, cybPoints, PRO_OFFER, WORLD_OFFER } from './classify';
-import { contractProgress, racePayout, seasonProgress } from './progress';
+import { bookFor, contractProgress, racePayout, rankIn, seasonProgress } from './progress';
 import { Career } from './season';
 import { teamsIn } from './teams';
 
@@ -102,5 +102,37 @@ describe('season progress', () => {
     const career = fresh();
     const ids = new Set(seasonProgress(career.state!).months.flatMap((month) => month.races.map((race) => race.id)));
     for (const race of RACES) if (!canEnter(race.level, 'continental')) expect(ids.has(race.id)).toBe(false);
+  });
+});
+
+describe('season update after a stage', () => {
+  it('reports the points a ridden race added and the ranking it scores in', () => {
+    const career = fresh();
+    career.state!.cont = { player: 40, rival: 100, back: 10 };
+    const before = contractProgress(career.state!).points;
+    career.state!.active = { raceId: 'opening-classic', stageIndex: 0, gc: [], sprint: [], kom: [], stageWinners: [] };
+    const row = (riderId: string, name: string, time: number, isPlayer = false) => ({
+      riderId, name, teamId: 'slorising', country: 'SLO', age: 24, time, sprint: 0, kom: 0, isPlayer,
+    });
+    const result = career.commit([row('player', 'You', 90, true), row('other', 'A. Rider', 100)]);
+    const race = RACES.find((item) => item.id === 'opening-classic')!;
+    expect(result.season).not.toBeNull();
+    expect(result.season!.book).toBe('cont');
+    expect(result.season!.rankBefore).toBe(2);
+    expect(result.season!.gained).toBe(contractProgress(career.state!).points - before);
+    expect(result.season!.gained).toBe(racePayout(race).win);
+    expect(result.season!.to).toBeGreaterThan(result.season!.from);
+    expect(bookFor(race)).toBe('cont');
+  });
+
+  it('has no update for a stage that was not counted', () => {
+    const career = fresh();
+    career.state!.active = { raceId: 'opening-classic', stageIndex: 0, gc: [], sprint: [], kom: [], stageWinners: [] };
+    expect(career.commit([]).season).toBeNull();
+  });
+
+  it('ranks nobody without points', () => {
+    expect(rankIn({})).toBeNull();
+    expect(rankIn({ player: 5, a: 9, b: 5, c: 1 })).toBe(2);
   });
 });

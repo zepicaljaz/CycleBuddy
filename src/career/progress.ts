@@ -148,3 +148,61 @@ export function seasonProgress(state: CareerState): SeasonProgress {
     best: bestRace ? { place: bestRace.place!, race: bestRace.name } : null,
   };
 }
+
+/** The ranking a race scores in: CYB for World Tour races and championships, Continental for the rest. */
+export type RankingBook = 'cyb' | 'cont';
+
+export function bookFor(race: RaceDef): RankingBook {
+  return race.level === 'pro' || race.level === 'continental' ? 'cont' : 'cyb';
+}
+
+/** Your place in a ranking, or null while you have no points in it. */
+export function rankIn(points: Record<string, number> | undefined): number | null {
+  const mine = points?.player ?? 0;
+  if (mine <= 0) return null;
+  return 1 + Object.entries(points ?? {}).filter(([id, value]) => id !== 'player' && value > mine).length;
+}
+
+/** What the contract and ranking looked like before a stage was counted. */
+export interface SeasonSnapshot {
+  points: number;
+  rank: number | null;
+  book: RankingBook;
+}
+
+export function seasonSnapshot(state: CareerState, race: RaceDef): SeasonSnapshot {
+  const book = bookFor(race);
+  return {
+    points: contractProgress(state).points,
+    rank: rankIn(book === 'cyb' ? state.cyb : state.cont),
+    book,
+  };
+}
+
+/** The line after a race: points gained, ranking move, and what is left to the next contract. */
+export interface SeasonUpdate {
+  gained: number;
+  points: number;
+  book: RankingBook;
+  rankBefore: number | null;
+  rankAfter: number | null;
+  next: (ContractStep & { left: number }) | null;
+  /** The share of the meter filled before and after, 0 to 1. */
+  from: number;
+  to: number;
+}
+
+export function seasonUpdate(before: SeasonSnapshot, state: CareerState): SeasonUpdate {
+  const after = contractProgress(state);
+  const rankAfter = rankIn(before.book === 'cyb' ? state.cyb : state.cont);
+  return {
+    gained: Math.max(0, after.points - before.points),
+    points: after.points,
+    book: before.book,
+    rankBefore: before.rank,
+    rankAfter,
+    next: after.next,
+    from: Math.min(1, before.points / after.scale),
+    to: Math.min(1, after.points / after.scale),
+  };
+}

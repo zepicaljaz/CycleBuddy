@@ -1864,3 +1864,30 @@ html.site-reveal .site-nav-actions { opacity: 1; transition: opacity .55s ease .
 /* Secondary pause action: outlined, so Resume is the only filled button. */
 #overlay .pause-actions .btn:not(.primary) { background: transparent; color: var(--text); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35); }
 #overlay .pause-actions .btn:not(.primary):hover { background: var(--plate-hi); }
+
+/* Career brief: what the race pays, and where you stand */
+.brief-stake { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 18px; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 16px; font-variant-numeric: tabular-nums; }
+.brief-stake p { margin: 0; }
+.brief-stake b { color: var(--accent); font-weight: 800; }
+.brief-stake .muted b { color: var(--text); }
+.brief-gc { font-family: var(--display); font-weight: 700; font-size: 18px; text-transform: uppercase; letter-spacing: 0.02em; }
+/* Labels on the brief, readable from the saddle */
+.brief-stats dt, .mate-head { font-size: 12px; }
+.mate-name small { font-size: 12.5px; }
+.seg span { font-size: 13px; }
+
+/* Race results: the season line under the stats */
+.season-update { display: flex; align-items: center; gap: 8px 22px; flex: none; flex-wrap: wrap; padding: clamp(8px, 1.2vh, 12px) clamp(12px, 1.4vw, 18px); border-bottom: 1px solid var(--rule); background: rgba(255, 127, 42, 0.08); }
+.season-update p { margin: 0; font-variant-numeric: tabular-nums; }
+.season-update-gain { font-size: 15px; color: var(--muted); white-space: nowrap; }
+.season-update-gain b { font-family: var(--display); font-size: clamp(26px, 3.4vh, 34px); font-weight: 800; line-height: 1; color: var(--accent); margin-right: 4px; }
+.season-update-body { flex: 1 1 320px; min-width: 0; display: flex; flex-direction: column; gap: 6px; font-size: 15px; }
+.season-update-body b { font-weight: 800; }
+.season-update-body .muted { font-size: 13px; }
+.meter.small { height: 8px; margin: 0; }
+.meter-fill.was { background: rgba(255, 255, 255, 0.55); }
+.meter-fill.gain { left: 0; right: auto; background: var(--accent); }
+@media (prefers-reduced-motion: no-preference) {
+  .meter-fill.gain { animation: meter-grow 0.9s ease-out 0.3s both; transform-origin: left center; }
+}
+@keyframes meter-grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }

@@ -1,6 +1,7 @@
 import type { RoadBody, RoadFeature, RoadPlan, RoadStarter } from '../ai/road';
 import { canEnter, climbScoresOnStage, formatDate, monthsFor, punchyStage, raceById, raceEnd, RACES, risesOnCourse, sharesDay, segmentFinish, segmentKind, stageCourse, stageKm, type RaceDef, type RaceStage } from './calendar';
 import { buildOffers, cybPoints, FINISH_POINTS, finishJerseyPoints, offerPoints } from './classify';
+import { seasonSnapshot, seasonUpdate, type SeasonUpdate } from './progress';
 import { nationColors, paintKits, type PaintContext } from './jerseys';
 import { riderById, riderName, type Rider } from './roster';
 import { aiField, champField, fieldFromList, squadFor, startMateCount } from './squad';
@@ -608,7 +609,19 @@ export class Career {
     };
   }
 
-  commit(rows: StageResultRow[]): { another: boolean; headline: string; classifications: RaceClassifications | null } {
+  /** Counts a stage you rode, and says how the season moved: points gained, ranking, contract. */
+  commit(rows: StageResultRow[]): { another: boolean; headline: string; classifications: RaceClassifications | null; season: SeasonUpdate | null } {
+    const race = this.state?.active ? raceById(this.state.active.raceId) : undefined;
+    const before = this.state && race ? seasonSnapshot(this.state, race) : null;
+    const notes = this.state?.stageNotes?.length ?? 0;
+    const result = this.commitStage(rows);
+    // A counted stage always leaves a stage note; a stage that was not counted leaves none.
+    const counted = (this.state?.stageNotes?.length ?? 0) > notes;
+    const season = before && this.state && counted ? seasonUpdate(before, this.state) : null;
+    return { ...result, season };
+  }
+
+  private commitStage(rows: StageResultRow[]): { another: boolean; headline: string; classifications: RaceClassifications | null } {
     const state = this.state;
     const active = state?.active;
     const race = active ? raceById(active.raceId) : undefined;

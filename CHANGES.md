@@ -6,6 +6,8 @@ releases.
 
 ## Unreleased
 
+- **Career race brief** says what the race pays in contract points (win or overall win, stage win, 10th), your points and what is left to the next offer, and in a stage race your place overall and the gap. Labels on the brief are a little larger.
+- **Career race results** have a season line under the stats: contract points this stage added, the ranking move (41 → 18), the contract meter growing from where it was, and the next race.
 - **Career season page** replaces the eight equal cards. The next race comes first and biggest, with its profile and the contract points a win, a stage win and 10th place pay. Under it a contract meter shows your points against the Pro (160) and World Tour (450) marks and how many you still need; Pro and Continental points count at 75 %, as the offers do. Then the season month by month, one dot per race (ridden, top 10, next, ticked, skipped), with races done, best result, wins and top 10s. In a stage race it shows your place overall and the gap. The other pages are a row of links.
 - **Krvavec from Grad to Plaža** on its real road: the Pogi Challenge climb from the end of Grad past Ambrož and Planina Jezerca to Plaža, with the published CyclingCols profile and a turnaround at the top. See `docs/REAL_ROADS.md`.
 - **Map** has a step between the nearby road and the full loop. Wider road is the same world-fixed view, about five times further out, still coloured by gradient. Press M to cycle: nearby road, wider road, full loop. The map zooms out and back in as the setting changes.

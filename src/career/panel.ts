@@ -1,6 +1,6 @@
 import { canEnter, formatDate, MONTHS, monthsFor, raceDays, RACES, stageWindow, terrainBadge, terrainBand, terrainLabel, type RaceDef } from './calendar';
 import { RIDERS, riderName, riderTrait, ridersOf, teamBest, teamLeader, teamStars, type Rider } from './roster';
-import { contractProgress, racePayout, seasonProgress, type SeasonProgress, type SeasonRaceStatus } from './progress';
+import { contractProgress, racePayout, seasonProgress, type ContractProgress, type SeasonProgress, type SeasonRaceStatus, type SeasonUpdate } from './progress';
 import { teammatesFor, rankingRows, teamRanking, type Career } from './season';
 import { aiField, eligibleMates, favoursPunch, rate, startMateCount } from './squad';
 import { DIVISION_BLURB, DIVISION_LABEL, FOCUS_LABEL, ROSTER_SIZE, teamById, teamCode, teamsIn } from './teams';
@@ -197,12 +197,7 @@ function hubNext(career: Career): string {
   ].filter(Boolean).join(' · ');
   const plainStage = stage ? stage.name.replace(/^Stage \d+\s*·\s*/, '') : '';
   const stageName = race.stages.length > 1 && plainStage && plainStage !== race.name ? `<p class="season-stage">${esc(plainStage)}</p>` : '';
-  const pay = racePayout(race);
-  const stake = [
-    `Win <b>+${pay.win}</b>`,
-    pay.stageWin ? `stage win <b>+${pay.stageWin}</b>` : '',
-    pay.tenth ? `10th <b>+${pay.tenth}</b>` : '',
-  ].filter(Boolean).join(' · ');
+  const stake = stakeLine(race);
   const gc = state.active && stageIndex > 0 ? overallLine(state.active.gc) : '';
   return `<section class="season-next">
     <p class="season-label">${state.active ? 'Race in progress' : 'Next race'}</p>
@@ -213,6 +208,49 @@ function hubNext(career: Career): string {
     <div class="season-go">
       <p class="season-stake">${gc ? `${gc}<br/>` : ''}${stake} contract points</p>
       <button class="btn primary big" type="button" data-career="brief">${state.active ? 'Continue the race' : 'Race brief'}</button>
+    </div>
+  </section>`;
+}
+
+/** "Win +27 · 10th +4": the contract points a race pays. Stage races pay the overall and each stage. */
+function stakeLine(race: RaceDef): string {
+  const pay = racePayout(race);
+  return [
+    `${pay.stageWin ? 'Overall win' : 'Win'} <b>+${pay.win}</b>`,
+    pay.stageWin ? `stage win <b>+${pay.stageWin}</b>` : '',
+    pay.tenth ? `10th <b>+${pay.tenth}</b>` : '',
+  ].filter(Boolean).join(' · ');
+}
+
+/** "N to a Pro offer", or what is left when every mark is passed. */
+function goalLine(next: ContractProgress['next'], division: string): string {
+  if (next) return `<b>${next.left}</b> to ${esc(next.goal)}`;
+  return division === 'world' ? 'Enough for extra World Tour offers' : 'Enough for a World Tour offer';
+}
+
+/**
+ * The season line on the race results: points this stage added, the ranking move, and the
+ * contract meter moving from where it was to where it is now.
+ */
+export function seasonUpdateHtml(update: SeasonUpdate, division: string, nextLabel = ''): string {
+  const ranking = update.book === 'cyb' ? 'CYB ranking' : 'Continental ranking';
+  const rank = update.rankAfter == null
+    ? `Not ranked yet in the ${ranking}`
+    : update.rankBefore == null
+      ? `${placeWord(update.rankAfter)} in the ${ranking}`
+      : update.rankBefore === update.rankAfter
+        ? `Still ${placeWord(update.rankAfter)} in the ${ranking}`
+        : `${ranking} <b>${update.rankBefore}</b> → <b>${update.rankAfter}</b>`;
+  const pct = (share: number) => `${(share * 100).toFixed(1)}%`;
+  return `<section class="season-update" aria-label="Season update">
+    <p class="season-update-gain"><b>+${update.gained}</b> contract points</p>
+    <div class="season-update-body">
+      <p>${rank} · <b>${update.points}</b> points · ${goalLine(update.next, division)}</p>
+      <div class="meter small" role="meter" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(update.to * 100)}" aria-label="Contract points">
+        <span class="meter-fill was" style="width:${pct(update.from)}"></span>
+        <span class="meter-fill gain" style="left:${pct(update.from)};width:${pct(Math.max(0, update.to - update.from))}"></span>
+      </div>
+      ${nextLabel ? `<p class="muted">${esc(nextLabel)}</p>` : ''}
     </div>
   </section>`;
 }
@@ -230,11 +268,7 @@ function hubContract(state: CareerState): string {
   const progress = contractProgress(state);
   const pct = (value: number) => `${Math.min(100, (value / progress.scale) * 100).toFixed(1)}%`;
   const marks = progress.steps.map((step) => `<span class="meter-mark${progress.points >= step.at ? ' passed' : ''}" style="left:${pct(step.at)}"><b>${step.at}</b><small>${esc(step.label)}</small></span>`).join('');
-  const goal = progress.next
-    ? `<b>${progress.next.left}</b> to ${esc(progress.next.goal)}`
-    : progress.division === 'world'
-      ? 'Enough for extra World Tour offers'
-      : 'Enough for a World Tour offer';
+  const goal = goalLine(progress.next, progress.division);
   const note = progress.division === 'world'
     ? 'World Tour races and the championships count in full.'
     : 'World Tour races and the championships count in full. Pro and Continental races count at 75 %. Offers come at the end of the season.';
@@ -684,6 +718,7 @@ function briefHtml(career: Career): string {
         ${stat('Stage', `${active.stageIndex + 1}<small>/${race.stages.length}</small>`)}
       </dl>
     </header>
+    ${briefStake(state, race, active)}
     <div class="brief-map">
       <div class="brief-profile">
         <canvas class="route-profile stage-profile" data-stage="${race.id}:${active.stageIndex}"></canvas>
@@ -713,6 +748,17 @@ function briefHtml(career: Career): string {
       ${active.stageIndex === 0 ? '<button class="brief-skip" type="button" data-career="skip">Skip this race</button>' : ''}
       <button class="btn primary big" type="button" data-career="start">Start stage</button>
     </div>
+  </div>`;
+}
+
+/** On the brief: where you stand in this race, what it pays, and how far the next contract is. */
+function briefStake(state: CareerState, race: RaceDef, active: NonNullable<CareerState['active']>): string {
+  const progress = contractProgress(state);
+  const gc = active.stageIndex > 0 ? overallLine(active.gc) : '';
+  return `<div class="brief-stake">
+    ${gc ? `<p class="brief-gc">${gc}</p>` : ''}
+    <p>${stakeLine(race)} contract points</p>
+    <p class="muted">You have <b>${progress.points}</b> · ${goalLine(progress.next, progress.division)}</p>
   </div>`;
 }
 

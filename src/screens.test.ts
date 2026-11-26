@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest';
 import { analyticsHtml, type AnalyticsPage, type AnalyticsState } from './analytics/view';
 import { Career } from './career/season';
 import { RACES } from './career/calendar';
-import { careerHtml } from './career/panel';
+import { careerHtml, seasonUpdateHtml } from './career/panel';
 import type { CareerTab } from './career/season';
 import { homeHtml, HOME_KEYS } from './game/homeView';
 import { loadChoice, proRaceHtml } from './game/proRaceView';
@@ -190,5 +190,36 @@ describe('career screens render', () => {
     expect(html).toContain('Team orders');
     expect(html).toContain('data-career="start"');
     expect((html.match(/data-career="tactic"/g) ?? []).length).toBe(3);
+  });
+
+  it('the brief says what the race pays, and the gap in a stage race', () => {
+    const career = new Career();
+    career.create('slorising', 'SLO', 3.4, 3.8, 4.3);
+    const stageRace = career.state!.entered.map((id) => RACES.find((race) => race.id === id)!).find((race) => race.stages.length > 1)!;
+    const gcRow = (riderId: string, name: string, value: number) => ({ riderId, name, teamId: 'slorising', country: 'SLO', age: 24, value });
+    career.state!.active = {
+      raceId: stageRace.id, stageIndex: 2, sprint: [], kom: [], stageWinners: [],
+      gc: [gcRow('other', 'A. Rider', 3600), gcRow('player', 'You', 3605)],
+      squad: [],
+    };
+    career.tab = 'brief';
+    const html = careerHtml(career, 'Test Rider');
+    expectClean(html, 'career brief, stage race');
+    expect(html).toContain('class="brief-stake"');
+    expect(html).toContain('Overall win');
+    expect(html).toContain('2nd overall, 0:05 behind');
+    expect(html).toContain('to a Pro offer');
+  });
+
+  it('the season line on the race results', () => {
+    const update = { gained: 27, points: 117, book: 'cont' as const, rankBefore: 41, rankAfter: 18, next: { at: 160, label: 'Pro offer', goal: 'a Pro offer', left: 43 }, from: 0.18, to: 0.24 };
+    const html = seasonUpdateHtml(update, 'continental', 'Next race: North Week, February 22');
+    expectClean(html, 'season update');
+    expect(html).toContain('+27');
+    expect(html).toContain('<b>41</b> → <b>18</b>');
+    expect(html).toContain('43</b> to a Pro offer');
+    const first = seasonUpdateHtml({ ...update, rankBefore: null, next: null }, 'continental');
+    expectClean(first, 'season update, first points');
+    expect(first).toContain('18th in the Continental ranking');
   });
 });

@@ -35,10 +35,11 @@ import { progressFromRides, workoutKey } from '../training/progress';
 import { barsHtml, expandBlocks, formatSession, prescribedLoad } from '../training/workout';
 import { estimateLap, estimateTime } from './estimates';
 import { RideSession, type SessionMode } from './session';
-import { raceById, stageWindow } from '../career/calendar';
+import { formatDate, raceById, raceDays, stageWindow } from '../career/calendar';
 import { startMateCount } from '../career/squad';
 import { teamCode } from '../career/teams';
-import { careerHtml } from '../career/panel';
+import { careerHtml, seasonUpdateHtml } from '../career/panel';
+import type { SeasonUpdate } from '../career/progress';
 import { Career, stagePrimes, type CareerLaunch } from '../career/season';
 import type { RaceClassifications, StageResultRow } from '../career/season';
 import { summarizeSamples } from './recorder';
@@ -306,6 +307,8 @@ export class App {
   private roadAhead!: RoadAhead;
   private proChoice = loadChoice();
   private careerSheets: RaceClassifications | null = null;
+  /** Points, ranking and contract after the stage just ridden. Shown on the race results. */
+  private careerSeason: SeasonUpdate | null = null;
   private careerListening = false;
   private garagePose: RiderPose = { x: 0, y: 0, z: 0, tx: 1, tz: 0, grade: 0, crank: 0, wheel: 0, effort: 0, visible: true };
   /** Part the rider is looking at in Equipment. It is not owned until they buy it. */
@@ -2942,10 +2945,12 @@ export class App {
     }
     this.careerNext = false;
     this.careerSheets = null;
+    this.careerSeason = null;
     if (s.config.career && !this.quickRide && s.player.finishTime != null) {
       const result = this.career.commit(this.careerRows(s));
       this.careerNext = result.another;
       this.careerSheets = result.classifications;
+      this.careerSeason = result.season;
       if (result.headline) toast(result.headline, 'success', 5200);
     }
     const summary = s.summary();
@@ -3101,8 +3106,9 @@ export class App {
           ${done}
         </div>`;
     const wideResults = hill || !!s.config.career;
+    const seasonLine = s.config.career && this.careerSeason ? this.careerSeasonHtml(this.careerSeason) : '';
     this.overlay.innerHTML = wideResults
-      ? `<div class="modal glass race-results${raceClasses ? ' has-classes' : ''}"><div class="race-results-bar"><h2>Race results</h2><div class="modal-actions">${fit}${next}${done}</div></div>${raceStats}<div class="race-results-main">${raceStage}${raceClasses}</div><footer class="race-results-foot">${notes}</footer></div>`
+      ? `<div class="modal glass race-results${raceClasses ? ' has-classes' : ''}"><div class="race-results-bar"><h2>Race results</h2><div class="modal-actions">${fit}${next}${done}</div></div>${raceStats}${seasonLine}<div class="race-results-main">${raceStage}${raceClasses}</div><footer class="race-results-foot">${notes}</footer></div>`
       : `<div class="modal wide glass"><h2>${race ? 'Race results' : train ? 'Workout complete' : 'Ride complete'}</h2>${body}${actions}</div>`;
     this.revealRaceRows();
     if (saved && workout?.ftpEstimate && workout.ftpKind !== 'twenty') {
@@ -3126,6 +3132,20 @@ export class App {
         this.startCareerStage();
       });
     }
+  }
+
+  /** The season line under the race stats: what this stage did to the ranking and the contract. */
+  private careerSeasonHtml(update: SeasonUpdate): string {
+    const state = this.career.state;
+    const active = state?.active;
+    const race = active ? raceById(active.raceId) : this.career.nextEntered();
+    let next = '';
+    if (active && race) next = `Next: ${race.name}, stage ${active.stageIndex + 1} of ${race.stages.length}`;
+    else if (race && state) {
+      const day = raceDays(race, state.year)[0];
+      next = `Next race: ${race.name}${day ? `, ${formatDate(day.month, day.day)}` : ''}`;
+    }
+    return seasonUpdateHtml(update, this.career.team()?.division ?? 'continental', next);
   }
 
   /** Keep the player's row on screen in each results list. */
