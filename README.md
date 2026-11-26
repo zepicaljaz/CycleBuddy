@@ -140,6 +140,7 @@ cyclebuddy/
 | `ble/` | Web Bluetooth. `devices.ts` owns trainer and HR connections and reconnects; `ftms.ts` and `fec.ts` are the two trainer protocols; `heartRate.ts`; `virtualTrainer.ts` (arrow keys) |
 | `physics/cycling.ts` | Speed from power, grade, mass, drag, drafting and braking |
 | `ai/peloton.ts` | The AI field: pacing, drafting, lanes and packs, attacks, finish and time-trial clocks |
+| `ai/powerMeter.ts` | Each rider's power read from how they actually move (speed, grade, draft, acceleration), smoothed like a head unit. Feeds the W/kg tag |
 | `ai/road.ts` | Road-race plans: terrain W/kg, team orders, time-trial start order and gaps |
 | `ai/climbers.ts`, `ai/names.ts` | Hill-climb fields and rider names |
 
@@ -163,6 +164,7 @@ cyclebuddy/
 | `scenery.ts` | Roadside: towns, fences (culled per 500 m cell), race crowd (culled per 400 m cell), finish, signs |
 | `climbs.ts` | Climb furniture: km bornes, hairpin numbers, stone walls, graffiti |
 | `riders.ts`, `riderBody.ts`, `bikes.ts` | Instanced riders with three levels of detail; body and bike models |
+| `riderPick.ts` | Which rider is under the mouse, found on screen without raycasting |
 | `spectators.ts`, `fences.ts` | Spectator figures; hairpin fences (metal or stone by region) |
 | `alpineHotel.ts`, `modernHotel.ts`, `alpineRestaurant.ts`, `ventouxAntenna.ts`, `island.ts`, `buildings.ts`, `settlement.ts`, `site.ts`, `farms.ts`, `mills.ts` | Buildings and places |
 | `traffic.ts`, `cars.ts`, `convoy.ts`, `motorcycle.ts`, `motorhome.ts`, `tractor.ts`, `boats.ts`, `birds.ts` | Things that move: traffic, the race convoy and broom car, boats, birds |
@@ -177,6 +179,7 @@ cyclebuddy/
 |---|---|
 | `hud.ts` | In-ride HUD: metrics, map, key strip, ride stats, standings, profile, group gaps |
 | `minimap.ts` | Nearby-road, wider-road and full-loop map |
+| `riderTag.ts` | The label over the AI rider under the mouse: W/kg, plus name and overall standing where the ride has them |
 | `profileChart.ts` | Elevation profiles (HUD, cards, stages) |
 | `roadAhead.ts`, `roadbook.ts`, `rideBar.ts` | Road-ahead panel, roadbook profile, lap bar |
 | `helpContent.ts` | Trainer setup and help text |

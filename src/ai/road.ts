@@ -46,6 +46,8 @@ export interface RoadBody {
   badge?: string;
   /** Place in the overall before this stage. 0 is the leader. Missing when they have no time yet. */
   gcRank?: number;
+  /** Seconds behind the overall leader before this stage. Set with gcRank. */
+  gcGap?: number;
 }
 
 export interface RoadFeature {

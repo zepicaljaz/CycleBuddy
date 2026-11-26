@@ -6,6 +6,7 @@ releases.
 
 ## Unreleased
 
+- **Point at a rider to see their W/kg.** Move the mouse over any AI rider and a label above them shows their current W/kg; move away and it is gone. Free ride and training show the W/kg only. A hill-climb race adds the name. A career stage adds the name and, in a stage race after the first day, the place and time gap in the overall. The number is read from how the rider actually moves (speed, gradient, shelter, acceleration, weight), smoothed like a head unit, so a group riding together reads nearly the same W/kg whatever each rider weighs. In a road race slowing is not counted as soft-pedalling and a surge is capped at the effort the rider chose.
 - **Krvavec from Grad to Plaža** on its real road: the Pogi Challenge climb from the end of Grad past Ambrož and Planina Jezerca to Plaža, with the published CyclingCols profile and a turnaround at the top. See `docs/REAL_ROADS.md`.
 - **Map** has a step between the nearby road and the full loop. Wider road is the same world-fixed view, about five times further out, still coloured by gradient. Press M to cycle: nearby road, wider road, full loop. The map zooms out and back in as the setting changes.
 - **First person** shows the handlebar. The rider's body stays hidden, so the view reads as the saddle.
