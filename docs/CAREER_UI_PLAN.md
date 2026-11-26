@@ -61,6 +61,11 @@ read from the saddle; numbers in tabular figures; keep the low-poly look.
 
 ## 2. The plan
 
+**Status (2026-11-26): all five steps are built on `feature/career-mode-UI`.** Step 1 went in
+through pull request #6; Steps 2–5 are commits on the branch. The contract meter shows the exact
+marks (160 / 450); offers still come only at the end of the season. Not done yet from the
+clean-up list: flag emoji in the rider tables and the pill-shaped terrain badges.
+
 Five steps, each its own sub-branch off `feature/career-mode-UI` (per `CONTRIBUTING.md`),
 each one playable on its own. Order is by how much clarity it buys.
 

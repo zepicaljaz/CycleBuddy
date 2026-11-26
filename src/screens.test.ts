@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest';
 import { analyticsHtml, type AnalyticsPage, type AnalyticsState } from './analytics/view';
 import { Career } from './career/season';
 import { RACES } from './career/calendar';
+import { buildOffers } from './career/classify';
 import { careerHtml, seasonUpdateHtml } from './career/panel';
 import type { CareerTab } from './career/season';
 import { homeHtml, HOME_KEYS } from './game/homeView';
@@ -125,8 +126,34 @@ describe('menu screens render', () => {
 });
 
 describe('career screens render', () => {
-  it('team pick, before a career exists', () => {
-    expectClean(careerHtml(new Career()), 'career pick');
+  it('team pick, before a career exists: how it works, teams, pace folded away, start', () => {
+    const html = careerHtml(new Career());
+    expectClean(html, 'career pick');
+    expect(html).toContain('class="career-ladder"');
+    expect(html).toContain('<details class="pick-pace">');
+    expect(html).toContain('data-career="draft-flat"');
+    expect(html).toContain('class="pick-go"');
+    expect(html).toContain('data-career="create"');
+  });
+
+  it('the season review before the offers', () => {
+    const career = new Career();
+    career.create('slorising', 'SLO', 3.4, 3.8, 4.3);
+    const row = (riderId: string, name: string, time: number, isPlayer = false) => ({
+      riderId, name, teamId: 'slorising', country: 'SLO', age: 24, time, sprint: 0, kom: 0, isPlayer,
+    });
+    career.state!.active = { raceId: 'opening-classic', stageIndex: 0, gc: [], sprint: [], kom: [], stageWinners: [] };
+    career.commit([row('player', 'You', 80, true), row('other', 'A. Rider', 90)]);
+    career.state!.cont = { ...career.state!.cont, player: 240 };
+    career.state!.offers = buildOffers(200, 'slorising');
+    career.tab = 'offers';
+    const html = careerHtml(career, 'Test Rider');
+    expectClean(html, 'career season review');
+    expect(html).toContain('Season 2026 is over');
+    expect(html).toContain('Pro offer · unlocked');
+    expect(html).toMatch(/World Tour offer · missed by \d+/);
+    expect(html).toContain('Move up');
+    expect((html.match(/data-career="sign"/g) ?? []).length).toBe(career.state!.offers.length);
   });
 
   it('every tab of a new career', () => {

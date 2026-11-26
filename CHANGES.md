@@ -6,6 +6,8 @@ releases.
 
 ## Unreleased
 
+- **Career team pick** opens with how a career works (ride races → score points → get contract offers → move up; Continental → Pro → World Tour). The bunch pace sliders are folded away, since they can be changed before every race, and the Start button stays at the bottom of the screen while you scroll the teams.
+- **Career season review** comes before the offers: races ridden, wins, podiums, top 10s and best result, the final rankings, your contract points, and which offers they unlocked or missed by how much. Offers that move you up a division are marked.
 - **Career standings** start with where you are: your place, how many riders are ranked, your points and the gap to 10th (or to the rider ahead) in the Continental ranking, the CYB ranking and wins. Then one ranking at a time (Continental, CYB, Wins, Teams), with your row always shown, under the top 20 if you are further down.
 - **Career record** starts with your totals (race wins, stage wins, podiums, top 10s, stages ridden, seasons), then your results season by season: top 10s first, every stage you rode in a fold.
 - **Career calendar** opens on the month the season is in and has a key for its colours. On the grid your ticked races are solid, unticked ones an outline, the next race has a ring, and a race you rode shows your place. The race list says what a win pays and shows your place in big type. A "My races only" tick hides the rest.

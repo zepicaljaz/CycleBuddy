@@ -1943,3 +1943,34 @@ html.site-reveal .site-nav-actions { opacity: 1; transition: opacity .55s ease .
 @media (max-width: 560px) {
   .stand-summary p > span:first-child { flex-basis: 100%; }
 }
+
+/* Career pick: how it works, then the teams, with Start always in reach */
+.career-how { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 28px; margin: 4px 0 14px; padding: 14px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.career-loop, .career-ladder { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 0; }
+.career-loop li, .career-ladder li { font-family: var(--display); font-weight: 700; font-size: 17px; letter-spacing: 0.03em; text-transform: uppercase; }
+.career-loop li + li::before, .career-ladder li + li::before { content: '→'; margin: 0 10px; color: var(--accent); font-family: var(--font); }
+.career-ladder li { color: var(--muted); }
+.career-ladder li.here { color: var(--text); box-shadow: inset 0 -3px 0 var(--accent); }
+.career-pick h3 { margin-top: 18px; }
+/* The panel scrolls, not the body, so the Start bar can stick to the bottom of it. */
+.career-pick .panel-body { overflow: visible; }
+.pick-pace { margin: 14px 0 0; border-top: 1px solid var(--line); padding-top: 10px; }
+.pick-pace summary { cursor: pointer; font-family: var(--display); font-weight: 700; font-size: 16px; text-transform: uppercase; letter-spacing: 0.04em; }
+.pick-pace summary .muted { margin-left: 10px; font-family: var(--font); font-weight: 400; font-size: 14px; text-transform: none; letter-spacing: 0; }
+.pick-pace .effort-grid { margin-top: 10px; }
+.pick-go { position: sticky; bottom: -1px; z-index: 2; display: flex; align-items: center; justify-content: space-between; gap: 12px 20px; flex-wrap: wrap; margin: 16px -4px 0; padding: 12px 4px; background: rgba(14, 20, 28, 0.97); border-top: 1px solid var(--line); }
+.pick-go span { display: flex; flex-direction: column; }
+.pick-go small { color: var(--muted); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; }
+.pick-go b { font-family: var(--display); font-size: 20px; text-transform: uppercase; }
+
+/* Season review before the offers */
+.season-review .record-totals dt { text-transform: none; letter-spacing: 0; font-size: 13px; }
+.review-contract { padding: 6px 0 4px; }
+.review-contract .contract-points { margin: 0 0 6px; }
+.review-marks { list-style: none; margin: 0 0 6px; padding: 0; display: flex; flex-direction: column; gap: 4px; font-size: 16px; font-variant-numeric: tabular-nums; }
+.review-marks li { color: var(--muted); }
+.review-marks li b { display: inline-block; min-width: 3em; font-family: var(--display); color: var(--text); }
+.review-marks li.made { color: var(--text); }
+.review-marks li.made b { color: var(--accent); }
+.team-row.offer.up { border-color: var(--accent); }
+.team-row-meta strong { color: var(--accent); text-transform: uppercase; letter-spacing: 0.06em; }

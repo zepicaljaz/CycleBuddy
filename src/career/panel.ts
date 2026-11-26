@@ -92,6 +92,19 @@ export function careerHtml(career: Career, playerName = 'You'): string {
   </div>`;
 }
 
+/** The career in one line: what you do, what it earns, where it leads. */
+function careerLadder(division: 'world' | 'pro' | 'continental' = 'continental'): string {
+  const step = (key: 'continental' | 'pro' | 'world', label: string) => `<li class="${key === division ? 'here' : ''}">${label}</li>`;
+  return `<div class="career-how">
+    <ol class="career-loop" aria-label="How a career works">
+      <li>Ride races</li><li>Score points</li><li>Get contract offers</li><li>Move up</li>
+    </ol>
+    <ol class="career-ladder" aria-label="Divisions">
+      ${step('continental', 'Continental')}${step('pro', 'Pro')}${step('world', 'World Tour')}
+    </ol>
+  </div>`;
+}
+
 function pickHtml(career: Career): string {
   const cards = teamsIn('continental')
     .slice()
@@ -99,21 +112,30 @@ function pickHtml(career: Career): string {
     .map((team) => teamRow(team.id, career.draftTeam === team.id))
     .join('');
   const nations = NATIONS.map((code) => `<option value="${code}" ${code === career.draftNation ? 'selected' : ''}>${code}</option>`).join('');
-  return `<div class="career">
-    <div class="panel-head"><h2>Career</h2><p class="muted">You are the leader. You have no rating. The trainer is your engine, and the riders around you work for you.</p></div>
+  const chosen = teamById(career.draftTeam);
+  return `<div class="career career-pick">
+    <div class="panel-head"><h2>Career</h2><p class="muted">You are the team leader. The trainer is your engine, and the riders around you work for you.</p></div>
     <div class="panel-body">
-      <p>${esc(DIVISION_BLURB)}</p>
-      <p>You start in Continental. World Tour races are for World teams and four Pro wildcards. A good season of points brings offers from higher teams.</p>
-      <label class="field">Your championship nation <select data-career="nation">${nations}</select></label>
-      <p class="muted">Stars are the riders already on the team. On this list, three is the strongest Continental squad. World Tour teams, later, are four or five.</p>
+      ${careerLadder()}
+      <p>You start in Continental. A good season of points brings offers from Pro teams, and later from the World Tour. Offers come at the end of each season.</p>
+      <h3>Pick your team</h3>
+      <p class="muted">Stars are the riders already on the team. Three is the strongest Continental squad.</p>
       <div class="team-list">${cards}</div>
-      <div class="effort-grid">
-        ${slider('draft-flat', 'Flat bunch', career.draftFlat)}
-        ${slider('draft-hill', 'Hills', career.draftHill)}
-        ${slider('draft-mountain', 'Mountains', career.draftMountain)}
+      <label class="field">Your championship nation <select data-career="nation">${nations}</select></label>
+      <details class="pick-pace">
+        <summary>Bunch pace <span class="muted">You can change it before every race</span></summary>
+        <div class="effort-grid">
+          ${slider('draft-flat', 'Flat bunch', career.draftFlat)}
+          ${slider('draft-hill', 'Hills', career.draftHill)}
+          ${slider('draft-mountain', 'Mountains', career.draftMountain)}
+        </div>
+        <p class="muted">These are the watts per kilo the bunch rides. Climbers can go a little over that on the last ascent. Sprinters go much harder in the final few hundred metres.</p>
+        <p class="muted">${esc(DIVISION_BLURB)}</p>
+      </details>
+      <div class="pick-go">
+        <span>${chosen ? `<small>Your team</small><b>${esc(chosen.name)}</b>` : 'Pick a team'}</span>
+        <button class="btn primary big" type="button" data-career="create">Start with this team</button>
       </div>
-      <p class="muted">These are the watts per kilo the bunch rides. Climbers can go a little over that on the last ascent. Sprinters go much harder in the final few hundred metres.</p>
-      <button class="btn primary" type="button" data-career="create">Start with this team</button>
     </div>
   </div>`;
 }
@@ -890,22 +912,55 @@ function briefStake(state: CareerState, race: RaceDef, active: NonNullable<Caree
   </div>`;
 }
 
+/** The end of the season: how it went, what your points unlocked, then the contracts to sign. */
 function offersHtml(career: Career): string {
   const state = career.state!;
+  const team = teamById(state.teamId);
+  const progress = contractProgress(state);
+  const season = seasonProgress(state);
   const cards = (state.offers ?? []).map((offer) => {
-    const team = teamById(offer.teamId);
-    if (!team) return '';
-    return `<article class="team-row offer">
-      ${jerseyFigure(team.kit.jersey, team.kit.accent, team.kit.shorts, team.kit.helmet)}
+    const offered = teamById(offer.teamId);
+    if (!offered) return '';
+    const up = offered.division !== team?.division && (offered.division === 'world' || (offered.division === 'pro' && team?.division === 'continental'));
+    return `<article class="team-row offer${up ? ' up' : ''}">
+      ${jerseyFigure(offered.kit.jersey, offered.kit.accent, offered.kit.shorts, offered.kit.helmet)}
       <span class="team-row-body">
-        <span class="team-row-top"><b>${esc(team.name)}</b>${stars(teamStars(team.id))}</span>
-        <span class="team-row-meta">${esc(DIVISION_LABEL[team.division])} · ${esc(FOCUS_LABEL[team.focus])}</span>
+        <span class="team-row-top"><b>${esc(offered.name)}</b>${stars(teamStars(offered.id))}</span>
+        <span class="team-row-meta">${up ? '<strong>Move up</strong> · ' : ''}${esc(DIVISION_LABEL[offered.division])} · ${esc(FOCUS_LABEL[offered.focus])}</span>
         <span>${esc(offer.blurb)}</span>
       </span>
-      <button class="btn primary" type="button" data-career="sign" data-team="${team.id}">Sign</button>
+      <button class="btn primary" type="button" data-career="sign" data-team="${offered.id}">Sign</button>
     </article>`;
   }).join('');
-  return `<div class="career"><h2>Offers for ${state.year + 1}</h2><p>You scored ${state.cyb.player ?? 0} CYB points. One offer is from the team you ride for now.</p><div class="team-list">${cards}</div></div>`;
+  const marks = progress.steps.map((step) => {
+    const made = progress.points >= step.at;
+    return `<li class="${made ? 'made' : ''}"><b>${step.at}</b> ${esc(step.label)} · ${made ? 'unlocked' : `missed by ${step.at - progress.points}`}</li>`;
+  }).join('');
+  const stat = (value: number | string, label: string) => `<div><dd>${value}</dd><dt>${label}</dt></div>`;
+  return `<div class="career season-review">
+    <div class="panel-head"><h2>Season ${state.year} is over</h2><p class="muted">${esc(team?.name ?? '')} · ${esc(DIVISION_LABEL[team?.division ?? 'continental'])}</p></div>
+    <div class="panel-body">
+      <dl class="record-totals">
+        ${stat(season.ridden, season.ridden === 1 ? 'Race ridden' : 'Races ridden')}
+        ${stat(season.wins, season.wins === 1 ? 'Win' : 'Wins')}
+        ${stat(season.podiums, season.podiums === 1 ? 'Podium' : 'Podiums')}
+        ${stat(season.topTen, 'Top 10')}
+        ${stat(season.best ? placeWord(season.best.place) : '–', season.best ? `Best, ${esc(season.best.race)}` : 'Best result')}
+      </dl>
+      <section class="stand-summary" aria-label="Final rankings">
+        <p><span>Continental ranking</span>${standingLine(state.cont, 'points')}</p>
+        <p><span>CYB ranking</span>${standingLine(state.cyb, 'points')}</p>
+      </section>
+      <section class="review-contract">
+        <p class="contract-points"><b>${progress.points}</b> contract points</p>
+        <ul class="review-marks">${marks}</ul>
+        <p class="muted">CYB points count in full, Pro and Continental points at 75 %.</p>
+      </section>
+      <h3>Offers for ${state.year + 1}</h3>
+      <p class="muted">One offer is always from the team you ride for now. Signing starts the next season.</p>
+      <div class="team-list">${cards}</div>
+    </div>
+  </div>`;
 }
 
 function clock(seconds: number): string {
