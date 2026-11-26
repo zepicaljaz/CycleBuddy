@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { mulberry32 } from '../util/math';
-import { CLIMBERS, climbEffortWatts, climberName, hillClimbField, hillClimbWattsPerKilo } from './climbers';
+import { CLIMBERS, climbEffortWatts, climberName, fadeFactor, hillClimbFades, hillClimbField, hillClimbWattsPerKilo } from './climbers';
 
 describe('climber ranking', () => {
   it('keeps 100 climbers in points order, shown as an initial and a last name', () => {
@@ -65,5 +65,36 @@ describe('climber ranking', () => {
     const leaderWkg = leaderWatts / 66;
     const chased = climbEffortWatts(4.4, 64, 4.4, leaderWkg, false);
     expect(chased / 64).toBeLessThan(leaderWkg);
+  });
+
+  it('fades a quarter to a third of the field, never the best climber', () => {
+    for (const count of [50, 75, 100]) {
+      for (let seed = 1; seed <= 200; seed++) {
+        const fades = hillClimbFades(count, mulberry32(seed));
+        expect(fades).toHaveLength(count);
+        expect(fades[0]).toBeUndefined();
+        const faded = fades.filter((f) => f !== undefined);
+        expect(faded.length).toBeGreaterThanOrEqual(Math.ceil(count * 0.25));
+        expect(faded.length).toBeLessThanOrEqual(Math.floor(count * 0.35));
+        for (const f of faded) {
+          expect(f.from).toBeGreaterThanOrEqual(0.7);
+          expect(f.to).toBeLessThanOrEqual(0.95 + 1e-9);
+          expect(f.drop).toBeGreaterThanOrEqual(0.1);
+          expect(f.drop).toBeLessThanOrEqual(0.5);
+        }
+      }
+    }
+    expect(hillClimbFades(1, () => 0.5)).toEqual([undefined]);
+    expect(hillClimbFades(0, () => 0.5)).toEqual([]);
+  });
+
+  it('takes the power away gradually and does not give it back', () => {
+    const fade = { from: 0.75, to: 0.85, drop: 0.4 };
+    expect(fadeFactor(undefined, 0.99)).toBe(1);
+    expect(fadeFactor(fade, 0)).toBe(1);
+    expect(fadeFactor(fade, 0.75)).toBe(1);
+    expect(fadeFactor(fade, 0.8)).toBeCloseTo(0.8);
+    expect(fadeFactor(fade, 0.85)).toBeCloseTo(0.6);
+    expect(fadeFactor(fade, 1)).toBeCloseTo(0.6);
   });
 });

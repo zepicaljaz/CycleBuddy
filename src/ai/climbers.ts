@@ -60,6 +60,50 @@ export function hillClimbWattsPerKilo(
 }
 
 /**
+ * A rider who runs out of legs near the top. `from` and `to` are parts of the
+ * climb (0 at the foot, 1 at the line): the power starts to go at `from`, and
+ * from `to` the rider holds `drop` less than the effort they began with.
+ */
+export interface Fade {
+  from: number;
+  to: number;
+  drop: number;
+}
+
+/** The part of the AI field that fades. */
+const FADE_SHARE = { low: 0.25, high: 0.35 };
+/** Where a fade can begin: inside the last 30 % of the climb, leaving road to lose power on. */
+const FADE_FROM = { low: 0.7, high: 0.85 };
+/** The part of the climb over which the power goes. */
+const FADE_BUILD = 0.1;
+/** Power lost: from a bad patch to blowing up completely. */
+const FADE_DROP = { low: 0.1, high: 0.5 };
+
+/**
+ * Who fades in one hill-climb, and how badly, for a start list of `count`
+ * riders, strongest first. The first rider never does.
+ */
+export function hillClimbFades(count: number, rng: () => number): (Fade | undefined)[] {
+  const fades: (Fade | undefined)[] = Array.from({ length: Math.max(0, count) }, () => undefined);
+  const candidates = fades.map((_, i) => i).slice(1);
+  const least = Math.ceil(count * FADE_SHARE.low);
+  const most = Math.max(least, Math.floor(count * FADE_SHARE.high));
+  let left = Math.min(candidates.length, least + Math.floor(rng() * (most - least + 1)));
+  while (left-- > 0) {
+    const [rider] = candidates.splice(Math.floor(rng() * candidates.length), 1);
+    const from = randRange(rng, FADE_FROM.low, FADE_FROM.high);
+    fades[rider] = { from, to: from + FADE_BUILD, drop: randRange(rng, FADE_DROP.low, FADE_DROP.high) };
+  }
+  return fades;
+}
+
+/** The part of their effort a rider still holds, `progress` of the way up the climb. */
+export function fadeFactor(fade: Fade | undefined, progress: number): number {
+  if (!fade) return 1;
+  return 1 - fade.drop * clamp((progress - fade.from) / (fade.to - fade.from), 0, 1);
+}
+
+/**
  * Watts for one hill-climb effort. The leader's watts are the strongest
  * W/kg at his weight. Every other rider stays strictly under that W/kg
  * after rounding.

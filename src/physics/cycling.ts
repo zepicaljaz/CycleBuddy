@@ -16,7 +16,7 @@ const FORCE_FLOOR_SPEED = 1;
  */
 const BOTTOM_GEAR_FORCE = 250;
 /** The slowest speed (m/s) the bottom gear turns power into force at. */
-const BOTTOM_GEAR_SPEED = 0.3;
+const BOTTOM_GEAR_SPEED = 0.1;
 
 export interface BikeParams {
   /** Rider + bike mass in kg. */

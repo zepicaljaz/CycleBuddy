@@ -3,7 +3,7 @@ import type { Route } from '../routes/route';
 import { clamp, mulberry32, randRange, smoothstep } from '../util/math';
 import type { RiderColors } from '../world/riders';
 import { assignWindSlots, awardRoadFeatures, climbDrain, climbPeers, climbRating, decideRoad, FILE_SPACING, FILE_WIDTH, isProtectedRider, overTheTop, prepareCrests, ROAD_GROUP_M, sealGroupTimes, shapeRoad, stageStrength, staminaPlace, teamTempoRank, terrainWkg, tickEnergy, tickRoadReserve, trialFactor, TT_GAP, ttStartOrder, type EnergyPlace, type RoadBody, type RoadOrders, type RoadPlan, type RoadStarter, type WindSlot } from './road';
-import { climbEffortWatts, hillClimbWattsPerKilo } from './climbers';
+import { climbEffortWatts, fadeFactor, hillClimbFades, hillClimbWattsPerKilo, type Fade } from './climbers';
 import { NATIONS, TEAMS, teamColors } from './names';
 import { bestClimbers, riderName } from '../career/roster';
 import { teamById, teamKit } from '../career/teams';
@@ -62,6 +62,8 @@ export interface Racer {
   free?: number;
   /** Same speed with no draft, so a teammate sitting in the wheels is not treated as faster. */
   open: number;
+  /** Hill-climbs only: this rider loses power near the top. Undefined for one who holds their effort. */
+  fade?: Fade;
   /** Free-ride pacer who stays just ahead of the player. */
   buddy: boolean;
   /** Road-race ratings. Null on a hill-climb or a free ride. */
@@ -328,6 +330,9 @@ export class RideSim {
       racer.pace = 1;
       this.racers.push(racer);
     });
+    // Drawn after the field, so the start list and its efforts do not depend on who fades.
+    const fades = hillClimbFades(field.length, rng);
+    for (const racer of this.racers) if (!racer.isPlayer) racer.fade = fades[racer.id - 1];
   }
 
   /**
@@ -1151,15 +1156,17 @@ export class RideSim {
       return;
     }
     const remaining = this.opts.finishS - r.s;
-    // Hold the chosen effort the whole climb. Easing off to sit in a wheel is what
-    // bunched the field at the slow end and left a gap to the few riders up the road.
+    // Hold the chosen effort the whole climb, unless the legs go near the top. Easing off
+    // to sit in a wheel is what bunched the field at the slow end and left a gap to the
+    // few riders up the road.
+    const effort = r.ftp * fadeFactor(r.fade, (r.s - this.opts.startS) / (this.opts.finishS - this.opts.startS));
     if (remaining < 100 && remaining > 0) {
       r.mode = 'sprint';
-      r.targetPower = r.ftp * 1.15;
+      r.targetPower = effort * 1.15;
       return;
     }
     r.mode = 'steady';
-    r.targetPower = r.ftp;
+    r.targetPower = effort;
   }
 
   private pickPassingLane(r: Racer) {

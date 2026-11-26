@@ -5,6 +5,7 @@ import { getRouteDef } from '../routes/definitions';
 import { Route } from '../routes/route';
 import { DEFAULT_COLORS } from '../world/riders';
 import { bestClimbers, riderName } from '../career/roster';
+import { fadeFactor } from './climbers';
 import { RideSim, type Racer } from './peloton';
 import { assignWindSlots, climbPeers, climbRating, isProtectedRider, staminaPlace, ttStartOrder, type RoadBody, type RoadPlan, type RoadStarter } from './road';
 import { draftFromGap } from '../physics/cycling';
@@ -88,7 +89,8 @@ describe('AI hill-climb race', () => {
     expect(best).toBeGreaterThan(36);
     expect(best).toBeLessThan(48);
     expect(worst).toBeGreaterThan(65);
-    expect(worst).toBeLessThan(95);
+    // The slowest can be one who blows up near the top.
+    expect(worst).toBeLessThan(115);
     expect(spreadM).toBeGreaterThan(1500);
   });
 
@@ -144,6 +146,43 @@ describe('AI hill-climb race', () => {
     const first = leader();
     expect(first.officialTime).not.toBeNull();
     expect(sim.splitGap(first, sim.player)).toBeCloseTo(sim.player.officialTime! - first.officialTime!, 6);
+  });
+
+  it('lets some riders fade in the last 30 % of the climb, and never the best one', () => {
+    const sim = new RideSim(route, {
+      startS: climb.start,
+      finishS: climb.end,
+      aiCount: 75,
+      topWkg: 5,
+      bottomWkg: 3,
+      seed: 9,
+      player: { name: 'Me', massKg: 72, ftp: 250, colors: DEFAULT_COLORS },
+    });
+    const ai = sim.racers.filter((r) => !r.isPlayer);
+    const best = ai.find((r) => r.name === 'T. Novarik')!;
+    const faded = ai.filter((r) => r.fade);
+    expect(best.fade).toBeUndefined();
+    expect(faded.length).toBeGreaterThanOrEqual(19);
+    expect(faded.length).toBeLessThanOrEqual(26);
+    expect(sim.player.fade).toBeUndefined();
+
+    sim.started = true;
+    const progress = (r: Racer) => (r.s - climb.start) / (climb.end - climb.start);
+    const before = new Map<Racer, number>();
+    const after = new Map<Racer, number>();
+    for (let t = 0; t < 3 * 3600 && ai.some((r) => r.finishTime === null); t += 0.2) {
+      sim.step(0.2, 245, 85);
+      for (const r of ai) {
+        const at = progress(r);
+        if (at > 0.6 && at < 0.69) before.set(r, r.power / r.ftp);
+        // Past every fade's build-up, short of the sprint.
+        if (at > 0.96 && sim.finishLine - r.s > 130) after.set(r, r.power / r.ftp);
+      }
+    }
+    for (const r of ai) {
+      expect(before.get(r)).toBeCloseTo(1, 1);
+      expect(after.get(r)).toBeCloseTo(1 - (r.fade?.drop ?? 0), 1);
+    }
   });
 
   it('rides the buddy at the set power and meets the player at a climb gate', () => {
@@ -488,8 +527,10 @@ describe('AI hill-climb race', () => {
     for (let i = 0; i < 30; i++) sim.step(0.1, 288, 85);
     for (const r of ai) {
       if (r.finishTime !== null) continue;
-      expect(r.targetPower).toBeGreaterThan(r.ftp * 1.1);
-      expect(r.targetPower).toBeLessThan(r.ftp * 1.25);
+      // A rider who has faded sprints on what is left.
+      const left = r.ftp * fadeFactor(r.fade, (r.s - climb.start) / (climb.end - climb.start));
+      expect(r.targetPower).toBeGreaterThan(left * 1.1);
+      expect(r.targetPower).toBeLessThan(left * 1.25);
     }
   });
 

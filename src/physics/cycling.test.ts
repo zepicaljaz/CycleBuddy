@@ -32,6 +32,10 @@ describe('cycling physics', () => {
     for (let i = 0; i < 2000; i++) v = stepSpeed(v, 70, 0.128, bike, 0.05);
     expect(v).toBeGreaterThan(0.5);
     expect(v).toBeCloseTo(steadySpeed(70, 0.128, bike), 1);
+    // A rider at 1 W/kg who has lost half of it, on the 23.5 % of the Angliru.
+    for (let i = 0; i < 2000; i++) v = stepSpeed(v, 35, 0.235, bike, 0.05);
+    expect(v).toBeCloseTo(steadySpeed(35, 0.235, bike), 1);
+    expect(v).toBeGreaterThan(0.15);
   });
 
   it('stepSpeed converges to steady speed', () => {
