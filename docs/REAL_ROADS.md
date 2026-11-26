@@ -180,6 +180,58 @@ Built with `node scripts/real-track/build.mjs giau`. Same rules as Vršič, with
 - Towns, measured from the valley end: Selva di Cadore on the opening street (the square is about 160 m along). The pass is not a town. There is one restaurant there, the same cabin used on the cols, and the OpenStreetMap parking stays. Rifugio Fedare is beside the road at about 1,990 m. It is not a town.
 - Parking from OpenStreetMap: three lots at the pass, and the lot at Rifugio Piezza (Da Aurelio) at about 2,150 m. The mountain is the limestone colours. The treeline is 2,000 m, so the forest holds to Fedare and the top is open meadow. Woods and houses are still generated.
 
+## Passo di Gavia from Ponte di Legno
+
+Built with `node scripts/real-track/build.mjs gavia`. Same rules as Vršič, with these choices:
+
+- The climb is the salite.ch profile (salite.ch 004817, "Passo Gavia, da Ponte di Legno"):
+  17.39 km from 1,258 m to 2,621 m, 1,363 m of climbing, 28 pieces. The chart is in the
+  research sources. Its start is the village, not the SS 300. Where the SS 300 leaves the
+  SS 42 it is up on the hillside (about 1,360 m) and drops into the valley, so the chart
+  does not use it. The chart is 1,296 m at km 1, and that is where the streets from the
+  centre meet the SS 300 (Via Trento, terrain 1,296 m).
+- The line starts on Via Quattro Novembre in the centre of Ponte di Legno, 54 m from the
+  OpenStreetMap village node, and follows the shortest legal way through the one-way
+  streets (Via Undici Febbraio, Via Quattro Novembre, Corso Milano, Piazza Ventisette
+  Settembre, Corso Trieste, Via Trento): 1,054 m. Then the SS 300 to the vertex beside
+  OpenStreetMap pass node 828125656 (2,621 m). It stops there. The Bormio side is not in
+  the file, nor is the SS 300 below Via Trento. The file holds slices of the OSM street ways.
+- The chart prints marks, and the builder pins them where they are on the road (`anchors`):
+  km 1 at Via Trento, Sant'Apollonia at km 5.5 (1,584 m), the tunnel from km 14.2 (2,332 m)
+  to km 14.7 (2,377 m), and the pass. Between two marks the profile is stretched on its own
+  and its grades are scaled, so the published height is kept at every mark. Above
+  Sant'Apollonia the map and the chart agree to within metres (the tunnel is 530 m on the
+  map and 500 m on the chart). Below it the road is 0.4 km longer than the chart says, so
+  those kilometres ride about 9 % gentler than the printed gradients. The whole climb is
+  17.78 km, 2.2 % longer than published. The terrain is 14 m off along the road (rms); it
+  is used for the mountains and not for the slope.
+- The tunnel is ridden in the open, as a cut through the hillside. The game has no tunnels yet.
+- There is no published numbered hairpin series. Signs count up from the foot, on the sharp
+  bends of this line only. The bends stay as mapped (`minRadius: 0`).
+- The turn at the pass and the turn in the village are the same small balloon as Vršič, so
+  the ride comes back down this road and can climb it again.
+- Ponte di Legno is the opening kilometre of streets. Rifugio Bonetta is the stone hut on
+  the pass, and its OpenStreetMap parking stays. The parking at Sant'Apollonia is more
+  than 200 m off the road and is left out (`lotMaxDistance`).
+- Lago Nero and Lago Bianco are the OpenStreetMap outlines. They are 180 m and 170 m off
+  the road, so their water level comes from the terrain grid inside the outline (`offRoad`),
+  not from the road: Lago Bianco 2,603 m (OSM 2,611 m), Lago Nero 2,369 m. The 30 m
+  terrain puts Lago Nero at 2,380 m (OSM 2,395 m), and the ground there is pulled a few
+  metres toward the road, so the water follows the ground the rider sees.
+- **Land cover.** Every hand-mapped polygon within the fine terrain grid (4 km from the
+  road) is painted onto that grid by the builder, one byte per 25 m node (`coverGrid`):
+  wood (wood, forest), open (meadow, grass, grassland, heath, scrub, wetland, water),
+  rock (scree, bare rock, shingle) and ice (glacier). Multipolygons are joined from their
+  member ways; inner rings are holes; smaller polygons are painted last, so a clearing
+  inside a wood keeps its own cover. There is no CORINE import here. The bytes go after
+  the heights in `src/assets/terrain/gavia-ponte-di-legno.bin`, and `TerrainField` reads
+  one cell per point (moved by a little noise so the cells do not show as squares). Inside
+  the grid the map decides: woods grow trees, open ground stays grass even above the
+  treeline, rock is scree and stone with boulders, a glacier is ice. Unmapped ground grows
+  no trees, because the woods here are mapped (55-73 % of the ground between 1,200 m and
+  2,000 m). Outside the grid the generated forest is unchanged. Mapped wood ends at about
+  2,100 m (97 % of wood cells are below 2,108 m), so that is the treeline.
+
 ## Hairpins and the ground mesh
 
 The grass is an 8 m grid. On a straight the bank starts about 18 m out, so a
@@ -287,6 +339,11 @@ Built with `node scripts/real-track/build.mjs krvavec`. Same rules as Vršič, w
    (`source_segments`) and sources.
 4. Run the script. Check that the length is within ~2 % of the published value and that
    the hairpin count matches. Add a test like `track.test.ts`.
+
+Options the Gavia added, for a road that needs them: `anchors` (published marks pinned to
+the line), `offRoad` on a lake in the places file (water level from the terrain, not the
+road), `lotMaxDistance` (leave out parking that is not beside the road) and `coverGrid`
+(paint OpenStreetMap land cover onto the terrain grid).
 
 ## Credits and licence
 

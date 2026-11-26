@@ -182,13 +182,14 @@ export class ChunkBuilder {
       const alt = smoothstep(sc.treeline - 900, sc.treeline + 150, cy);
       mix(pal.grassLow, pal.grassHigh, alt, col);
       const forestN = n.fbm(cx / 850, cz / 850, 2);
+      // Read once: it decides the forest tint, the barren ground and the ice below.
+      const cover = arid ? 'forest' : field.groundCover(cx, cz, cy);
       if (arid) {
         const dune = n.noise(cx / 160, cz / 160) * 0.5 + 0.5;
         mix(col, pal.sand, dune * 0.5, col);
       } else {
-        const cover = field.groundCover(cx, cz, cy);
         let forest = smoothstep(1 - sc.forestDensity * 1.25, 1.1 - sc.forestDensity, forestN * 0.5 + 0.5) * (1 - smoothstep(treeline - 120, treeline + 40, cy));
-        if (cover === 'pasture') forest = 0;
+        if (cover === 'pasture' || cover === 'meadow' || cover === 'rock' || cover === 'ice') forest = 0;
         else if (cover === 'wood') forest = Math.max(forest, 0.82);
         mix(col, pal.forest, forest * 0.75, col);
       }
@@ -198,7 +199,14 @@ export class ChunkBuilder {
       // the steep faces still pick up rock further down.
       const paleScree = !sc.pasture && sc.mountainHeight > 1000 && sc.treeline < 1700;
       const gravelHere = sc.screeLine != null;
-      mix(col, gravelHere ? GRAVEL : paleScree ? pal.scree : pal.rock, barren * (sc.pasture ? 0.18 : 0.85), col);
+      // Mapped meadow stays grass above the trees. Mapped rock is handled below.
+      const barrenK = cover === 'meadow' || sc.pasture ? 0.18 : cover === 'rock' ? 0 : 0.85;
+      mix(col, gravelHere ? GRAVEL : paleScree ? pal.scree : pal.rock, barren * barrenK, col);
+      if (cover === 'rock') {
+        // Mapped scree and bare rock: loose stone, darker in patches, at any height.
+        mix(pal.scree, pal.rock, n.noise(cx / 60, cz / 60) * 0.5 + 0.5, tmp);
+        mix(col, tmp, 0.88, col);
+      }
       // Loose gravel takes over across a short band. Steep faces stay that colour
       // instead of turning into dark rock. The patch keeps a rubble slope from
       // reading as one flat sheet of snow.
@@ -214,6 +222,8 @@ export class ChunkBuilder {
       const snowLine = sc.snowline + n.noise(cx / 500, cz / 500) * 140;
       const snow = arid ? 0 : smoothstep(snowLine - 40, snowLine + 60, cy) * smoothstep(0.45, 0.7, ny);
       mix(col, pal.snow, snow, col);
+      // A mapped glacier is ice on any slope it covers.
+      if (cover === 'ice') mix(col, pal.snow, 0.92, col);
       if (sc.waterLevel !== null) {
         if (cy < sc.waterLevel + 3) mix(col, pal.sand, smoothstep(sc.waterLevel + 3, sc.waterLevel + 0.5, cy), col);
         if (cy < sc.waterLevel - 1.5) mix(col, pal.seabed, smoothstep(sc.waterLevel - 1.5, sc.waterLevel - 6, cy), col);
@@ -419,7 +429,7 @@ export class ChunkBuilder {
         const cover = field.groundCover(x, z, h);
         let density = smoothstep(1 - sc.forestDensity * 1.25, 1.1 - sc.forestDensity, forestN);
         if (cover === 'wood') density = Math.max(density, 0.9);
-        const altFade = cover === 'pasture' ? 0 : 1 - smoothstep(treeline - 200, treeline + 30, h);
+        const altFade = cover === 'pasture' || cover === 'meadow' || cover === 'rock' || cover === 'ice' ? 0 : 1 - smoothstep(treeline - 200, treeline + 30, h);
         const biome = sc.biome ?? 'alpine';
         const lx = x - req.x0;
         const lz = z - req.z0;
@@ -437,7 +447,7 @@ export class ChunkBuilder {
           let scale = (0.75 + hash2(gx, gz) * 0.6) * req.treeScale * (altFade < 0.5 ? 0.8 : 1);
           if (biome === 'moor' && !broadleaf) scale *= 0.45;
           out.push(lx, ground.y - 0.3 - sink, lz, scale, r1 * Math.PI * 2, broadleaf ? 1 : 0);
-        } else if (req.propDetail === 0 && r3 > (sc.screeLine != null && h > sc.screeLine ? 0.96 : 0.985) - slope * 0.05) {
+        } else if (req.propDetail === 0 && r3 > (cover === 'rock' || (sc.screeLine != null && h > sc.screeLine) ? 0.96 : 0.985) - slope * 0.05) {
           out.push(lx, ground.y - 0.4 - sink, lz, 0.6 + r2 * 1.4, r1 * Math.PI * 2, 2);
         }
       }

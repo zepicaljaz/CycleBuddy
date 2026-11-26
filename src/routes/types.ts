@@ -95,6 +95,15 @@ export interface DemGrid extends DemGridInfo {
   data: Float32Array;
 }
 
+/**
+ * Hand-mapped land cover painted onto the fine height grid by the track builder,
+ * one byte per grid node: 0 unmapped, 1 wood, 2 open ground (meadow, grassland,
+ * scrub), 3 rock and scree, 4 glacier.
+ */
+export interface CoverGrid extends DemGridInfo {
+  data: Uint8Array;
+}
+
 /** A polygon in the road's local metres (x east, z south). The first point is not repeated. */
 export interface MapPolygon {
   name: string;
@@ -141,7 +150,7 @@ export interface TrackDef {
   /** Published number of hairpins on the climb; the sharpest bends of the real line get the signs. */
   hairpinCount?: number;
   /** Height grids (fine first) in a binary file under src/assets/terrain, loaded when the ride starts. */
-  terrain?: { file: string; grids: DemGridInfo[] };
+  terrain?: { file: string; grids: DemGridInfo[]; cover?: DemGridInfo };
   /** Where the data comes from, for the credits. */
   source?: string;
 }

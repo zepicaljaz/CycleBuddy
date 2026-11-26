@@ -1,7 +1,7 @@
 import { ROUTE_DS } from '../routes/route';
 import { lerp, smoothstep } from '../util/math';
 import { Noise2D } from '../util/noise';
-import type { DemGrid, MapPolygon, SceneryDef, TrackPlaces } from '../routes/types';
+import type { CoverGrid, DemGrid, MapPolygon, SceneryDef, TrackPlaces } from '../routes/types';
 
 export const ROAD_HALF_WIDTH = 3.8;
 
@@ -28,7 +28,13 @@ export interface FieldInput {
   pads?: Float32Array;
   /** OpenStreetMap lakes and parking lots, in the same local metres as the road. */
   places?: TrackPlaces;
+  /** Mapped land cover on the fine grid. Where it is present, it decides what grows. */
+  cover?: CoverGrid | null;
 }
+
+/** What grows on the ground at a point. */
+export type GroundCover = 'wood' | 'pasture' | 'forest' | 'meadow' | 'rock' | 'ice';
+const COVER_BY_CLASS: GroundCover[] = ['pasture', 'wood', 'meadow', 'rock', 'ice'];
 
 const CLEAR_CELL = 64;
 
@@ -180,6 +186,7 @@ export class TerrainField {
   private readonly lakes: MapArea[] = [];
   private readonly lots: MapArea[] = [];
   private readonly woods: MapArea[] = [];
+  private readonly cover: CoverGrid | null;
   /** Radius of the open verge at this road sample, or 0. The way back is included. */
   private openRadius: Float32Array | null = null;
 
@@ -190,6 +197,7 @@ export class TerrainField {
     for (const lake of input.places?.lakes ?? []) this.lakes.push(compileArea(lake));
     for (const lot of input.places?.lots ?? []) this.lots.push(compileArea(lot));
     for (const wood of input.places?.cover?.wood ?? []) this.woods.push(compileArea(wood));
+    this.cover = input.cover ?? null;
     if (input.clear) this.setClearings(input.clear);
     this.scenery = input.scenery;
     this.rx = input.x;
@@ -829,17 +837,37 @@ export class TerrainField {
   }
 
   /**
-   * What grows here. A mapped wood stands. A point whose nearest road sample is
-   * an open stretch, and which sits inside that stretch's radius, is grazed.
-   * Everywhere else keeps the generated forest.
+   * What grows here. Inside a mapped cover grid the map decides: wood, open
+   * meadow, rock and scree, or glacier, and unmapped ground grows no trees (the
+   * woods are mapped there). Outside it, a mapped wood stands. A point whose
+   * nearest road sample is an open stretch, and which sits inside that
+   * stretch's radius, is grazed. Everywhere else keeps the generated forest.
    */
-  groundCover(x: number, z: number, y: number): 'wood' | 'pasture' | 'forest' {
+  groundCover(x: number, z: number, y: number): GroundCover {
+    const mapped = this.coverAt(x, z);
+    if (mapped) return mapped;
     if (insideAny(this.woods, x, z)) return 'wood';
     const near = this.openRadius ? this.nearestRoad(x, z) : null;
     if (near && near.d <= (this.openRadius?.[near.i] ?? 0)) return 'pasture';
     const line = this.scenery.pastureAbove;
     if (line != null && y >= line) return 'pasture';
     return 'forest';
+  }
+
+  /**
+   * The mapped cover at a point, or null outside the grid. The lookup is moved
+   * by a little noise so the 25 m cells do not show as squares on the ground.
+   */
+  private coverAt(x: number, z: number): GroundCover | null {
+    const g = this.cover;
+    if (!g) return null;
+    const j = this.noise.noise(x / 37, z / 37) * 0.45;
+    const fx = (x - g.x0) / g.cell + j;
+    const fz = (z - g.z0) / g.cell + this.noise.noise(x / 37 + 17, z / 37 - 9) * 0.45;
+    const gx = Math.round(fx);
+    const gz = Math.round(fz);
+    if (gx < 0 || gz < 0 || gx >= g.w || gz >= g.h) return null;
+    return COVER_BY_CLASS[g.data[gz * g.w + gx]] ?? 'pasture';
   }
 
   /** Mark the open stretches, and the samples that come back down the same road. */

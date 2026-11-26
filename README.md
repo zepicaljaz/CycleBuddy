@@ -78,8 +78,10 @@ Also on the home screen: **Analytics** (overview, fitness, power, rides, climbs,
   gradients don't add up to its gain is dropped (`checkClimb`).
 - **Real road 1:1:** Vršič, Alpe d'Huez, Passo dello Stelvio from Prato, Mont Ventoux from
   Bédoin, Col du Tourmalet from Luz-Saint-Sauveur, Alto de l'Angliru from La Vega, Col du
-  Galibier from Valloire, Passo Giau from Selva di Cadore and Krvavec from Grad to Plaža run
-  on their real roads (OpenStreetMap line, published profile, real terrain). Free ride lists
+  Galibier from Valloire, Passo Giau from Selva di Cadore, Passo di Gavia from Ponte di Legno
+  and Krvavec from Grad to Plaža run on their real roads (OpenStreetMap line, published
+  profile, real terrain). The Gavia also has the mapped land cover around it: woods, meadow,
+  scree and glacier where OpenStreetMap draws them. Free ride lists
   them under **Real climbs**. How they are built: `docs/REAL_ROADS.md`.
 - **Time trials:** a start ramp, riders leave one by one (the GC leader last), each on their own
   clock, with a broom car behind the last rider.
@@ -159,7 +161,7 @@ cyclebuddy/
 | `routes/definitions.ts`, `moreWorlds.ts`, `careerWorlds.ts` | Every loop's definition (sections, styles, towns) |
 | `routes/regions.ts` | The six Free ride landscapes, the loops in each, and the Real climbs category |
 | `routes/sections.ts`, `grades.ts`, `types.ts`, `validate.ts` | Section shapes, gradient resolution, types, definition checks |
-| `routes/real/` | Real climbs and stages: `climbs.json`, `stages.json`, checks (`data.ts`), builders (`build.ts`), real tracks (`tracks/`), terrain loading (`terrain.ts`) |
+| `routes/real/` | Real climbs and stages: `climbs.json`, `stages.json`, checks (`data.ts`), builders (`build.ts`), real tracks (`tracks/`), terrain and mapped land cover loading (`terrain.ts`), per-road tests (`track.test.ts`, `gavia.test.ts`) |
 
 **The 3D world** (`world/`)
 

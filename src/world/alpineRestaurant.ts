@@ -402,11 +402,15 @@ export function alpineRestaurant(scheme: Scheme = 'wood'): Prepared {
 /** Footprint. Depth is along +X, width along Z. */
 export const ALPINE_RESTAURANT_SIZE = { front: FRONT, back: BACK, w: HALF_W * 2, h: 7.4 };
 
-/** A wooden restaurant on Col du Nord, a grey one on Col du Sud, and one at Passo Giau. The pass has a refuge, not a village. */
+/**
+ * A wooden restaurant on Col du Nord, a grey one on Col du Sud, one at Passo Giau and a
+ * stone one for Rifugio Bonetta on the Passo di Gavia. Those passes have a refuge, not a village.
+ */
 export function placeAlpineRestaurants(site: Site): void {
   placeOne(site, 'twins-nord', 'wood');
   placeOne(site, 'twins-sud', 'grey');
   placeOne(site, 'giau-selva', 'wood');
+  placeOne(site, 'gavia-ponte-di-legno', 'grey');
 }
 
 function placeOne(site: Site, climbId: string, scheme: Scheme): void {

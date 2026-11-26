@@ -315,6 +315,8 @@
  {
   "id": "gavia-ponte-di-legno",
   "name": "Passo di Gavia",
+  "treeline": 2100,
+  "snowline": 2950,
   "side": "Ponte di Legno",
   "country": "Italy",
   "region": "Lombardy (Valcamonica, Brescia)",

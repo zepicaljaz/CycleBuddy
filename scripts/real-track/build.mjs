@@ -8,6 +8,7 @@
 //   node scripts/real-track/build.mjs galibier
 //   node scripts/real-track/build.mjs giau
 //   node scripts/real-track/build.mjs krvavec
+//   node scripts/real-track/build.mjs gavia
 // Output: src/routes/real/tracks/<id>.json (road line, elevation, sections) and
 // src/assets/terrain/<id>.bin (height grids around the road). See ATTRIBUTION.md.
 import fs from 'node:fs';
@@ -245,6 +246,42 @@ const CONFIGS = {
       { name: 'Ambrož pod Krvavcem', fromM: 8000, toM: 9000 },
     ],
   },
+  gavia: {
+    id: 'gavia-ponte-di-legno',
+    climbId: 'gavia-ponte-di-legno',
+    // SS 300 from its start in Ponte di Legno to the pass. The Bormio side is not in this file.
+    osm: 'data/osm/gavia-ss300.json',
+    // Ponte di Legno centre, on Via Quattro Novembre 54 m from the village node. The
+    // salite.ch profile starts in the village (1,258 m) and is 1,296 m at km 1, where
+    // the streets reach the SS 300 (Via Trento). The shortest legal way through the
+    // one-way streets is 1,054 m. The SS 300 south of that junction, down from the
+    // SS 42, is not part of the climb and is not in the file.
+    from: { lat: 46.2589979, lon: 10.5082438 },
+    // SS 300 vertex beside OSM node 828125656 (mountain_pass, ele 2621). The road stops here.
+    to: { lat: 46.3434797, lon: 10.4873336 },
+    climbStart: { lat: 46.2589979, lon: 10.5082438 },
+    summit: { lat: 46.3434797, lon: 10.4873336 },
+    startElevation: 1258,
+    summitElevation: 2621,
+    places: 'data/osm/gavia-places.json',
+    // Hand-mapped land cover within the fine terrain grid, painted onto that grid.
+    coverGrid: 'data/osm/gavia-landcover.json',
+    // Parking is levelled to the road beside it; a lot further off is left out.
+    lotMaxDistance: 25,
+    // The marks printed on the salite.ch chart, pinned where they are on the road.
+    // Above Sant'Apollonia OSM and the chart agree to within metres. Below it the
+    // road is 0.4 km longer than the chart, so that stretch is a little gentler.
+    anchors: [
+      { name: 'SS 300 at Via Trento (1,296 m)', km: 1, at: { lat: 46.2640344, lon: 10.5171869 } },
+      { name: "Sant'Apollonia (1,584 m)", km: 5.5, at: { lat: 46.2966, lon: 10.5065 } },
+      { name: 'tunnel, lower portal (2,332 m)', km: 14.2, at: { lat: 46.3274032, lon: 10.48947 } },
+      { name: 'tunnel, upper portal (2,377 m)', km: 14.7, at: { lat: 46.3321316, lon: 10.4888726 } },
+    ],
+    minRadius: 0,
+    // No published numbered series. Signs count up from the foot, on the sharp bends only.
+    hairpins: 'up',
+    towns: [{ name: 'Ponte di Legno', fromM: 0, toM: 1054 }],
+  },
 };
 
 const cfg = CONFIGS[process.argv[2]];
@@ -439,12 +476,33 @@ const i0 = cum.findIndex((c) => c >= s0);
 const i1 = cum.findIndex((c) => c >= s1 - 0.5);
 const shift = cfg.startElevation - demSmooth[i0];
 for (let i = 0; i <= i0; i++) yAt[i] = s0 > 0 ? demSmooth[i] + shift * (cum[i] / s0) : cfg.startElevation;
+// Published marks pinned to the line: [profile km, metres along the road]. Without
+// anchors the profile is stretched evenly. With them, each stretch between two
+// marks is stretched on its own, and its grades are scaled so the published
+// elevation at every mark is kept.
+const marks = [[0, s0]];
+for (const a of cfg.anchors ?? []) {
+  const p = toXZ(a.at);
+  let bestA = Infinity, at = 0;
+  line.forEach((q, i) => { const d = Math.hypot(q.x - p.x, q.z - p.z); if (d < bestA) { bestA = d; at = cum[i]; } });
+  if (bestA > 40) throw new Error(`anchor ${a.name} is ${bestA.toFixed(0)} m off the road`);
+  console.log(`anchor ${a.name}: profile km ${a.km} at ${((at - s0) / 1000).toFixed(2)} km of road (${bestA.toFixed(0)} m off)`);
+  marks.push([a.km, at]);
+}
+marks.push([segs.at(-1)[1], s1]);
+for (let k = 1; k < marks.length; k++) if (!(marks[k][0] > marks[k - 1][0] && marks[k][1] > marks[k - 1][1])) throw new Error('anchors out of order');
+const profileKm = (s) => {
+  let k = 1;
+  while (k < marks.length - 1 && s > marks[k][1]) k++;
+  const [ka, sa] = marks[k - 1], [kb, sb] = marks[k];
+  return { km: ka + ((kb - ka) * (s - sa)) / (sb - sa), stretch: ((kb - ka) * 1000) / (sb - sa) };
+};
 let elev = cfg.startElevation;
 let seg = 0;
 for (let i = i0 + 1; i < line.length; i++) {
-  const km = (cum[i] - s0) / scale / 1000;
+  const { km, stretch } = cfg.anchors ? profileKm(cum[i]) : { km: (cum[i] - s0) / scale / 1000, stretch: 1 };
   while (seg < segs.length - 1 && km > segs[seg][1]) seg++;
-  const g = i <= i1 ? segs[seg][2] / 100 : 0;
+  const g = i <= i1 ? (segs[seg][2] / 100) * stretch : 0;
   elev += g * (cum[i] - cum[i - 1]);
   yAt[i] = elev;
 }
@@ -643,9 +701,31 @@ if (cfg.places) {
       shore = Math.min(shore, d);
       if (d < 40) near.push(y[i]);
     }
+    let level;
+    if (lake.offRoad) {
+      // Not on the road: the water sits on the terrain grid. Over a lake the
+      // elevation data is the flat water surface, so a low percentile of the grid
+      // inside the outline is the surface, a little under the shore.
+      const hs = [];
+      const xs = ring.x, zs = ring.z;
+      const bx0 = Math.min(...xs), bx1 = Math.max(...xs), bz0 = Math.min(...zs), bz1 = Math.max(...zs);
+      for (let gz = Math.ceil((bz0 - fine.z0) / fine.cell); fine.z0 + gz * fine.cell <= bz1; gz++) {
+        for (let gx = Math.ceil((bx0 - fine.x0) / fine.cell); fine.x0 + gx * fine.cell <= bx1; gx++) {
+          const x = fine.x0 + gx * fine.cell, z = fine.z0 + gz * fine.cell;
+          if (gx < 0 || gz < 0 || gx >= fine.w || gz >= fine.h || !insideRing(x, z, ring)) continue;
+          hs.push(fine.data[gz * fine.w + gx]);
+        }
+      }
+      if (hs.length < 3) throw new Error(`${lake.name}: too few terrain cells inside the outline`);
+      hs.sort((a, b) => a - b);
+      level = Math.round((hs[Math.floor(hs.length * 0.25)] - 0.3) * 10) / 10;
+      console.log(`lake ${lake.name}: ${shore.toFixed(0)} m from the road, water ${level.toFixed(1)} m on the terrain (OSM ele ${lake.ele ?? '?'}, ${hs.length} cells)`);
+      lakes.push({ name: lake.name, level, ...ring });
+      continue;
+    }
     if (!near.length) throw new Error(`${lake.name} is not beside the road`);
     near.sort((a, b) => a - b);
-    const level = Math.round((near[Math.floor(near.length / 2)] - 0.8) * 10) / 10;
+    level = Math.round((near[Math.floor(near.length / 2)] - 0.8) * 10) / 10;
     console.log(`lake ${lake.name}: shore ${shore.toFixed(1)} m from the road centre, water ${level.toFixed(1)} m`);
     lakes.push({ name: lake.name, level, ...ring });
   }
@@ -654,6 +734,11 @@ if (cfg.places) {
     const ring = projectRing(lot.ring);
     let shore = Infinity;
     for (let i = 0; i < line.length; i += 2) shore = Math.min(shore, ringDistance(line[i].x, line[i].z, ring));
+    // A lot is paved level with the road beside it, so only lots that touch the road are kept.
+    if (cfg.lotMaxDistance != null && shore > cfg.lotMaxDistance) {
+      console.log(`lot ${lot.name}: road ${shore.toFixed(1)} m, too far, left out`);
+      continue;
+    }
     if (lot.viewpoint) {
       const p = toXZ(lot.viewpoint);
       const d = ringDistance(p.x, p.z, ring);
@@ -702,10 +787,105 @@ if (cfg.cover) {
   console.log(`cover kept ${open.length} open and ${wood.length} wood (CORINE forest left out)`);
 }
 
+// ---------------------------------------------------------------- land cover grid
+// Every hand-mapped land cover polygon (ways and multipolygons) painted onto the
+// fine terrain grid, one byte per node. The game reads one cell per point, so the
+// polygons cost nothing while riding. Smaller polygons are painted last and win,
+// so a meadow inside a wood, or a wood inside a grassland, keeps its own cover.
+// Inner rings are holes. 0 is unmapped: the game keeps its generated forest there.
+const COVER = { none: 0, wood: 1, open: 2, rock: 3, ice: 4 };
+const COVER_CLASS = {
+  wood: COVER.wood, forest: COVER.wood,
+  meadow: COVER.open, grass: COVER.open, grassland: COVER.open, heath: COVER.open, scrub: COVER.open, wetland: COVER.open, water: COVER.open,
+  scree: COVER.rock, bare_rock: COVER.rock, shingle: COVER.rock,
+  glacier: COVER.ice,
+};
+function joinRings(parts) {
+  // Joins member ways end to end into closed rings. Open leftovers are dropped.
+  const open = parts.map((g) => g.slice());
+  const rings = [];
+  const same = (a, b) => Math.abs(a.lat - b.lat) < 1e-7 && Math.abs(a.lon - b.lon) < 1e-7;
+  while (open.length) {
+    let ring = open.shift();
+    let grown = true;
+    while (!same(ring[0], ring.at(-1)) && grown) {
+      grown = false;
+      for (let k = 0; k < open.length; k++) {
+        const g = open[k];
+        if (same(ring.at(-1), g[0])) ring = ring.concat(g.slice(1));
+        else if (same(ring.at(-1), g.at(-1))) ring = ring.concat(g.slice(0, -1).reverse());
+        else if (same(ring[0], g.at(-1))) ring = g.concat(ring.slice(1));
+        else if (same(ring[0], g[0])) ring = g.slice(1).reverse().concat(ring);
+        else continue;
+        open.splice(k, 1);
+        grown = true;
+        break;
+      }
+    }
+    if (ring.length >= 4 && same(ring[0], ring.at(-1))) rings.push(ring);
+  }
+  return rings;
+}
+let coverBytes = null;
+let coverStats = null;
+if (cfg.coverGrid) {
+  const src = JSON.parse(fs.readFileSync(path.join(ROOT, cfg.coverGrid), 'utf8'));
+  const polys = [];
+  for (const el of src.elements) {
+    const tags = el.tags ?? {};
+    if (String(tags.source ?? '').includes('CORINE')) continue;
+    const cls = COVER_CLASS[tags.landuse] ?? COVER_CLASS[tags.natural];
+    if (!cls) continue;
+    const rings = el.type === 'way' ? joinRings([el.geometry]) : joinRings(el.members.filter((m) => m.geometry.length >= 2).map((m) => m.geometry));
+    if (!rings.length) continue;
+    const xy = rings.map((r) => r.map((p) => toXZ(p)));
+    // Rough size, only to paint the large polygons first.
+    let area = 0;
+    for (const r of xy) for (let i = 0, j = r.length - 1; i < r.length; j = i++) area += (r[j].x - r[i].x) * (r[j].z + r[i].z);
+    polys.push({ cls, xy, area: Math.abs(area) / 2 });
+  }
+  polys.sort((a, b) => b.area - a.area);
+  const g = fine;
+  const cells = new Uint8Array(g.w * g.h);
+  for (const poly of polys) {
+    const edges = [];
+    let z0 = Infinity, z1 = -Infinity;
+    for (const r of poly.xy) {
+      for (let i = 0, j = r.length - 1; i < r.length; j = i++) {
+        edges.push([r[j].x, r[j].z, r[i].x, r[i].z]);
+        z0 = Math.min(z0, r[i].z); z1 = Math.max(z1, r[i].z);
+      }
+    }
+    const j0 = Math.max(0, Math.ceil((z0 - g.z0) / g.cell)), j1 = Math.min(g.h - 1, Math.floor((z1 - g.z0) / g.cell));
+    for (let j = j0; j <= j1; j++) {
+      const z = g.z0 + j * g.cell;
+      const xs = [];
+      for (const [ax, az, bx, bz] of edges) if ((az > z) !== (bz > z)) xs.push(ax + ((bx - ax) * (z - az)) / (bz - az));
+      xs.sort((a, b) => a - b);
+      for (let k = 0; k + 1 < xs.length; k += 2) {
+        const i0c = Math.max(0, Math.ceil((xs[k] - g.x0) / g.cell)), i1c = Math.min(g.w - 1, Math.floor((xs[k + 1] - g.x0) / g.cell));
+        for (let i = i0c; i <= i1c; i++) cells[j * g.w + i] = poly.cls;
+      }
+    }
+  }
+  const count = [0, 0, 0, 0, 0];
+  for (const c of cells) count[c]++;
+  coverStats = count.map((c) => +((c / cells.length) * 100).toFixed(1));
+  console.log(`cover grid from ${polys.length} polygons: unmapped ${coverStats[0]} %, wood ${coverStats[1]} %, open ${coverStats[2]} %, rock ${coverStats[3]} %, ice ${coverStats[4]} %`);
+  coverBytes = cells;
+}
+if (coverBytes) {
+  // Heights, then one byte per cover cell, padded to an even length so the
+  // file still reads as 16-bit heights from the start.
+  const pad = coverBytes.length % 2;
+  const withCover = Buffer.concat([bin, Buffer.from(coverBytes), Buffer.alloc(pad)]);
+  fs.writeFileSync(path.join(ROOT, `src/assets/terrain/${cfg.id}.bin`), withCover);
+}
+
 function creditLine(places) {
   const bits = ['Road line'];
   if (places?.lakes?.length) bits.push('lake');
-  if (places?.cover && (places.cover.open.length || places.cover.wood.length)) bits.push('land cover');
+  if ((places?.cover && (places.cover.open.length || places.cover.wood.length)) || coverBytes) bits.push('land cover');
   if (places?.lots?.length) bits.push('parking');
   const what = bits.length === 1 ? bits[0] : `${bits.slice(0, -1).join(', ')} and ${bits.at(-1)}`;
   return `${what} © OpenStreetMap contributors (ODbL). `;
@@ -736,6 +916,7 @@ const track = {
   terrain: {
     file: `${cfg.id}.bin`,
     grids: [fine, coarse].map(({ x0, z0, cell, w, h }) => ({ x0, z0, cell, w, h })),
+    ...(coverBytes ? { cover: { x0: fine.x0, z0: fine.z0, cell: fine.cell, w: fine.w, h: fine.h } } : {}),
   },
 };
 fs.mkdirSync(path.join(ROOT, 'src/routes/real/tracks'), { recursive: true });

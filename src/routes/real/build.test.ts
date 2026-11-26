@@ -55,6 +55,7 @@ describe('real road climbs', () => {
       'alpe-dhuez-bourg-doisans',
       'angliru-la-vega',
       'galibier-valloire',
+      'gavia-ponte-di-legno',
       'giau-selva',
       'krvavec-cerklje',
       'stelvio-prato',

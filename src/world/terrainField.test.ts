@@ -194,7 +194,7 @@ describe('terrain field', () => {
     }
   });
 
-  for (const id of ['alpe-dhuez-bourg-doisans', 'vrsic-kranjska-gora', 'stelvio-prato', 'ventoux-bedoin', 'tourmalet-luz', 'angliru-la-vega', 'galibier-valloire', 'giau-selva']) {
+  for (const id of ['alpe-dhuez-bourg-doisans', 'vrsic-kranjska-gora', 'stelvio-prato', 'ventoux-bedoin', 'tourmalet-luz', 'angliru-la-vega', 'galibier-valloire', 'giau-selva', 'gavia-ponte-di-legno']) {
     it(`${id}: a hairpin bank does not cross the asphalt or drop the rail`, () => {
       const route = getRoute(realClimbRoute(REAL_CLIMB_MAP.get(id)!));
       const field = new TerrainField({ x: route.x, z: route.z, y: route.y, seed: route.def.seed, scenery: route.def.scenery, town: townMask(route) });
