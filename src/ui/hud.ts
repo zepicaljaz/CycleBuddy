@@ -147,7 +147,7 @@ export class Hud {
   }
 
   /** Clicks on the camera, time and map rows. Brake and Look back are held for as long as the row is pressed. */
-  bindTools(tools: { camera: () => void; time: () => void; map: () => void; reverse: () => void; brake: (held: boolean) => void }): void {
+  bindTools(tools: { camera: () => void; time: () => void; map: () => void; reverse: () => void; brake: (held: boolean) => void; lookBack: (held: boolean) => void }): void {
     this.tools = tools;
   }
 
