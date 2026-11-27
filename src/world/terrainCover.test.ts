@@ -1,12 +1,27 @@
 import { describe, expect, it } from 'vitest';
 import { ROUTES } from '../routes/definitions';
 import { Route } from '../routes/route';
-import { realClimbRoute } from '../routes/real/build';
+import { ensureAllTracks, realClimbRoute } from '../routes/real/build';
 import { REAL_CLIMB_MAP } from '../routes/real/data';
 import { splitGrids } from '../routes/real/terrain';
 import { LandCover, type CoverGrid, type DemGrid, type DemGridInfo, type SceneryDef } from '../routes/types';
-import { ChunkBuilder, PROP_SCRUB } from './terrainChunk';
-import { TerrainField } from './terrainField';
+import { ChunkBuilder, CLIFF_HALF_WIDTH, PROP_CLIFF, PROP_SCREE, PROP_SCRUB } from './terrainChunk';
+import { ROAD_HALF_WIDTH, TerrainField } from './terrainField';
+
+// Real tracks load on demand; the pinned real-road case below needs its track.
+await ensureAllTracks();
+
+/** Props of near chunks (512 m, detailed) along z = 0..512 at these x0, in world coordinates. */
+function propsOf(builder: ChunkBuilder, xs: number[]) {
+  const out: { x: number; y: number; z: number; scale: number; rot: number; type: number }[] = [];
+  for (const x0 of xs) {
+    const res = builder.build({ id: 1, x0, z0: 0, size: 512, segs: 64, treeSpacing: 9, propDetail: 0, treeScale: 1 });
+    for (let i = 0; i < res.props.length; i += 6) {
+      out.push({ x: x0 + res.props[i], y: res.props[i + 1], z: res.props[i + 2], scale: res.props[i + 3], rot: res.props[i + 4], type: res.props[i + 5] });
+    }
+  }
+  return out;
+}
 
 const SCENERY: SceneryDef = { ...ROUTES.find((r) => r.id === 'alpine')!.scenery, treeline: 2050, snowline: 2850, waterLevel: null };
 
@@ -205,13 +220,7 @@ describe('land cover', () => {
     };
     const field = new TerrainField({ ...road, seed: 11, scenery: SCENERY, dem, cover: coverFrom(stripe) });
     const builder = new ChunkBuilder(field, 11);
-    const props: { x: number; y: number; z: number; scale: number; type: number }[] = [];
-    for (const x0 of [0, 512, 1024, 1536]) {
-      const res = builder.build({ id: 1, x0, z0: 0, size: 512, segs: 64, treeSpacing: 9, propDetail: 0, treeScale: 1 });
-      for (let i = 0; i < res.props.length; i += 6) {
-        props.push({ x: x0 + res.props[i], y: res.props[i + 1], z: res.props[i + 2], scale: res.props[i + 3], type: res.props[i + 5] });
-      }
-    }
+    const props = propsOf(builder, [0, 512, 1024, 1536]);
     const nearCliff = (x: number, z: number) => [[25, 0], [-25, 0], [0, 25], [0, -25]].some(([dx, dz]) => field.coverAt(x + dx, z + dz) === LandCover.cliff);
 
     it('trees grow in the forest on a steep slope, and nowhere on rock, scree, cliff, glacier or water', () => {
@@ -241,6 +250,54 @@ describe('land cover', () => {
       // Scree, below the cliff band, gets more than plain rock.
       const per = (lo: number, hi: number) => boulders.filter((p) => p.x >= lo && p.x < hi).length / (hi - lo);
       expect(per(1400, 1536)).toBeGreaterThan(per(1024, 1300));
+    });
+
+    it('cliff faces stand only on the cliff band, face downhill, keep off the road and sit below the ground', () => {
+      const cliffs = props.filter((p) => p.type === PROP_CLIFF);
+      expect(cliffs.length).toBeGreaterThan(20);
+      for (const p of cliffs) {
+        // Rock here is 37°, under STEEP_ROCK: only the mapped cliff gets faces.
+        expect(field.coverAt(p.x, p.z)).toBe(LandCover.cliff);
+        // Downhill is -z (the ground rises to the south). The model's front is +Z, turned by rot.
+        expect(-Math.cos(p.rot)).toBeGreaterThan(0.95);
+        expect(field.roadDistance(p.x, p.z)).toBeGreaterThanOrEqual(ROAD_HALF_WIDTH + 3 + CLIFF_HALF_WIDTH * p.scale - 0.01);
+        // Base below the ground under its front: no corner hangs in the air.
+        expect(p.y).toBeLessThan(field.groundMesh(p.x, p.z - 4 * p.scale, 8).y);
+      }
+    });
+
+    it('scree patches lie only on scree, sparse and off the road', () => {
+      const patches = props.filter((p) => p.type === PROP_SCREE);
+      expect(patches.length).toBeGreaterThan(5);
+      for (const p of patches) {
+        expect(field.coverAt(p.x, p.z)).toBe(LandCover.scree);
+        expect(field.roadDistance(p.x, p.z)).toBeGreaterThan(ROAD_HALF_WIDTH + 2 + 3 * p.scale - 0.01);
+      }
+      const screePoints = props.filter((p) => field.coverAt(p.x, p.z) === LandCover.scree).length;
+      expect(patches.length / screePoints).toBeLessThan(0.5);
+    });
+
+    it('bare rock steeper than STEEP_ROCK gets cliff faces too, a gentler one none', () => {
+      const steep = new TerrainField({
+        ...road, seed: 11, scenery: SCENERY,
+        dem: demFrom((_x, z) => 1200 + 1.3 * Math.max(0, z)),
+        cover: coverFrom((_x, z) => (z < 0 ? LandCover.meadow : LandCover.rock)),
+      });
+      const faces = propsOf(new ChunkBuilder(steep, 11), [0, 512]).filter((p) => p.type === PROP_CLIFF);
+      expect(faces.length).toBeGreaterThan(20);
+      for (const p of faces) expect(Math.cos(p.rot)).toBeLessThan(-0.95);
+      expect(props.filter((p) => p.type === PROP_CLIFF && field.coverAt(p.x, p.z) === LandCover.rock)).toHaveLength(0);
+    });
+
+    it('forest above the treeline grows dwarf pine, not trees', () => {
+      // Treeline 1,350 m: the 37° slope passes it about 200 m south of the road.
+      const high = new TerrainField({ ...road, seed: 11, scenery: { ...SCENERY, treeline: 1350 }, dem, cover: coverFrom((_x, z) => (z < 0 ? LandCover.meadow : LandCover.forest)) });
+      const got = propsOf(new ChunkBuilder(high, 11), [0]);
+      const trees = got.filter((p) => p.type === 0 || p.type === 1);
+      expect(trees.length).toBeGreaterThan(200);
+      // The treeline is noisy by up to 120 m.
+      for (const p of trees) expect(p.y).toBeLessThan(1350 + 125);
+      expect(got.filter((p) => p.type === PROP_SCRUB && p.y > 1350 + 125).length).toBeGreaterThan(100);
     });
   });
 

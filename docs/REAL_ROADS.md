@@ -415,18 +415,49 @@ data section; this is what the terrain does with it.
   darker olive, meadow, water and built-up the altitude grass. Slope only
   darkens vegetation by up to 12 %. Seasonal snow above `snowline` settles only
   on bare classes. Lake sand and the worn verge are as before. The
-  treeline/noise look runs only where cover is 0.
+  treeline/noise look runs only where cover is 0. Scree (WorldCover's "bare /
+  sparse vegetation" under 35°) gets soft 40 m patches of dry grass, up to 45 %,
+  so a high slope reads as stony grass, not one pale sheet; a road with
+  `screeLine` (Ventoux) keeps its bare gravel.
+- **Rock tone.** `scenery.rockTone` ('pale' limestone/dolomite, 'grey' schist
+  or granite, 'dark' shale) replaces the biome's rock, dark rock and scree
+  colours (`paletteFor` in `terrainChunk.ts`) and tints the rock props
+  (`ROCK_TINT` in `terrain.ts`). Omitted keeps the biome's.
 - **Props.** Forest keeps its trees up to about 45° of real slope (they shrink
-  in the last 200 m below the treeline). Meadow gets the odd lone tree below
-  the treeline. Scrub gets low bushes in prop slot 3 (`PROP_SCRUB`; the model
-  is `scrubGeom` in `terrain.ts`, where a dwarf pine can go). Boulders only on
-  rock, scree and cliff faces under ~52°, plus the ground within 25 m of a
-  cliff node (the cliff foot, bigger and denser). They keep their whole width
-  off the asphalt and sink by 20-88 % of their size with the slope so the
-  downhill edge does not float. Glacier, water and built-up stay empty.
-- **Treeline.** Cover wins over `treeline` wherever it is known. Roads without
-  cover still need the scenery hints in `climbs.json` (with a `sceneryNote`
-  giving the sources).
+  in the last 200 m below the treeline). Above the road's (noisy) treeline a
+  forest cell grows dwarf pine instead: WorldCover's "tree cover" up there is
+  krummholz, and full spruces stood at 2,300 m on the Galibier. Meadow gets the
+  odd lone tree below the treeline. Scrub gets the Blender `mugo` in prop slot 3
+  (`PROP_SCRUB`; `scrubGeom` is the fallback). Boulders only on rock, scree and
+  cliff faces under ~52°, plus the ground within 25 m of a cliff node (the cliff
+  foot, bigger and denser). They keep their whole width off the asphalt and sink
+  by 20-88 % of their size with the slope so the downhill edge does not float.
+  Glacier, water and built-up stay empty.
+- **Cliff faces** (`PROP_CLIFF`, slot 4, `cliff_face_a`–`c`): on cliff cells
+  (OSM cliff lines) where the DEM is steeper than 0.25, half the points of their
+  own 12.5 m grid (18 m on coarser near tiles, 25 m and 1.3x bigger on far
+  tiles), and on 30 % of bare-rock points steeper than `STEEP_ROCK` (rise over
+  run 1.0, ~45°): OSM maps few cliffs (Giau's towers are "bare rock") and a 30 m
+  DEM smooths a wall to 45-60°. The slope is the DEM's alone over 20 m (the
+  invented bumps would tip a 37° slope over the line). The front (+Z) turns
+  downhill (`atan2(dx, dz)` ±0.15 rad), so the width runs along the contour;
+  the base is 1.5 m per unit of scale below the lowest ground under the front
+  and both ends, and the centre stays `CLIFF_HALF_WIDTH` (9 m) x scale + 3 m off
+  the road. Cliffs, scree and boulders draw with a plain rock material: the
+  trees' wind sway grows with height and would bend a 14 m face.
+- **Scree patches** (`PROP_SCREE`, slot 5, `scree_patch_a`/`b`): on scree cells
+  only, 5 % of the near prop points, sunk until the downhill edge meets the
+  slope, off the road by their radius. Cliffs and scree have no code-built
+  fallback; without the Blender models the slots draw nothing.
+- **Tree models per road.** `scenery.trees` (`conifers` for slot 0,
+  `broadleaves` for slot 1; Blender names, a name twice is twice as common)
+  replaces the biome's set. Ventoux: holm oak, beech, larch, spruce_b for the
+  Atlas cedar; Vršič: beech, larch, some spruce; Stelvio: larch, spruce_b for
+  stone pine; Alpe d'Huez: mostly larch. Each road's `sceneryNote` cites the
+  source; `sceneryHints.test.ts` checks the names exist and reach the route.
+- **Treeline.** Cover wins over `treeline` wherever it is known, except that
+  forest above it grows dwarf pine (above). Roads without cover still need the
+  scenery hints in `climbs.json` (with a `sceneryNote` giving the sources).
 
 ## Credits and licence
 

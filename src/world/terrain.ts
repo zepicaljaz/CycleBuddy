@@ -341,7 +341,8 @@ export class TerrainManager {
           const a = starts[c];
           const b = starts[c + 1];
           if (b === a) continue;
-          const caster = new ShadowCaster(geom, this.propMaterial, b - a, this.shadowView);
+          // Rock props cast with the rock material too: the sway material's depth pass would bend a cliff's shadow.
+          const caster = new ShadowCaster(geom, rockProp ? this.rockMaterial : this.propMaterial, b - a, this.shadowView);
           caster.instanceMatrix = new THREE.InstancedBufferAttribute(matrices.subarray(a * 16, b * 16), 16);
           caster.castShadow = spec.castShadow;
           caster.computeBoundingSphere();

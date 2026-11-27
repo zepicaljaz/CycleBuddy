@@ -152,6 +152,9 @@ const ROCK_TONES: Record<RockTone, [RGB, RGB, RGB]> = {
   dark: [srgb(0x5c5a58), srgb(0x3c3a39), srgb(0x84817c)],
 };
 
+/** Dry high-alpine grass, late summer (see coverColor). */
+const ALPINE_DRY = srgb(0x8c8660);
+
 const TONED = new Map<string, Palette>();
 /** The biome's palette with the road's rock tone, cached per biome and tone. */
 function paletteFor(sc: Pick<SceneryDef, 'biome' | 'rockTone'>): Palette {
@@ -252,6 +255,10 @@ export class ChunkBuilder {
     const col = this.col;
     const part = this.part;
     const grass = mix(pal.grassLow, pal.grassHigh, smoothstep(sc.treeline - 900, sc.treeline + 150, cy), this.grass);
+    // High alpine grass is thin and dry by late summer: from 150 m above the treeline it fades
+    // towards an olive brown, up to 55 % 650 m up. The Galibier and Stelvio tops were a fresh
+    // yellow-green lawn at 2,600 m. Not on desert (no treeline grass there).
+    if (biome !== 'desert') mix(grass, ALPINE_DRY, 0.55 * smoothstep(sc.treeline + 150, sc.treeline + 650, cy), grass);
     const steep = smoothstep(0.7, 0.45, nyC);
     const patch = n.noise(cx / 16, cz / 16) * 0.5 + 0.5;
     col[0] = col[1] = col[2] = 0;
@@ -763,8 +770,10 @@ export class ChunkBuilder {
         const z = (gz + (r2 - 0.5) * 0.5) * step;
         const cls = f.coverAt(x, z);
         if (cls !== LandCover.cliff && cls !== LandCover.rock) continue;
-        const gxH = f.heightAt(x + e, z) - f.heightAt(x - e, z);
-        const gzH = f.heightAt(x, z + e) - f.heightAt(x, z - e);
+        // The real ground's slope (the DEM alone): heightAt adds the invented facets and bumps, which
+        // tip a 37° slope past STEEP_ROCK and swing the downhill direction about.
+        const gxH = this.demH(x + e, z) - this.demH(x - e, z);
+        const gzH = this.demH(x, z + e) - this.demH(x, z - e);
         const tan = Math.hypot(gxH, gzH) / (2 * e);
         // A mapped cliff on ground the DEM sees as nearly flat has no downhill to face.
         if (cls === LandCover.cliff ? tan < 0.25 || r3 > 0.5 : tan < STEEP_ROCK || r3 > 0.3) continue;
@@ -786,6 +795,12 @@ export class ChunkBuilder {
         out.push(x - req.x0, y - 1.5 * scale, z - req.z0, scale, rot, PROP_CLIFF);
       }
     }
+  }
+
+  /** DEM height where the road has real ground there, else the field's height. */
+  private demH(x: number, z: number): number {
+    const d = this.field.demAt(x, z);
+    return d.w > 0.5 ? d.h : this.field.heightAt(x, z);
   }
 
   /** A cliff node within one fine cell (25 m) of this point, not counting the point's own node. */
