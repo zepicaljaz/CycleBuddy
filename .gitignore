@@ -29,5 +29,8 @@ videos/
 .vercel
 npm-debug.log*
 
+# Local tool caches (screenshots, downloads)
+.cache/
+
 # Python bytecode from the Blender scripts
 __pycache__/

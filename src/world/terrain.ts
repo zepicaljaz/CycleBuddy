@@ -243,6 +243,12 @@ export class TerrainManager {
         group.add(inst);
       });
     }
+    // Perf: a chunk never moves once placed (LOD swaps replace it, shadows only flip flags), so its
+    // matrices are set once here instead of recomposed every frame. Never move a chunk without updateMatrix().
+    group.traverse((o) => {
+      o.matrixAutoUpdate = false;
+      o.updateMatrix();
+    });
     this.group.add(group);
     return group;
   }
