@@ -35,6 +35,14 @@ export type Difficulty = 'flat' | 'hilly' | 'mountain' | 'epic';
 /** Ground colours and vegetation. Existing routes stay alpine when this is omitted. */
 export type Biome = 'alpine' | 'limestone' | 'desert' | 'moor' | 'spruce';
 
+/** 'pale' limestone/dolomite, 'grey' schist or granite, 'dark' shale. */
+export type RockTone = 'pale' | 'grey' | 'dark';
+
+export interface TreeHints {
+  conifers?: string[];
+  broadleaves?: string[];
+}
+
 export interface SceneryDef {
   /** Height of procedural mountains around the road, metres. */
   mountainHeight: number;
@@ -60,6 +68,13 @@ export interface SceneryDef {
   pastureAbove?: number;
   /** The trees below the pasture are broadleaf. Omitted keeps the usual mix of pine and broadleaf. */
   broadleaf?: boolean;
+  /** Colour of bare rock, scree and rock props where the real rock differs from the biome's. */
+  rockTone?: RockTone;
+  /**
+   * Blender tree models (src/assets/models names) for this road instead of the biome's set:
+   * `conifers` for prop slot 0, `broadleaves` for slot 1. A name listed twice is twice as common.
+   */
+  trees?: TreeHints;
   /**
    * Stretches of this road, in metres from the start, where the verge is open
    * ground. The way back along the same bend is included. Outside the radius

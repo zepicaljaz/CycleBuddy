@@ -220,6 +220,8 @@ function trackClimbRoute(c: RealClimb, t: TrackFile): RouteDef {
       pastureAbove: c.pastureAbove,
       broadleaf: c.broadleaf,
       openAlong: c.openAlong,
+      rockTone: c.rockTone,
+      trees: c.trees,
     },
     towns: places.map((place) => townOnTrack(t.sections, place)),
     track: t,
@@ -266,6 +268,8 @@ export function realClimbRoute(c: RealClimb): RouteDef {
       waterLevel: c.waterLevel ?? null,
       forestDensity: 0.72,
       biome: c.biome,
+      rockTone: c.rockTone,
+      trees: c.trees,
     },
     towns: [{ name: c.side, section: 0, along: 2100, length: 300 }],
   };

@@ -5,6 +5,7 @@ import { REAL_CLIMB_MAP } from '../routes/real/data';
 import { loadRouteTerrain } from '../routes/real/terrain';
 import type { TimeOfDay } from '../world/atmosphere';
 import { QUALITY } from '../world/graphics';
+import { preloadPropAssets } from '../world/propAssets';
 import { World } from '../world/world';
 
 /**
@@ -51,7 +52,9 @@ if (!climb) throw new Error(`No real climb "${id}"`);
 const def = realClimbRoute(climb);
 if (!def.track) throw new Error(`"${id}" has no real road (src/routes/real/tracks)`);
 const route = getRoute(def);
-await loadRouteTerrain(route);
+// Like app.ts mountWorld: the Blender trees, rocks and cliffs load with the terrain. Without them the
+// shots would show the code-built fallback props, not what a ride shows.
+await Promise.all([loadRouteTerrain(route), preloadPropAssets()]);
 
 const time = (params.get('t') as TimeOfDay) || 'noon';
 const world = new World(route, canvas, null, 'high', time);
