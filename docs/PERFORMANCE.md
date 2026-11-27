@@ -10,7 +10,7 @@ Targets marked TODO are not set yet. Measure on the reference laptop before sett
 
 | What | Target | Where to read it |
 |---|---|---|
-| Start file size (main JS chunk, gzip) | TODO kB | `npm run build` output |
+| Start file size (main JS chunk, gzip) | TODO kB (boot chunk 150 kB gzip on 2026-11-27, was 696 kB with the tracks inside) | `npm run build` output (`boot-*.js`) |
 | Frame time while riding (CPU, ms per frame) | TODO ms (16.7 ms is 60 fps) | `?perf` overlay |
 | Draw calls per frame, riding in a bunch | TODO | `?perf` overlay |
 | Triangles per frame | TODO | `?perf` overlay |
@@ -19,7 +19,7 @@ Targets marked TODO are not set yet. Measure on the reference laptop before sett
 
 What to watch:
 
-- **Start file size.** Everything in the first chunk loads before the menu. Analytics, training and real-road data load on demand; keep it that way.
+- **Start file size.** Everything in the first chunk loads before the menu. Analytics, training and real-road data (track JSON and terrain grids) load on demand; keep it that way. Never import a `tracks/*.json` statically or make that glob eager (see `src/routes/real/CLAUDE.md`).
 - **Frame time.** The ride view draws every display frame. Anything per frame competes with the renderer.
 - **Draw calls and triangles.** Riders and props are instanced and scenery is batched per cell. A new kind of object should join a batch or an instanced mesh, not add a mesh per copy.
 - **Physics step cost.** The ride is stepped in 0.05 s substeps, and a background tab catches up to 75 s at once. Cost per step times the number of riders is what matters.
@@ -65,3 +65,4 @@ One entry per change. Newest last.
 | 2026-11-27 | `indexFrame` keeps the unfinished-riders array as the same object while that set is unchanged, so `isProtectedRider`'s team-best cache hits instead of rebuilding every step | `src/ai/peloton.ts` (`liveRacers`) | A new array is made whenever a rider finishes or the field changes, which is exactly when the team best over unfinished riders can change |
 | 2026-11-27 | `descentSkill` cached per rider id instead of hashing a string per call | `src/ai/raceBrain.ts` | Pure function of the rider id |
 | 2026-11-27 | Free rides: `packKey` is a number (negative per solo rider, positive per group and direction) instead of a template string per rider per step | `src/ai/peloton.ts` | Same grouping, no collisions; a 10-minute free-ride state hash is identical before and after |
+| 2026-11-27 | Real-road tracks load on demand: the `tracks/*.json` glob is lazy (one chunk per road), `ensureTrack`/`ensureAllTracks` fetch them before a route is built, and the Free ride list sorts and shows length/climbing from `trackIndex.json` until they arrive. Boot chunk 2,070 kB → 445 kB (gzip 696 → 150 kB) | `src/routes/real/build.ts`, `src/routes/real/trackIndex.json`, `src/game/app.ts` (`sortedFreeRoutes`, `bindFree`, `viewRace`/`bindRace`, `bindHome`, `startRide`) | Same track data, same routes once fetched. `realClimbRoute` throws for an unfetched real road instead of caching a generated one; `trackIndex.test.ts` keeps the index equal to the routes, so the list order is the same before and after the fetch |

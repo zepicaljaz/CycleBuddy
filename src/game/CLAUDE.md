@@ -21,6 +21,7 @@
 - Ride time comes from `advanceSession` only. Never step the session from anywhere else, or a ride gets stepped twice.
 - Trainer: free ride and races send `devices.updateGrade(feltGrade * difficulty)` and `setErgWatts(null)`; workouts drive ERG. Pausing calls `devices.releaseToFlat()` (pause, finish, leaving a ride). Keep that in any new exit path.
 - Leaving the tab releases the brake and look-back (`visibilitychange`).
+- Real-road tracks load on demand (`src/routes/real/CLAUDE.md` → Loading tracks): `await ensureTrack(id)` / `ensureAllTracks()` before `realClimbRoute` or `defById` on a real climb. A screen that needs them renders without them first (index numbers or "Loading") and re-renders when they arrive.
 - Escape every user or data string in HTML with `esc()` from `ui/dom.ts`.
 - No `alert()`/`prompt()`; no new `confirm()` (the conventions test caps it at 3). Use an in-game dialog.
 - `app.ts` is ~3700 lines. Put new screen HTML in its own view module (like `homeView.ts`, `proRaceView.ts`) when it is more than a few lines, so `screens.test.ts` can render it without the app.

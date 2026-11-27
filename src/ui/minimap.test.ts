@@ -1,10 +1,13 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { RideSession } from '../game/session';
-import { realClimbRoute } from '../routes/real/build';
+import { ensureAllTracks, realClimbRoute } from '../routes/real/build';
 import { REAL_CLIMB_MAP } from '../routes/real/data';
 import { getRoute, ROUTE_DS } from '../routes/route';
 import { gradeColor } from './dom';
 import { legPaintRank, Minimap, nearbyReachMetres, type MapMode } from './minimap';
+
+// Real-road tracks load on demand in the game (routes/real/build.ts); these tests build them synchronously.
+await ensureAllTracks();
 
 describe('nearby map reach', () => {
   it('covers a wide map out to both side edges', () => {

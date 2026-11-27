@@ -2,12 +2,15 @@ import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
 import { getRoute, ROUTE_DS } from '../route';
 import { REAL_CLIMB_MAP } from './data';
-import { hasRealRoad, realClimbRoute } from './build';
+import { ensureAllTracks, hasRealRoad, realClimbRoute } from './build';
 import { findHairpins } from '../../world/climbs';
 import { planTowns } from '../../world/scenery';
 import { ChunkBuilder } from '../../world/terrainChunk';
 import { ROAD_HALF_WIDTH, TerrainField } from '../../world/terrainField';
 import { ventouxAntennaGroup } from '../../world/ventouxAntenna';
+
+// Real-road tracks load on demand in the game (routes/real/build.ts); these tests build them synchronously.
+await ensureAllTracks();
 
 describe('Vršič on its real road', () => {
   const c = REAL_CLIMB_MAP.get('vrsic-kranjska-gora')!;

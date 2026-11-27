@@ -2,11 +2,14 @@ import { describe, expect, it } from 'vitest';
 import { getRoute, ROUTE_DS } from '../route';
 import { findHairpins } from '../../world/climbs';
 import { countHairpins } from './build.test';
-import { realClimbRoute, realStageRoute } from './build';
+import { ensureAllTracks, realClimbRoute, realStageRoute } from './build';
 import { checkClimb, REAL_CLIMB_MAP, REAL_CLIMBS, REAL_STAGES } from './data';
 import climbsJson from './climbs.json';
 import stagesJson from './stages.json';
 import type { RealClimb } from './types';
+
+// Real-road tracks load on demand in the game (routes/real/build.ts); these tests build them synchronously.
+await ensureAllTracks();
 
 describe('real climb data', () => {
   it('keeps every researched climb and stage', () => {

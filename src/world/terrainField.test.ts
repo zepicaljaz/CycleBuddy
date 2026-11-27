@@ -1,11 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { ROUTES } from '../routes/definitions';
 import { getRoute, ROUTE_DS, Route } from '../routes/route';
-import { realClimbRoute } from '../routes/real/build';
+import { ensureAllTracks, realClimbRoute } from '../routes/real/build';
 import { REAL_CLIMB_MAP } from '../routes/real/data';
 import { planTowns } from './scenery';
 import { ChunkBuilder } from './terrainChunk';
 import { ROAD_HALF_WIDTH, TerrainField } from './terrainField';
+
+// Real-road tracks load on demand in the game (routes/real/build.ts); these tests build them synchronously.
+await ensureAllTracks();
 
 /** Town mask the way the world builds it, including the ride back down the same street. */
 function townMask(route: Route): Uint8Array {

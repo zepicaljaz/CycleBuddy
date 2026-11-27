@@ -101,6 +101,7 @@ cyclebuddy/
 ├── scripts/real-track/        Offline builder for real roads (OSM + elevation)
 ├── scripts/blender/           Blender scripts that build the low-poly tree and rock models (GLB)
 ├── scripts/smoke.mjs          After a build: checks the production server serves the game
+├── scripts/track-index.mjs    `npm run track-index`: regenerates the real-road length/climbing index
 ├── tests/                     House-rule tests (versions, README map, no secrets, no alert())
 ├── .github/workflows/test.yml Checks every pull request: types, tests, build, smoke
 ├── data/                      Climb research data and OSM extracts; DEM cache (not in git)
@@ -161,7 +162,7 @@ cyclebuddy/
 | `routes/definitions.ts`, `moreWorlds.ts`, `careerWorlds.ts` | Every loop's definition (sections, styles, towns) |
 | `routes/regions.ts` | The six Free ride landscapes, the loops in each, and the Real climbs category |
 | `routes/sections.ts`, `grades.ts`, `types.ts`, `validate.ts` | Section shapes, gradient resolution, types, definition checks |
-| `routes/real/` | Real climbs and stages: `climbs.json`, `stages.json`, checks (`data.ts`), builders (`build.ts`), real tracks (`tracks/`), terrain loading (`terrain.ts`) |
+| `routes/real/` | Real climbs and stages: `climbs.json`, `stages.json`, checks (`data.ts`), builders (`build.ts`), real tracks (`tracks/`, loaded on demand), their length/climbing index (`trackIndex.json`, `npm run track-index`), terrain loading (`terrain.ts`) |
 
 **The 3D world** (`world/`)
 

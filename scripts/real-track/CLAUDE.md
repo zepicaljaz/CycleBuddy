@@ -18,14 +18,16 @@ ground rules: `docs/REAL_ROADS.md`.
 2. Read the printed checks: climb length on OSM vs published (aim within ~2 %), road start and summit elevation, DEM error along the climb, balloon closure error at top and bottom, hairpins found vs published.
 3. `LENGTH_ONLY=1 node scripts/real-track/build.mjs <key>` prints only the climb length, for quick tuning of `from`/`to`/`climbStart`.
 4. Run `npx vitest run src/routes/real/track.test.ts src/routes/real/data.test.ts`.
-5. Commit the track JSON and `.bin` together. Never hand-edit either.
+5. `npm run track-index` if the road's length or climbing changed (`trackIndex.test.ts` says so).
+6. Commit the track JSON, `.bin` and `trackIndex.json` together. Never hand-edit the track or `.bin`.
 
 ## Add a new road
 1. The climb must exist in `data/real-climbs.research.json` and in `src/routes/real/climbs.json` (same id), with published sources.
 2. Fetch the OSM ways into `data/osm/<name>.json`.
 3. Add a config: `id`/`climbId`, `osm`, `from`/`to` points, `climbStartWay` (way name) or `climbStart` (coordinate), `summit` (a `mountain_pass` node), elevations, `hairpins` 'up' or 'down', `towns` (metres from the valley end), optional `leadIn`, `climbFromSection`, `places`, `cover`, `minRadius`.
 4. Build, check, then add a `describe` for it in `src/routes/real/track.test.ts`.
-5. Add the road to `ATTRIBUTION.md` and a section to `docs/REAL_ROADS.md`.
+5. `npm run track-index` (regenerates `src/routes/real/trackIndex.json`; `trackIndex.test.ts` fails without it). The game finds the road by its file name; tracks load on demand.
+6. Add the road to `ATTRIBUTION.md` and a section to `docs/REAL_ROADS.md`.
 
 ## Rules
 - Road elevation comes from the published profile, never from the terrain tiles (30 m data is off by ~13–16 m along hairpin roads and makes fake ramps). Terrain data is only for the mountains and the valley run-in.

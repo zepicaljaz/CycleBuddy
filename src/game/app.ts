@@ -47,7 +47,8 @@ import type { RaceClassifications, StageResultRow } from '../career/season';
 import { summarizeSamples } from './recorder';
 import { sound } from '../audio/sound';
 import { REAL_CLIMB_MAP, REAL_CLIMBS } from '../routes/real/data';
-import { realClimbRoute, realRoadClimbs } from '../routes/real/build';
+import type { RealClimb } from '../routes/real/types';
+import { allTracksReady, ensureAllTracks, ensureTrack, realClimbRoute, realRoadClimbs, realRoadDifficulty, realRoadStats, trackReady } from '../routes/real/build';
 import { drawRoadbook } from '../ui/roadbook';
 import { HOME_KEYS, homeHtml } from './homeView';
 import { bindProRace, loadChoice, proRaceHtml } from './proRaceView';
@@ -77,6 +78,8 @@ function cssEscape(value: string): string {
 const DIFFICULTY_RANK: Record<Difficulty, number> = { flat: 0, hilly: 1, mountain: 2, epic: 3 };
 
 type FreeSort = 'distance' | 'climbing' | 'type';
+/** One Free ride card; `route` is null while a real road's track is still being fetched. */
+type FreeRow = { id: string; name: string; description: string; difficulty: Difficulty; length: number; ascent: number; route: Route | null };
 const FREE_SORTS: { id: FreeSort; label: string }[] = [
   { id: 'distance', label: 'Distance' },
   { id: 'climbing', label: 'Climbing' },
@@ -936,9 +939,15 @@ export class App {
     const canvas = this.panel.querySelector<HTMLCanvasElement>('[data-climb-profile]');
     const c = canvas ? REAL_CLIMBS.find((x) => x.id === canvas.dataset.climbProfile) : undefined;
     if (canvas && c) {
-      const route = getRoute(realClimbRoute(c));
-      const climb = route.climbs[0];
-      if (climb) requestAnimationFrame(() => drawRoadbook(canvas, route, { from: climb.start, to: climb.end, binM: 1000, compact: true }));
+      // Perf: a real road's track is fetched on demand, so the home menu draws its profile once it arrives.
+      void ensureTrack(c.id)
+        .then(() => {
+          if (!canvas.isConnected) return;
+          const route = getRoute(realClimbRoute(c));
+          const climb = route.climbs[0];
+          if (climb) requestAnimationFrame(() => drawRoadbook(canvas, route, { from: climb.start, to: climb.end, binM: 1000, compact: true }));
+        })
+        .catch(() => undefined);
     }
     this.panel.querySelector<HTMLElement>('[data-ride-climb]')?.addEventListener('click', (e) => {
       const id = (e.currentTarget as HTMLElement).dataset.rideClimb ?? '';
@@ -974,30 +983,43 @@ export class App {
     return getRouteDef(id);
   }
 
-  private sortedFreeRoutes() {
+  /**
+   * One Free ride card. A real road whose track is not fetched yet has no `route`: its
+   * length and climbing come from the generated track index (equal to what the route
+   * measures, `trackIndex.test.ts`), so the list sorts the same before and after.
+   */
+  private freeRow(def: RouteDef): FreeRow {
+    const r = getRoute(def);
+    return { id: def.id, name: def.name, description: def.description, difficulty: def.difficulty, length: r.length, ascent: r.totalAscent, route: r };
+  }
+
+  private realFreeRow(c: RealClimb): FreeRow {
+    if (trackReady(c.id)) return this.freeRow(realClimbRoute(c));
+    const stats = realRoadStats(c.id);
+    return { id: c.id, name: c.name, description: c.description, difficulty: realRoadDifficulty(c), length: stats?.length ?? 0, ascent: stats?.ascent ?? 0, route: null };
+  }
+
+  private sortedFreeRoutes(): FreeRow[] {
     const real = this.freeRegion === REAL_RIDE.id;
     const region = !real && this.freeRegion ? rideRegion(this.freeRegion) : undefined;
     const allowed = region ? new Set(region.routes) : null;
-    const list = real ? realRoadClimbs().map((climb) => realClimbRoute(climb)) : ROUTES.filter((def) => !allowed || allowed.has(def.id));
-    // Ride it now can pick a published climb that has no 1:1 road yet. Show that one here so the rider can start it.
+    let list: FreeRow[];
     if (real) {
+      const climbs = realRoadClimbs();
+      // Ride it now can pick a published climb that has no 1:1 road yet. Show that one here so the rider can start it.
       const chosen = REAL_CLIMB_MAP.get(this.selectedRoute);
-      if (chosen && !list.some((def) => def.id === chosen.id)) list.push(realClimbRoute(chosen));
-    }
-    const byName = (a: (typeof list)[number], b: (typeof list)[number]) => a.name.localeCompare(b.name);
-    const byType = (a: (typeof list)[number], b: (typeof list)[number]) =>
-      DIFFICULTY_RANK[a.difficulty] - DIFFICULTY_RANK[b.difficulty] || byName(a, b);
+      if (chosen && !climbs.some((c) => c.id === chosen.id)) climbs.push(chosen);
+      list = climbs.map((c) => this.realFreeRow(c));
+    } else list = ROUTES.filter((def) => !allowed || allowed.has(def.id)).map((def) => this.freeRow(def));
+    const byName = (a: FreeRow, b: FreeRow) => a.name.localeCompare(b.name);
+    const byType = (a: FreeRow, b: FreeRow) => DIFFICULTY_RANK[a.difficulty] - DIFFICULTY_RANK[b.difficulty] || byName(a, b);
     const dir = this.freeSortDesc ? -1 : 1;
     if (this.freeSort === 'type') {
       return list.sort((a, b) => dir * (DIFFICULTY_RANK[a.difficulty] - DIFFICULTY_RANK[b.difficulty]) || byName(a, b));
     }
-    // Perf: the sort key is read once per route before sorting, not twice per comparison.
-    const metric = new Map<(typeof list)[number], number>();
-    for (const def of list) {
-      const r = getRoute(def);
-      metric.set(def, this.freeSort === 'distance' ? r.length : r.totalAscent);
-    }
-    return list.sort((a, b) => dir * (metric.get(a)! - metric.get(b)!) || byType(a, b));
+    // Perf: the sort key is read once per route (into the row) before sorting, not twice per comparison.
+    const metric = this.freeSort === 'distance' ? (row: FreeRow) => row.length : (row: FreeRow) => row.ascent;
+    return list.sort((a, b) => dir * (metric(a) - metric(b)) || byType(a, b));
   }
 
   private viewFree(): string {
@@ -1050,19 +1072,20 @@ export class App {
         const noun = real ? 'climb' : 'loop';
         parts.push(`<h3 class="route-group">${DIFFICULTY_LABEL[def.difficulty]} <span>${count === 1 ? `1 ${noun}` : `${count} ${noun}s`}</span></h3>`);
       }
-      const r = getRoute(def);
+      const r = def.route;
       const reverse = this.reverseRoutes.has(def.id);
-      const lapTime = estimateLap(r, p.ftp, p.weightKg, 0.72, reverse);
-      const climbs = this.climbRows(r, reverse);
+      // A real road still being fetched shows its numbers from the index; lap, climbs and profile follow (bindFree).
+      const lap = r ? formatDuration(estimateLap(r, p.ftp, p.weightKg, 0.72, reverse)) : '…';
+      const climbs = r ? this.climbRows(r, reverse) : '';
       parts.push(`
         <div class="route-card ${real ? 'no-shot' : ''} ${def.id === this.selectedRoute ? 'selected' : ''}" data-route="${def.id}">
           <div class="route-side">
             <canvas class="route-profile" data-profile="${def.id}"></canvas>
             ${real ? '' : `<img class="route-shot" src="/route-previews/${def.id}.jpg" alt="" width="400" height="225" decoding="async" loading="lazy" />`}
             <div class="stats">
-              <span><small>Distance</small>${(r.length / 1000).toFixed(1)} km</span>
-              <span><small>Climbing</small>${Math.round(r.totalAscent)} m</span>
-              <span><small>Est. lap</small><span data-lap>${formatDuration(lapTime)}</span></span>
+              <span><small>Distance</small>${(def.length / 1000).toFixed(1)} km</span>
+              <span><small>Climbing</small>${Math.round(def.ascent)} m</span>
+              <span><small>Est. lap</small><span data-lap>${lap}</span></span>
             </div>
           </div>
           <div class="route-card-head"><b>${esc(def.name)}</b><span class="badge ${def.difficulty}">${DIFFICULTY_LABEL[def.difficulty]}</span></div>
@@ -1153,7 +1176,7 @@ export class App {
     $$('[data-route]', this.panel).forEach((el) => {
       const id = el.dataset.route!;
       const canvas = el.querySelector<HTMLCanvasElement>('canvas.route-profile');
-      if (canvas) drawRouteCard(canvas, getRoute(this.defById(id)), this.reverseRoutes.has(id));
+      if (canvas && trackReady(id)) drawRouteCard(canvas, getRoute(this.defById(id)), this.reverseRoutes.has(id));
       // Focusing a partly visible card scrolls the list. Keep the position the rider left it at.
       el.addEventListener('mousedown', () => {
         const body = $('.panel-body', this.panel);
@@ -1206,6 +1229,19 @@ export class App {
       this.scrollFreeSelection = false;
       this.panel.querySelector<HTMLElement>(`[data-route="${cssEscape(this.selectedRoute)}"]`)?.scrollIntoView({ block: 'center' });
     }
+    if (this.freeRegion === REAL_RIDE.id && !allTracksReady()) {
+      // Perf: the Real climbs list opens at once from the track index; profiles, laps and
+      // starts fill in when the tracks arrive. Rebuild keeps the rider's scroll position.
+      void ensureAllTracks()
+        .then(() => {
+          if (this.session || this.screen !== 'free' || this.freeRegion !== REAL_RIDE.id) return;
+          const scroll = this.panel.querySelector<HTMLElement>('.panel-body')?.scrollTop ?? 0;
+          this.render();
+          const body = this.panel.querySelector<HTMLElement>('.panel-body');
+          if (body) body.scrollTop = scroll;
+        })
+        .catch(() => toast('Could not load the real roads. Check the connection.', 'error'));
+    }
   }
 
   /** Named climbs as the rider will meet them, forward or backwards. */
@@ -1220,6 +1256,7 @@ export class App {
 
   /** Redraw one free-ride card. Rebuilding the list would jump the scroll position. */
   private paintFreeCard(card: HTMLElement, id: string) {
+    if (!trackReady(id)) return; // the rebuild when the tracks arrive paints it
     const route = getRoute(this.defById(id));
     const reverse = this.reverseRoutes.has(id);
     const canvas = card.querySelector<HTMLCanvasElement>('canvas.route-profile');
@@ -1236,9 +1273,13 @@ export class App {
 
   /** Swap the start chips without rebuilding the route list, so the scroll position stays. */
   private paintStarts() {
+    const host = $('.starts', this.panel);
+    if (!trackReady(this.selectedRoute)) {
+      host.innerHTML = ''; // filled by the rebuild when the track arrives
+      return;
+    }
     const starts = routeStarts(getRoute(this.defById(this.selectedRoute)));
     if (this.startIndex >= starts.length) this.startIndex = 0;
-    const host = $('.starts', this.panel);
     host.innerHTML =
       `<span class="muted">Start</span>` +
       starts.map((st, i) => `<button class="chip ${i === this.startIndex ? 'selected' : ''}" data-start="${i}">${esc(st.name)}</button>`).join('');
@@ -1314,6 +1355,8 @@ export class App {
   }
 
   private viewRace(): string {
+    // Perf: real-road tracks are fetched on demand; this list measures every climb, so it waits for them (bindRace).
+    if (!allTracksReady()) return `${this.header('Hill-Climb Race')}<div class="panel-body"><p class="muted">Loading the real roads…</p></div>`;
     const all = this.allClimbs();
     if (!this.selectedClimb || !all.some((item) => item.climb.id === this.selectedClimb)) {
       this.selectedClimb = all.find((item) => item.climb.id === 'alpine-geant')?.climb.id ?? all[0]?.climb.id ?? '';
@@ -1414,6 +1457,14 @@ export class App {
   }
 
   private bindRace() {
+    if (!allTracksReady()) {
+      void ensureAllTracks()
+        .then(() => {
+          if (!this.session && this.screen === 'race') this.render();
+        })
+        .catch(() => toast('Could not load the real roads. Check the connection.', 'error'));
+      return;
+    }
     const all = this.allClimbs();
     const scale = {
       maxLength: Math.max(1, ...all.map((item) => item.climb.length)),
@@ -2702,6 +2753,19 @@ export class App {
       return;
     }
 
+    if (!launch && (mode === 'race' || mode === 'free')) {
+      // Perf: real-road tracks are fetched on demand (routes/real/build.ts). The menus already
+      // fetched them, so this is normally instant; it guards a ride started any other way.
+      this.loading = true;
+      try {
+        await (mode === 'race' ? ensureAllTracks() : ensureTrack(this.selectedRoute));
+      } catch {
+        toast('Could not load that road. Check the connection and try again.', 'error');
+        return;
+      } finally {
+        this.loading = false;
+      }
+    }
     let route: Route;
     let climb: Climb | undefined;
     let workout: ActiveWorkout | undefined;

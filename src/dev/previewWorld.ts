@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { getRouteDef } from '../routes/definitions';
 import { getRoute } from '../routes/route';
-import { realClimbRoute } from '../routes/real/build';
+import { ensureTrack, realClimbRoute } from '../routes/real/build';
 import { REAL_CLIMB_MAP } from '../routes/real/data';
 import { loadRouteTerrain } from '../routes/real/terrain';
 import type { TimeOfDay } from '../world/atmosphere';
@@ -18,6 +18,7 @@ const canvas = document.getElementById('c') as HTMLCanvasElement;
 const hud = document.getElementById('hud')!;
 const requested = params.get('route') ?? 'lake';
 const climb = REAL_CLIMB_MAP.get(requested);
+if (climb) await ensureTrack(climb.id); // real-road tracks load on demand
 const route = getRoute(climb ? realClimbRoute(climb) : getRouteDef(requested));
 await loadRouteTerrain(route);
 const names = params.get('names') === 'race' ? { dir: 1 as const } : undefined;
