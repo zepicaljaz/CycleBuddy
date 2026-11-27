@@ -105,6 +105,15 @@ function aim(): void {
   world.holdFrame(pos.x, pos.y, pos.z, target.x, target.y, target.z);
 }
 aim();
+// The flyover still camera keeps 14 m above the ground (World.keepAboveGround), which is no use for a
+// rider's-eye view. Pin the camera exactly instead; camLook is what shadows and the sky follow.
+const cam = world as unknown as { updateCamera: (...a: unknown[]) => void; camLook: THREE.Vector3; camPos: THREE.Vector3 };
+cam.updateCamera = () => {
+  cam.camPos.copy(pos);
+  cam.camLook.copy(target);
+  world.camera.position.copy(pos);
+  world.camera.lookAt(target);
+};
 
 // Ready = terrain workers up, every desired chunk live, nothing in flight, for a run of frames in a row.
 const terrain = (world as unknown as { terrain: { ready: boolean; progress: number; inflight: Map<number, unknown>; live: Map<string, unknown> } }).terrain;
