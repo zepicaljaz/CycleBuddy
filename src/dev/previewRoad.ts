@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { getRoute } from '../routes/route';
-import { realClimbRoute } from '../routes/real/build';
+import { ensureTrack, realClimbRoute } from '../routes/real/build';
 import { REAL_CLIMB_MAP } from '../routes/real/data';
 import { loadRouteTerrain } from '../routes/real/terrain';
 import type { TimeOfDay } from '../world/atmosphere';
@@ -49,6 +49,8 @@ const t0 = performance.now();
 const id = params.get('id') ?? 'vrsic-kranjska-gora';
 const climb = REAL_CLIMB_MAP.get(id);
 if (!climb) throw new Error(`No real climb "${id}"`);
+// Tracks load on demand (trackIndex.json); without this realClimbRoute would throw.
+await ensureTrack(id);
 const def = realClimbRoute(climb);
 if (!def.track) throw new Error(`"${id}" has no real road (src/routes/real/tracks)`);
 const route = getRoute(def);

@@ -3,6 +3,7 @@ import { bend, descent, level, rolling } from '../sections';
 import type { ClimbDef, Difficulty, RouteDef, SectionDef, SectionStyle, TownDef, TraceStep, TrackDef } from '../types';
 import { REAL_CLIMBS } from './data';
 import type { RealClimb, RealStage, StagePoint } from './types';
+import TRACK_INDEX from './trackIndex.json';
 import { kmPieces, piecesGain, piecesToGrades, type GradePiece } from '../grades';
 
 export { kmPieces, piecesGain, piecesToGrades, type GradePiece };
@@ -147,18 +148,66 @@ function climbStyle(c: { pieces: GradePiece[]; hairpins: number; where?: RealCli
 type TrackTown = { name: string; fromM: number; toM: number };
 type TrackFile = TrackDef & { id: string; sections: number[]; town?: TrackTown; towns?: TrackTown[]; climbFromSection?: number };
 
-/** Real road lines built by scripts/real-track/build.mjs, by climb id. */
-const TRACKS = new Map(
-  Object.values(import.meta.glob('./tracks/*.json', { eager: true, import: 'default' }) as Record<string, TrackFile>).map((t) => [t.id, t]),
+/**
+ * Real road lines built by scripts/real-track/build.mjs. The file name is the climb id.
+ * Perf: lazy glob. The tracks are ~1.6 MB of JSON (5,800-12,600 points each); eager,
+ * they sat in the boot chunk and every player downloaded and parsed all of them before
+ * the menu. Each file is now its own chunk, fetched by `ensureTrack` when a screen or a
+ * ride needs that road. The glob keys alone say which roads exist.
+ */
+const TRACK_LOADERS = new Map(
+  Object.entries(import.meta.glob('./tracks/*.json', { import: 'default' }) as Record<string, () => Promise<TrackFile>>).map(
+    ([path, load]) => [path.slice(path.lastIndexOf('/') + 1, -'.json'.length), load] as const,
+  ),
 );
+/** Tracks fetched so far, by id. */
+const TRACKS = new Map<string, TrackFile>();
+const trackLoads = new Map<string, Promise<void>>();
 
 export function hasRealRoad(id: string): boolean {
-  return TRACKS.has(id);
+  return TRACK_LOADERS.has(id);
+}
+
+/** True when `realClimbRoute` can build this climb now: it has no real road, or its track is fetched. */
+export function trackReady(id: string): boolean {
+  return !TRACK_LOADERS.has(id) || TRACKS.has(id);
+}
+
+/** True when every real road's track is fetched. */
+export function allTracksReady(): boolean {
+  return TRACKS.size === TRACK_LOADERS.size;
+}
+
+/** Fetches one real road's track (once). Resolves at once for climbs without a real road. */
+export function ensureTrack(id: string): Promise<void> {
+  const load = TRACK_LOADERS.get(id);
+  if (!load || TRACKS.has(id)) return Promise.resolve();
+  let p = trackLoads.get(id);
+  if (!p) {
+    p = load().then((t) => {
+      if (t.id !== id) throw new Error(`tracks/${id}.json has id "${t.id}": the file name must be the climb id`);
+      TRACKS.set(id, t);
+    });
+    // A failed fetch (offline, a new deploy) may be retried by the next caller.
+    p.catch(() => trackLoads.delete(id));
+    trackLoads.set(id, p);
+  }
+  return p;
+}
+
+/** Fetches every real road's track. The hill-climb list and the Real climbs list need them all. */
+export function ensureAllTracks(): Promise<void> {
+  return Promise.all([...TRACK_LOADERS.keys()].map(ensureTrack)).then(() => undefined);
 }
 
 /** The real-road climbs, by name. These are the Free ride "Real climbs" category. */
 export function realRoadClimbs(): RealClimb[] {
-  return REAL_CLIMBS.filter((c) => TRACKS.has(c.id)).sort((a, b) => a.name.localeCompare(b.name));
+  return REAL_CLIMBS.filter((c) => TRACK_LOADERS.has(c.id)).sort((a, b) => a.name.localeCompare(b.name));
+}
+
+/** Difficulty of a climb on its real road, without its track (the list shows it before tracks arrive). */
+export function realRoadDifficulty(c: RealClimb): Difficulty {
+  return difficultyFor(c.summitElevation - c.startElevation);
 }
 
 /**
@@ -203,7 +252,7 @@ function trackClimbRoute(c: RealClimb, t: TrackFile): RouteDef {
     id: c.id,
     name: c.name,
     description: c.description,
-    difficulty: difficultyFor(relief),
+    difficulty: realRoadDifficulty(c),
     seed,
     startElevation: t.y[0],
     sections,
@@ -228,9 +277,15 @@ function trackClimbRoute(c: RealClimb, t: TrackFile): RouteDef {
   };
 }
 
+/**
+ * The climb's route. A climb with a real road needs its track fetched first
+ * (`ensureTrack`); building it before would cache a generated road under the same id
+ * in `getRoute`, so that throws instead of falling back.
+ */
 export function realClimbRoute(c: RealClimb): RouteDef {
   const track = TRACKS.get(c.id);
   if (track) return trackClimbRoute(c, track);
+  if (TRACK_LOADERS.has(c.id)) throw new Error(`Real road "${c.id}" is not loaded yet: await ensureTrack("${c.id}") first`);
   const seed = hashId(c.id) % 100000;
   const pieces = kmPieces(c.kmGrades, c.lastKmLength);
   const { length, grades } = piecesToGrades(pieces);
@@ -448,4 +503,15 @@ export function realStageRoute(stage: RealStage, climbs: Map<string, RealClimb>)
     },
   };
   return { def, finishSection, marks };
+}
+
+/**
+ * Length and climbing of each real road's loop, as `getRoute` measures them, so the
+ * Free ride list can sort and show them before any track is fetched. Generated by
+ * `npm run track-index` (from the tracks); `trackIndex.test.ts` fails when it is stale.
+ */
+export type TrackIndexRow = { length: number; ascent: number };
+
+export function realRoadStats(id: string): TrackIndexRow | undefined {
+  return (TRACK_INDEX as Record<string, TrackIndexRow>)[id];
 }

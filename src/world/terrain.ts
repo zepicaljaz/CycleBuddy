@@ -35,6 +35,31 @@ interface ChunkSpec {
 interface LiveChunk {
   spec: ChunkSpec;
   group: THREE.Group;
+  /** What `castShadow` is set on: the ground, and the props' shadow casters (sub-cells near by). */
+  casters: THREE.Object3D[];
+}
+
+/** Near-chunk props cast shadows from cells this wide, each with its own bounds. */
+const SHADOW_CELL = 128;
+
+/**
+ * Perf: the props of one sub-cell of a near chunk, drawn only into the sun's shadow map.
+ * A chunk's prop InstancedMesh has one bounding sphere for its whole 512 m, so the shadow
+ * pass drew every tree of every chunk within 260 m while the shadow camera covers about
+ * ±110 m (shadowExtent). These casters share the chunk mesh's matrices (a subarray, no copy
+ * on the CPU) and have 128 m bounds, so the shadow camera's own frustum test keeps only the
+ * cells that can land in the map. That test is exact, so the shadow map is the same as
+ * before. Any other frustum (the main camera, AO, reflections) never sees them: the chunk's
+ * normal per-model meshes draw the props there, with `castShadow` off.
+ */
+class ShadowCaster extends THREE.InstancedMesh {
+  constructor(geom: THREE.BufferGeometry, material: THREE.Material, count: number, private view: { frustum: THREE.Frustum | null }) {
+    super(geom, material, count);
+  }
+
+  override intersectsFrustum(frustum: THREE.Frustum): boolean {
+    return frustum === this.view.frustum && super.intersectsFrustum(frustum);
+  }
 }
 
 const rectDistance = (x0: number, z0: number, size: number, px: number, pz: number) => {
@@ -158,6 +183,8 @@ export class TerrainManager {
   private rockTint: [number, number, number];
   private propGeoms: { detailed: PropSlots; simple: PropSlots };
   readonly windTime = { value: 0 };
+  /** The sun's shadow frustum (`light.shadow.getFrustum()`), set by World. Shadow casters draw only for it. */
+  readonly shadowView: { frustum: THREE.Frustum | null } = { frustum: null };
   quality: TerrainQuality;
   onProgress?: (loaded: number, wanted: number) => void;
 
@@ -216,11 +243,12 @@ export class TerrainManager {
     // A worker slot came free, so a chunk that was waiting can go out.
     this.pumpDirty = true;
     if (!this.desired.has(spec.key)) return;
-    this.live.set(spec.key, { spec, group: this.buildMesh(spec, msg.res) });
+    const casters: THREE.Object3D[] = [];
+    this.live.set(spec.key, { spec, group: this.buildMesh(spec, msg.res, casters), casters });
     this.collectGarbage();
   }
 
-  private buildMesh(spec: ChunkSpec, res: ChunkResult): THREE.Group {
+  private buildMesh(spec: ChunkSpec, res: ChunkResult, casters: THREE.Object3D[]): THREE.Group {
     const group = new THREE.Group();
     group.position.set(spec.x0, 0, spec.z0);
     const geom = new THREE.BufferGeometry();
@@ -233,6 +261,7 @@ export class TerrainManager {
     mesh.receiveShadow = true;
     mesh.castShadow = spec.castShadow;
     group.add(mesh);
+    casters.push(mesh);
 
     const props = res.props;
     const count = props.length / 6;
@@ -255,7 +284,30 @@ export class TerrainManager {
       const s = new THREE.Vector3();
       const p = new THREE.Vector3();
       const c = new THREE.Color();
-      byModel.forEach(({ type, geom, list }) => {
+      // Near detailed chunks are the only ones that ever cast shadows (within 260 m, always inside lod0Distance).
+      const split = spec.size === NEAR && spec.propDetail === 0;
+      const cells = NEAR / SHADOW_CELL;
+      const cellOf = (i: number) => {
+        const cx = Math.min(cells - 1, Math.max(0, Math.floor(props[i * 6] / SHADOW_CELL)));
+        const cz = Math.min(cells - 1, Math.max(0, Math.floor(props[i * 6 + 2] / SHADOW_CELL)));
+        return cz * cells + cx;
+      };
+      byModel.forEach((entry) => {
+        const { type, geom } = entry;
+        let list = entry.list;
+        // Sub-cell start offsets into `list` (cells + 1 entries), when the props are split.
+        let starts: Int32Array | null = null;
+        if (split) {
+          // Stable counting sort by sub-cell, so each cell is one run of the chunk mesh's
+          // instances. Instance order does not change the picture (opaque, depth-tested; tints follow the prop index).
+          starts = new Int32Array(cells * cells + 1);
+          for (const i of list) starts[cellOf(i) + 1]++;
+          for (let c = 0; c < cells * cells; c++) starts[c + 1] += starts[c];
+          const fill = starts.slice(0, cells * cells);
+          const sorted = new Array<number>(list.length);
+          for (const i of list) sorted[fill[cellOf(i)]++] = i;
+          list = sorted;
+        }
         const rockProp = isRockProp(type);
         const inst = new THREE.InstancedMesh(geom, rockProp ? this.rockMaterial : this.propMaterial, list.length);
         const [tr, tg, tb] = this.rockTint;
@@ -275,10 +327,27 @@ export class TerrainManager {
           if (rockProp) inst.setColorAt(k, c.setRGB(tint * tr, tint * tg, tint * tb));
           else inst.setColorAt(k, c.setRGB(tint * (0.9 + h1 * 0.2), tint * (1.0 + h2 * 0.05), tint * (0.84 + (1 - h1) * 0.14)));
         });
-        inst.castShadow = spec.castShadow;
         inst.receiveShadow = true;
         inst.computeBoundingSphere();
         group.add(inst);
+        if (!starts) {
+          inst.castShadow = spec.castShadow;
+          casters.push(inst);
+          return;
+        }
+        inst.castShadow = false;
+        const matrices = inst.instanceMatrix.array as Float32Array;
+        for (let c = 0; c < cells * cells; c++) {
+          const a = starts[c];
+          const b = starts[c + 1];
+          if (b === a) continue;
+          const caster = new ShadowCaster(geom, this.propMaterial, b - a, this.shadowView);
+          caster.instanceMatrix = new THREE.InstancedBufferAttribute(matrices.subarray(a * 16, b * 16), 16);
+          caster.castShadow = spec.castShadow;
+          caster.computeBoundingSphere();
+          group.add(caster);
+          casters.push(caster);
+        }
       });
     }
     // Perf: a chunk never moves once placed (LOD swaps replace it, shadows only flip flags), so its
@@ -337,9 +406,7 @@ export class TerrainManager {
       const cast = chunk.spec.size === NEAR && rectDistance(chunk.spec.x0, chunk.spec.z0, NEAR, px, pz) < 260;
       if (chunk.spec.castShadow === cast) continue;
       chunk.spec.castShadow = cast;
-      chunk.group.traverse((o) => {
-        if (o instanceof THREE.Mesh) o.castShadow = cast;
-      });
+      for (const o of chunk.casters) o.castShadow = cast;
     }
   }
 
