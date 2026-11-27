@@ -18,7 +18,7 @@ const HEAD = v3(0.297, 1.505);
 const HEAD_TILT = -0.35;
 
 /** Piecewise-linear table lookup. */
-function table(ts: number[], vs: number[], t: number): number {
+export function table(ts: number[], vs: number[], t: number): number {
   if (t <= ts[0]) return vs[0];
   for (let i = 1; i < ts.length; i++) {
     if (t <= ts[i]) {
@@ -29,11 +29,14 @@ function table(ts: number[], vs: number[], t: number): number {
   return vs[vs.length - 1];
 }
 
-const SPINE = [v3(-0.31, 1.04), v3(-0.25, 1.08), v3(-0.19, 1.135), v3(-0.12, 1.18), v3(-0.06, 1.225), v3(0.0, 1.265), v3(0.06, 1.3), v3(0.11, 1.325), v3(0.15, 1.345), v3(0.185, 1.36), v3(0.215, 1.37)];
-const TT = [0, 0.08, 0.16, 0.28, 0.4, 0.52, 0.64, 0.74, 0.84, 0.92, 1];
-const TW = [0.148, 0.162, 0.15, 0.136, 0.142, 0.156, 0.17, 0.176, 0.168, 0.138, 0.1];
-const TH = [0.108, 0.114, 0.108, 0.096, 0.102, 0.11, 0.118, 0.114, 0.1, 0.082, 0.07];
-const TN = [1, 1.02, 0.98, 0.94, 1.02, 1.1, 1.14, 1.1, 1.02, 0.94, 0.88];
+/** Torso centre line from the saddle to the neck, and its width, depth and belly tables along it. */
+export const SPINE = [v3(-0.31, 1.04), v3(-0.25, 1.08), v3(-0.19, 1.135), v3(-0.12, 1.18), v3(-0.06, 1.225), v3(0.0, 1.265), v3(0.06, 1.3), v3(0.11, 1.325), v3(0.15, 1.345), v3(0.185, 1.36), v3(0.215, 1.37)];
+export const TT = [0, 0.08, 0.16, 0.28, 0.4, 0.52, 0.64, 0.74, 0.84, 0.92, 1];
+export const TW = [0.148, 0.162, 0.15, 0.136, 0.142, 0.156, 0.17, 0.176, 0.168, 0.138, 0.1];
+export const TH = [0.108, 0.114, 0.108, 0.096, 0.102, 0.11, 0.118, 0.114, 0.1, 0.082, 0.07];
+export const TN = [1, 1.02, 0.98, 0.94, 1.02, 1.1, 1.14, 1.1, 1.02, 0.94, 0.88];
+/** Where the jersey's hem sits on the spine (0 at the saddle, 1 at the neck). The shorts show below it. */
+export const JERSEY_HEM = 0.16;
 
 function torso(from: number, to: number, scale: number, hi: boolean): THREE.BufferGeometry {
   const spine = new THREE.CatmullRomCurve3(SPINE, false, 'centripetal');
@@ -190,9 +193,8 @@ function glasses(): { lens: THREE.BufferGeometry; frame: THREE.BufferGeometry[] 
 }
 
 export interface BodyModels {
-  /** Everything that moves with the bike frame. */
+  /** Everything that moves with the bike frame. The shorts are in `buildHips` (riderHips.ts). */
   body: Model;
-  thigh: Model;
   shin: Model;
   foot: Model;
   /** Red discs for the mountains jersey. Drawn only for the rider who wears it. */
@@ -205,13 +207,11 @@ export function buildBody(detail: Detail): BodyModels {
 
 function bodyAt(hi: boolean): BodyModels {
   const sides = q(18, 8);
-  const jersey: THREE.BufferGeometry[] = [torso(0.16, 1, 1, hi)];
+  const jersey: THREE.BufferGeometry[] = [torso(JERSEY_HEM, 1, 1, hi)];
   const accent: THREE.BufferGeometry[] = [torso(0.58, 0.72, 1.016, hi), tube(v3(0.17, 1.325), v3(0.232, 1.402), 0.056, 0.054, q(18, 8), false)];
-  const shorts: THREE.BufferGeometry[] = [torso(0, 0.26, 0.985, hi)];
   const skin: THREE.BufferGeometry[] = [];
   const hand: THREE.BufferGeometry[] = [];
   for (const side of [-1, 1]) {
-    shorts.push(new THREE.SphereGeometry(1, q(12, 6), q(8, 4)).scale(0.1, 0.08, 0.072).translate(-0.33, 1.005, side * 0.062));
     const s = SHOULDER.clone().setZ(side * SHOULDER.z);
     const grip = HOOD_GRIP.clone().setZ(side * HOOD_GRIP.z);
     const wrist = grip.clone().add(v3(-0.045, 0.02, 0));
@@ -258,7 +258,6 @@ function bodyAt(hi: boolean): BodyModels {
   const body: Model = [
     { geom: merge(jersey.map((g) => paint(g, WHITE, { crease: 1.2 }))), mat: 'cloth', tint: 'jersey' },
     { geom: merge(accent.map((g) => paint(g, WHITE, { crease: 1.2 }))), mat: 'cloth', tint: 'jerseyAccent' },
-    { geom: merge(shorts.map((g) => paint(g, WHITE, { crease: 1.2 }))), mat: 'cloth', tint: 'shorts' },
     { geom: merge([...skin, ...hand].map((g) => paint(g, WHITE, { crease: 1.2 }))), mat: 'matte', tint: 'skin' },
     { geom: paint(hair, 0x3a2a1e, { crease: 1.2 }), mat: 'matte' },
     { geom: paint(shell, WHITE, { crease: 0.8 }), mat: 'paint', tint: 'helmet' },
@@ -267,25 +266,13 @@ function bodyAt(hi: boolean): BodyModels {
     { geom: merge(specs.frame.map((g) => paint(g.applyMatrix4(glassMatrix), 0x1a1b1e, { crease: 1 }))), mat: 'gloss' },
   ];
 
-  // Legs are built at true length along +y and posed joint to joint.
-  const thighR = (t: number) => table([0, 0.35, 0.7, 1], [0.086, 0.08, 0.068, 0.052], t);
+  // Shins are built at true length along +y and posed joint to joint. Pelvis and thighs are in riderHips.
   const calfR = (t: number) => table([0, 0.22, 0.45, 0.75, 1], [0.047, 0.055, 0.047, 0.033, 0.029], t);
-  const thigh: Model = [
-    { geom: paint(limb(thighR, sides, q(8, 3), -0.06, 0.82).scale(1, THIGH, 1), WHITE, { crease: 1.2 }), mat: 'cloth', tint: 'shorts' },
-    {
-      geom: merge([
-        paint(limb(thighR, sides, q(3, 1), 0.8, 1).scale(1, THIGH, 1), WHITE, { crease: 1.2 }),
-        paint(new THREE.SphereGeometry(0.05, sides, q(8, 4)).scale(1.05, 1, 0.95).translate(0, THIGH, 0), WHITE, { crease: 1.2 }),
-      ]),
-      mat: 'matte',
-      tint: 'skin',
-    },
-  ];
   const shin: Model = [
     { geom: paint(limb(calfR, sides, q(8, 3), 0, 0.74).scale(1, SHIN, 1), WHITE, { crease: 1.2 }), mat: 'matte', tint: 'skin' },
     { geom: paint(limb((t) => calfR(Math.min(1, t)) * 1.06, sides, q(4, 2), 0.7, 1.08).scale(1, SHIN, 1), WHITE, { crease: 1.2 }), mat: 'cloth', tint: 'socks' },
   ];
-  return { body, thigh, shin, foot: shoe(hi), polka: polkaDots(hi) };
+  return { body, shin, foot: shoe(hi), polka: polkaDots(hi) };
 }
 
 /** Small red circles on the jersey. Other kits never draw this mesh. */

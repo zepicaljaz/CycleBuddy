@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { InstancedModel, markRange, prepare } from './batch';
 import { BB, BRANDS, brandAtlas, brandSpec, buildBike, crankModel, CRANK, decalColor, FRONT_AXLE, REAR_AXLE, type BikeBrand } from './bikes';
 import { ANKLE, buildBody, FOOT_Z, HIP, LEG_Z, SHIN, THIGH } from './riderBody';
+import { buildHips, hipMaterials, HipPose, THIGH_REST } from './riderHips';
 
 export interface RiderColors {
   jersey: string;
@@ -123,6 +124,26 @@ class Layer {
   }
 }
 
+/** Pelvis and thighs: one skinned piece per rider, bent at each hip by that thigh's rotation. */
+class HipLayer extends Layer {
+  private readonly pose: HipPose;
+
+  constructor(model: InstancedModel) {
+    super(model);
+    this.pose = new HipPose(model);
+  }
+
+  putHips(rider: number, m: THREE.Matrix4, look: Look, left: THREE.Quaternion, right: THREE.Quaternion): void {
+    this.pose.set(this.n, left, right);
+    this.put(rider, m, look);
+  }
+
+  finish(): void {
+    this.pose.commit(this.n);
+    super.finish();
+  }
+}
+
 /** Down-tube logos for one brand, coloured per rider. */
 class DecalLayer {
   n = 0;
@@ -170,7 +191,8 @@ interface LodSet {
   body: Layer;
   /** Red circles, only for the mountains jersey. */
   polka: Layer;
-  thigh: Layer;
+  /** Shorts and thighs to the knee. */
+  hips: HipLayer;
   shin: Layer;
   foot: Layer;
   crank: Layer;
@@ -219,10 +241,15 @@ export class RiderRenderer {
         this.group.add(im.group);
         return new Layer(im);
       };
+      const hipLayer = (d: 0 | 1 | 2, n: number) => {
+        const im = new InstancedModel(prepare(buildHips(d)), n, { shadows: true, receive: false, materials: hipMaterials().surfaces });
+        this.group.add(im.group);
+        return new HipLayer(im);
+      };
       const set: LodSet = {
         body: layer(body.body),
         polka: layer(body.polka),
-        thigh: layer(body.thigh, cap * 2),
+        hips: hipLayer(detail, cap),
         shin: layer(body.shin, cap * 2),
         foot: layer(body.foot, cap * 2),
         crank: layer(crankModel(detail)),
@@ -307,7 +334,7 @@ export class RiderRenderer {
     this.count = this.colors.length;
     this.looks = this.colors.map(lookFor);
     for (const set of this.lods) {
-      for (const l of [set.body, set.polka, set.thigh, set.shin, set.foot, set.crank, ...set.frame, ...set.wheel]) l.invalidate();
+      for (const l of [set.body, set.polka, set.hips, set.shin, set.foot, set.crank, ...set.frame, ...set.wheel]) l.invalidate();
     }
     for (const d of this.decals) d.invalidate();
   }
@@ -329,6 +356,9 @@ export class RiderRenderer {
   private ankle = new THREE.Vector3();
   private hip = new THREE.Vector3();
   private knee = new THREE.Vector3();
+  private thighDir = new THREE.Vector3();
+  /** Each thigh's turn from its rest direction, [left, right]. */
+  private thighTurn = [new THREE.Quaternion(), new THREE.Quaternion()];
 
   /** @param eye camera position, for picking the level of detail */
   update(poses: RiderPose[], eye?: THREE.Vector3): void {
@@ -404,14 +434,15 @@ export class RiderRenderer {
         this.ankle.set(this.pedal.x + ANKLE.x * c - ANKLE.y * s, this.pedal.y + ANKLE.x * s + ANKLE.y * c, this.pedal.z);
         this.hip.set(HIP.x, HIP.y, side * LEG_Z);
         solveKnee(this.hip, this.ankle, this.knee);
-        set.thigh.put(i, this.tmp.multiplyMatrices(this.base, segmentMatrix(this.hip, this.knee, this.local)), look);
+        this.thighTurn[k].setFromUnitVectors(THIGH_REST[k], this.thighDir.subVectors(this.knee, this.hip).normalize());
         set.shin.put(i, this.tmp.multiplyMatrices(this.base, segmentMatrix(this.knee, this.ankle, this.local)), look);
         this.local.makeRotationZ(-phi).setPosition(this.pedal);
         set.foot.put(i, this.tmp.multiplyMatrices(this.base, this.local), look);
       }
+      set.hips.putHips(i, this.base, look, this.thighTurn[0], this.thighTurn[1]);
     }
     for (const set of this.lods) {
-      for (const l of [set.body, set.polka, set.thigh, set.shin, set.foot, set.crank, ...set.frame, ...set.wheel]) l.finish();
+      for (const l of [set.body, set.polka, set.hips, set.shin, set.foot, set.crank, ...set.frame, ...set.wheel]) l.finish();
     }
     for (const d of this.decals) d.finish();
   }

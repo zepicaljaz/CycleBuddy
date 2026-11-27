@@ -16,6 +16,7 @@ Everything drawn in a ride or behind the menus. Three.js, low-poly, vertex colou
 - `scenery.ts`, `site.ts`, `settlement.ts`, `buildings.ts`: roadside, towns and the `Site` placement helper (`at`, `ground`, `free`, `occupy`, `solid`).
 - `climbs.ts`, `fences.ts`, `spectators.ts`: climb furniture, hairpin fences, crowds.
 - `riders.ts`, `riderBody.ts`, `bikes.ts`, `riderPick.ts`: instanced riders with three detail levels; mouse picking without raycasts.
+  - `riderHips.ts`: shorts and thighs to the knee as one skinned piece (no skeleton). Waist, seat and thighs are blended distance fields meshed by `isosurface.ts` (left half, cut at the centre line and the hem, mirrored). Each vertex has a hip weight; the vertex shader turns it about its hip joint by that share of the thigh's turn, which `riders.ts` sets per rider (`HipPose`) from the same knee solve the shins use. The shadow pass bends the same way (`customDepthMaterial`). `riderHips.test.ts` holds the seat still on the saddle, the hem moving with the thigh, the waist inside the jersey and the stretch over a whole pedal stroke.
 - Landmarks: `alpineHotel.ts`, `modernHotel.ts`, `alpineRestaurant.ts`, `ventouxAntenna.ts`, `island.ts`, `mappedPlaces.ts` (OSM lakes, car parks), `landmarks.ts` (OSM-mapped Russian Chapel, mountain huts, wayside shrines and crosses on the real roads; Blender models).
 - Movers: `traffic.ts`, `cars.ts`, `convoy.ts`, `motorcycle.ts`, `motorhome.ts`, `tractor.ts`, `boats.ts`, `birds.ts`. `perf.ts` = the `?perf` overlay.
 
@@ -47,13 +48,14 @@ A real landmark that OpenStreetMap maps (hut, chapel, shrine) goes through `land
 4. Landmarks need the prop models (`preloadPropAssets`): rides and `?scene=road` have them, the home page and route previews do not, and simply show no landmarks.
 
 ## Dev preview
-`npm run dev:local`, then `/preview.html?scene=<name>`: riders, cars, buildings, farm, spectators, fences, hotel, modern, restaurant, waterfront. `?scene=world&route=<id>&q=ultra&time=noon&cam=chase&riders=6` loads a whole world. `&still` pauses.
+`npm run dev:local`, then `/preview.html?scene=<name>`: riders, cars, buildings, farm, spectators, fences, hotel, modern, restaurant, waterfront. Riders: `&brand=<id>` one bike, `&lod=1|2` far models, `&crank=<rad>` or `preview.crank(a)` in the console holds the pedals (`preview.crank()` pedals again), `preview.cam(x, y, z, lx, ly, lz)` places the camera. `?scene=world&route=<id>&q=ultra&time=noon&cam=chase&riders=6` loads a whole world. `&still` pauses.
 
 ## Tests
 - `npx vitest run src/world/terrainField.test.ts` (road sits on terrain, lakes, tree seating, hairpin banks per real road; slow-ish)
 - `npx vitest run src/world/terrainCover.test.ts src/routes/real/sceneryHints.test.ts` (land cover: colours, props by class, cliffs face downhill and keep off the road, scree only on scree, dwarf pine above the treeline, hints valid and sourced; pins roads without cover)
 - `npx vitest run src/world/landmarks.test.ts src/world/propAssets.test.ts` (mapped landmarks: sources, placement, model budgets; ~2 min)
 - `npx vitest run src/world/climbs.test.ts src/world/fences.test.ts src/world/traffic.test.ts src/world/convoy.test.ts src/world/riderPick.test.ts`
+- `npx vitest run src/world/riderHips.test.ts` (rider shorts and thighs: mesh, weights, jersey cover and stretch through the stroke; under a second)
 - Rendering has no tests: look at it in the preview, and check `/play?perf` (fps, draw calls, triangles) for perf work.
 
 ## Quality and shadows (perf)
@@ -68,3 +70,5 @@ A real landmark that OpenStreetMap maps (hut, chapel, shrine) goes through `land
 - `StaticBatch` stores positions cell-local (float precision far from the origin) and files a model by its matrix translation. For world-space geometry use `Props.addWorld()`, which recentres it first.
 - `models.ts` and `geometry.ts` both export `colored()`; the `models.ts` one has its own `merge` that does not skip empty parts.
 - `InstancedModel` defaults to `frustumCulled = false`; call `finalize()` for static instances so they cull.
+- The rider's shorts and thighs are posed in the vertex shader (`riderHips.ts`). Anything that draws them with another material (an outline, a depth or normal pass, `scene.overrideMaterial`) must add the same bend, or it sees both thighs at mid stroke.
+- The shorts' waist runs a few centimetres up under the jersey. Change the jersey's hem (`JERSEY_HEM`), widths or side counts, and run `riderHips.test.ts`: it checks the waist stays inside at every detail level and pose.
