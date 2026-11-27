@@ -28,3 +28,6 @@ videos/
 .DS_Store
 .vercel
 npm-debug.log*
+
+# Python bytecode from the Blender scripts
+__pycache__/
