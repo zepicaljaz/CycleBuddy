@@ -4,6 +4,7 @@ import { ROUTES, getRouteDef } from '../routes/definitions';
 import { REAL_RIDE, RIDE_REGIONS, rideRegion } from '../routes/regions';
 import { getRoute, riddenClimbs, routeStarts, type Climb, type Route } from '../routes/route';
 import { loadRouteTerrain } from '../routes/real/terrain';
+import { preloadPropAssets } from '../world/propAssets';
 import type { Difficulty, RouteDef } from '../routes/types';
 import { deleteAccountRide, publishRide, syncAccountRides } from '../storage/accountRides';
 import { clearLocalAccountData } from '../storage/localOwner';
@@ -257,6 +258,10 @@ export class App {
   private draggingLook = false;
   /** Mouse over the 3D view, in canvas pixels. Null when the mouse is elsewhere or the pointer is a finger. */
   private hoverAt: { x: number; y: number; left: number; top: number } | null = null;
+  /** The canvas box for the hover tag, cleared on resize. See canvasRect. */
+  private canvasBox: { left: number; top: number; width: number; height: number } | null = null;
+  /** What syncOverlayPointer last wrote to the canvas. Null forces the next write. */
+  private overlayOpen: boolean | null = null;
   private riderTag!: RiderTag;
   private lookPointer = -1;
   /** Clicks before this time are the tail of a press already handled, including after a confirm dialog. */
@@ -389,7 +394,16 @@ export class App {
         .catch((err) => console.error(err))
         .finally(() => location.assign('/'));
     });
-    window.addEventListener('resize', () => this.world?.resize());
+    window.addEventListener('resize', () => {
+      this.canvasBox = null;
+      this.world?.resize();
+    });
+    // The canvas can also change size without a window resize (shown again after display: none).
+    if (typeof ResizeObserver !== 'undefined') {
+      new ResizeObserver(() => {
+        this.canvasBox = null;
+      }).observe(this.canvas);
+    }
     window.addEventListener('keydown', (e) => this.onKey(e));
     window.addEventListener('pointerdown', () => {
       sound.unlock();
@@ -515,7 +529,7 @@ export class App {
 
   private async mountWorld(route: Route, onProgress?: (visual: number) => void, writing?: RoadWriting): Promise<void> {
     await new Promise((r) => setTimeout(r, 30));
-    await loadRouteTerrain(route);
+    await Promise.all([loadRouteTerrain(route), preloadPropAssets()]);
     this.world?.dispose();
     this.world = new World(route, this.canvas, this.graphics, this.profile.graphics, this.profile.timeOfDay, { roadWriting: writing });
     this.graphics = this.world.graphicsRef;
@@ -676,6 +690,9 @@ export class App {
     const now = performance.now();
     this.syncOverlayPointer();
     this.advanceSession(now, FRAME_CATCH_UP_SEC);
+    // Perf: the AI power meter reads the riders once per drawn frame, not every physics substep.
+    // A hidden tab draws no frames, so its catch-up never reads it (the first frame back settles it in one go).
+    this.session?.settleMeter();
     const world = this.world;
     // A 2 ms allowance, so a 60 Hz display lands on every second frame and not every third.
     if (world && !this.session && now - this.last < App.MENU_FRAME_MS - 2) {
@@ -974,11 +991,13 @@ export class App {
     if (this.freeSort === 'type') {
       return list.sort((a, b) => dir * (DIFFICULTY_RANK[a.difficulty] - DIFFICULTY_RANK[b.difficulty]) || byName(a, b));
     }
-    const metric = (def: (typeof list)[number]) => {
+    // Perf: the sort key is read once per route before sorting, not twice per comparison.
+    const metric = new Map<(typeof list)[number], number>();
+    for (const def of list) {
       const r = getRoute(def);
-      return this.freeSort === 'distance' ? r.length : r.totalAscent;
-    };
-    return list.sort((a, b) => dir * (metric(a) - metric(b)) || byType(a, b));
+      metric.set(def, this.freeSort === 'distance' ? r.length : r.totalAscent);
+    }
+    return list.sort((a, b) => dir * (metric.get(a)! - metric.get(b)!) || byType(a, b));
   }
 
   private viewFree(): string {
@@ -2855,7 +2874,11 @@ export class App {
 
   /** Keep the 3D view from taking presses while a dialog is open. */
   private syncOverlayPointer(): void {
-    const open = this.overlay.innerHTML.length > 0;
+    // Perf: runs every frame. Check for a child instead of serializing the overlay's HTML, and touch the
+    // canvas only when the state changes (releaseLook clears overlayOpen when it sets the class itself).
+    const open = this.overlay.firstChild !== null;
+    if (open === this.overlayOpen) return;
+    this.overlayOpen = open;
     this.canvas.classList.toggle('ui-open', open);
     this.canvas.style.pointerEvents = open ? 'none' : '';
   }
@@ -3589,6 +3612,8 @@ export class App {
     this.lookPointer = -1;
     if (document.pointerLockElement) document.exitPointerLock();
     this.canvas.classList.add('ui-open');
+    // The class was set here, outside syncOverlayPointer: let the next frame write the state again.
+    this.overlayOpen = null;
   }
 
   private onHover(e: PointerEvent): void {
@@ -3596,7 +3621,7 @@ export class App {
       this.hoverAt = null;
       return;
     }
-    const rect = this.canvas.getBoundingClientRect();
+    const rect = this.canvasRect();
     this.hoverAt = { x: e.clientX - rect.left, y: e.clientY - rect.top, left: rect.left, top: rect.top };
   }
 
@@ -3608,7 +3633,8 @@ export class App {
       return;
     }
     const racers = s.sim.racers;
-    const pick = pickRider(poses, world.camera, this.canvas.clientWidth, this.canvas.clientHeight, at.x, at.y, (i) => !racers[i] || racers[i].isPlayer);
+    const box = this.canvasRect();
+    const pick = pickRider(poses, world.camera, box.width, box.height, at.x, at.y, (i) => !racers[i] || racers[i].isPlayer);
     if (!pick) {
       this.riderTag.hide();
       return;
@@ -3617,6 +3643,20 @@ export class App {
     const mode: TagMode = s.config.mode === 'free' ? 'free' : s.config.mode === 'train' ? 'train' : s.config.career ? 'career' : 'hillclimb';
     const lines = tagLines(mode, { name: r.name, gcRank: r.road?.gcRank, gcGap: r.road?.gcGap }, s.wkgOf(pick.index));
     this.riderTag.show(lines, pick.x + at.left, pick.y + at.top);
+  }
+
+  /**
+   * The 3D canvas's box, read once and kept until it is resized.
+   * Perf: the hover tag used to read layout on every pointer move and every frame (clientWidth after
+   * the HUD's writes forces a layout). The canvas is fixed to the viewport, so only a resize moves it.
+   */
+  private canvasRect(): { left: number; top: number; width: number; height: number } {
+    if (!this.canvasBox) {
+      const r = this.canvas.getBoundingClientRect();
+      // clientWidth/Height, as pickRider was given before: the box inside any border.
+      this.canvasBox = { left: r.left, top: r.top, width: this.canvas.clientWidth, height: this.canvas.clientHeight };
+    }
+    return this.canvasBox;
   }
 
   private uiBlocksLook(): boolean {

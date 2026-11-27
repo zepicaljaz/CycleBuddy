@@ -58,6 +58,36 @@ export function pedalWatts(
 export class PowerMeter {
   private speed: number[] = [];
   private watts: number[] = [];
+  /** Physics time stepped since the last reading, see `defer`. */
+  private pending = 0;
+
+  /**
+   * Note a physics step without reading the riders. `settle` reads them once for all the time noted.
+   * Perf: the only reader is the hover tag, once per drawn frame, so reading every substep (and through a
+   * hidden tab's catch-up of up to 75 s) was wasted work. Settled values are the same; see powerMeter.test.ts.
+   */
+  defer(dt: number): void {
+    if (dt > 0) this.pending += dt;
+  }
+
+  /** Reads the riders once for all the time noted by `defer` since the last reading. */
+  settle(
+    riders: readonly MeteredRider[],
+    gradeAt: (s: number) => number,
+    elevationAt: (s: number) => number,
+    paced = false,
+  ): void {
+    if (this.pending <= 0) return;
+    const dt = this.pending;
+    this.pending = 0;
+    // After a gap longer than the smoothing window nothing of the old reading would be left, and a speed
+    // change spread over a minute is no effort: start again from the current motion.
+    if (dt >= SMOOTH_SEC) {
+      this.speed.length = 0;
+      this.watts.length = 0;
+    }
+    this.update(riders, dt, gradeAt, elevationAt, paced);
+  }
 
   update(
     riders: readonly MeteredRider[],

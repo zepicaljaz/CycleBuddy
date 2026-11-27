@@ -192,14 +192,14 @@ export class RideSim {
   private aheadOf = new Map<Racer, { r: Racer; gap: number } | null>();
   private turn: { from: 1 | -1; to: 1 | -1; fromLat: number; toLat: number; elapsed: number; buddyFrom: number | null } | null = null;
   /** Lateral shift, shared by a group, for this frame. */
-  private packShift = new Map<string, number>();
+  private packShift = new Map<number, number>();
   /** Speeds before the road shaping, kept between substeps to avoid an allocation each time. */
   private rolledScratch: number[] = [];
   /** Riders that physics slowed this step: carrying more speed than their power holds here. */
   private slowing = new Set<Racer>();
   /** Per-step lookups. Positions, lanes and directions hold still from the top of a step until riders move. */
   private lanes = new Map<1 | -1, Lane>();
-  private packs = new Map<string, Racer[]>();
+  private packs = new Map<number, Racer[]>();
   /** Who is in the wind this step. Road races only. */
   private windSlot = new Map<Racer, WindSlot>();
   private sheltered = new Set<number>();
@@ -1001,7 +1001,7 @@ export class RideSim {
     if (this.opts.road) {
       const plan = this.opts.road;
       const dir = this.raceDir();
-      const live = this.racers.filter((r) => r.finishTime == null);
+      const live = this.liveRacers();
       this.windSlot = assignWindSlots(live, (s) => (s - this.opts.startS) * dir);
       this.sheltered.clear();
       for (const r of live) {
@@ -1132,8 +1132,36 @@ export class RideSim {
     r.latTarget = best;
   }
 
-  private packKey(r: Racer): string {
-    return r.group === 0 ? `solo:${r.id}` : `group:${r.group}:${r.direction}`;
+  /**
+   * Unfinished riders, as the same array object for as long as that set is unchanged.
+   * Perf: isProtectedRider caches each team's best rider per field array; a new filtered array every step
+   * rebuilt that cache every step. A new array is made only when a rider finishes (or the field changes),
+   * which is exactly when the team-best over the unfinished riders can change. Never mutate the result.
+   */
+  private liveRacers(): Racer[] {
+    const prev = this.liveCache;
+    let k = 0;
+    for (const r of this.racers) {
+      if (r.finishTime != null) continue;
+      if (prev[k] !== r) {
+        k = -1;
+        break;
+      }
+      k++;
+    }
+    if (k === prev.length) return prev;
+    this.liveCache = this.racers.filter((r) => r.finishTime == null);
+    return this.liveCache;
+  }
+  private liveCache: Racer[] = [];
+
+  /**
+   * Key of a rider's pack: one per riding group and direction, or one per solo rider.
+   * Perf: a number, not a string, because it is built for every rider several times per step.
+   * Solo keys are negative (-(id + 1)), group keys positive (group >= 1, so 2 * group + 0|1 >= 2).
+   */
+  private packKey(r: Racer): number {
+    return r.group === 0 ? -(r.id + 1) : r.group * 2 + (r.direction > 0 ? 1 : 0);
   }
 
   /** Signed distance along the direction of travel. Positive when `toS` is ahead of `fromS`. */

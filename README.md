@@ -100,6 +100,7 @@ cyclebuddy/
 ├── api/index.js                Vercel: every /api/... request runs the same API handler
 ├── vercel.json                Vercel: build, page routes, asset caching
 ├── scripts/real-track/        Offline builder for real roads (OSM + elevation)
+├── scripts/blender/           Blender scripts that build the low-poly tree and rock models (GLB)
 ├── scripts/smoke.mjs          After a build: checks the production server serves the game
 ├── scripts/viewpoints.mjs     Dev: before/after screenshots of the spots in scripts/viewpoints.json
 ├── scripts/viewpoints.json    Dev: 4 camera spots per real road (start, hairpin, steepest ground, summit)
@@ -114,6 +115,7 @@ cyclebuddy/
 ├── docs/ANALYTICS.md          What the Analytics page shows and how each number is worked out
 ├── docs/CAREER_UI.md          Career screens: what they do, decisions, what is open
 ├── docs/CAREER_UI_PLAN.md     Career screens: the original audit and redesign plan
+├── docs/PERFORMANCE.md        Budgets, how to measure, rules for hot paths, log of every perf change
 ├── README.md                  This file: what is where
 ├── ARCHITECTURE.md            How the parts fit together
 ├── CONTRIBUTING.md            How we work: branches, pull requests, versions (read this first)
@@ -179,6 +181,7 @@ cyclebuddy/
 | `alpineHotel.ts`, `modernHotel.ts`, `alpineRestaurant.ts`, `ventouxAntenna.ts`, `island.ts`, `buildings.ts`, `settlement.ts`, `site.ts`, `farms.ts`, `mills.ts` | Buildings and places |
 | `traffic.ts`, `cars.ts`, `convoy.ts`, `motorcycle.ts`, `motorhome.ts`, `tractor.ts`, `boats.ts`, `birds.ts` | Things that move: traffic, the race convoy and broom car, boats, birds |
 | `props.ts`, `batch.ts`, `models.ts`, `geometry.ts`, `materials.ts`, `textures.ts` | Shared model building, merging and instancing |
+| `propAssets.ts` | Loads the Blender tree and rock models (`assets/models/`) on ride start; terrain falls back to the code-built ones in `models.ts` |
 | `atmosphere.ts`, `water.ts`, `mappedPlaces.ts`, `verge.ts`, `road.ts` | Sky, light and fog presets; water; OpenStreetMap lakes and parking lots on a real road; grass verge; road surface |
 | `routePreview.ts` | Renders the loop preview stills |
 | `perf.ts` | The `?perf` overlay |
@@ -206,7 +209,7 @@ cyclebuddy/
 | `storage/` | IndexedDB with a memory fallback, account ride sync, FIT import/export, backups |
 | `site/` | Public homepage, sign-in, training-plans page |
 | `audio/sound.ts` | Wind, freewheel, crowds, music (from `assets/audio/`) |
-| `assets/` | Music and real-road terrain grids |
+| `assets/` | Music, real-road terrain grids, tree and rock models (`models/`, built by `scripts/blender/`) |
 | `dev/` | The `preview.html` model and world viewer (`entry.ts` picks the scene; `preview.ts` models, `previewWorld.ts` a world with riders, `previewRoad.ts` a fixed camera on a real road for screenshots). Dev only: not in the game build |
 | `util/` | Seeded random numbers, noise, rolling windows |
 | `types/` | Type declarations: the build stamp, n8ao |

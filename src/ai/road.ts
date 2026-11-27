@@ -404,11 +404,18 @@ export function orderPull(
     if (!wind.includes(rider)) wind.push(rider);
   }
   void ahead;
-  const coming = new Set(wind);
-  const place = new Map(ordered.map((rider, index) => [rider, index]));
-  const key = (rider: RoadActor) => place.get(rider)! - (coming.has(rider) ? WIND_LIFT : 0);
-  return [...ordered].sort((a, b) => key(a) - key(b) || place.get(a)! - place.get(b)!);
+  // Perf: one reused Map instead of a new Set and Map per group per step. `wind` is at most LINE_LENGTH riders.
+  const key = pullKeyScratch;
+  for (let index = 0; index < ordered.length; index++) {
+    const rider = ordered[index];
+    key.set(rider, index - (wind.includes(rider) ? WIND_LIFT : 0));
+  }
+  // Ties keep their order in `ordered`: the sort is stable, as the old place tie-break was.
+  const out = [...ordered].sort((a, b) => key.get(a)! - key.get(b)!);
+  key.clear();
+  return out;
 }
+const pullKeyScratch = new Map<RoadActor, number>();
 
 /**
  * The order of a group from the front: where the riders are, with the riders of the teams that set
@@ -422,16 +429,33 @@ export function tempoOrder(
   ahead: (rider: RoadActor) => number = (rider) => rider.s,
 ): RoadActor[] {
   const bestTeam = group.reduce((best, rider) => Math.max(best, rank.get(rider.road?.teamId ?? '') ?? 0), 0);
-  const physical = [...group].sort((a, b) => ahead(b) - ahead(a));
-  const key = new Map<RoadActor, number>();
-  physical.forEach((rider, index) => {
+  const byAhead = (a: RoadActor, b: RoadActor) => ahead(b) - ahead(a);
+  const physical = [...group];
+  // Perf: shapeRoad hands over groups already in road order; a stable sort of sorted input changes nothing.
+  if (!sortedBy(physical, byAhead)) physical.sort(byAhead);
+  // Perf: one Map for every call instead of two new ones per group per step (cleared before returning).
+  const key = tempoKeyScratch;
+  for (let index = 0; index < physical.length; index++) {
+    const rider = physical[index];
     const team = rank.get(rider.road?.teamId ?? '') ?? 0;
     const own = rider.road ? stageStrength(rider.road.attrs, finish, punchy) : 0;
     const engine = team >= bestTeam - 8 && own >= team - 14 && own >= 54;
     key.set(rider, index - (engine ? ENGINE_LIFT : 0));
-  });
-  const index = new Map(physical.map((rider, i) => [rider, i]));
-  return physical.sort((a, b) => key.get(a)! - key.get(b)! || index.get(a)! - index.get(b)!);
+  }
+  // Ties keep their road order: Array.prototype.sort is stable, which is what the old index tie-break did.
+  physical.sort((a, b) => key.get(a)! - key.get(b)!);
+  key.clear();
+  return physical;
+}
+const tempoKeyScratch = new Map<RoadActor, number>();
+
+/**
+ * True when `list` is already in `compare` order, so a stable sort would leave it as it is.
+ * A NaN comparison counts as unsorted, so odd input still goes through the real sort.
+ */
+function sortedBy<T>(list: readonly T[], compare: (a: T, b: T) => number): boolean {
+  for (let i = 1; i < list.length; i++) if (!(compare(list[i - 1], list[i]) <= 0)) return false;
+  return true;
 }
 
 export function shareFinishTimes(times: number[], gapSec = 1): number[] {
@@ -1214,6 +1238,10 @@ function directRace(
   }
 }
 
+/** Scratch for shapeRoad's per-group lookups, reused every step and cleared after it so no rider is kept. */
+const windScratch = new Set<RoadActor>();
+const slotScratch = new Map<RoadActor, number>();
+
 export function shapeRoad(
   field: RoadActor[],
   plan: RoadPlan,
@@ -1234,7 +1262,8 @@ export function shapeRoad(
     if (!group || along(group[group.length - 1].s) - along(r.s) > ROAD_GROUP_M) groups.push([r]);
     else group.push(r);
   }
-  const tempo = teamTempoRank(field, plan.finishKind, plan.punchy);
+  // Perf: the same per-race cache isProtectedRider uses (ratings and teams don't change in a race). Read only.
+  const tempo = teamBestCached(field, plan);
   const span = Math.abs(plan.finishS - plan.startS);
   const brain = brainFor(field, span);
   for (const r of field) r.effort = undefined;
@@ -1299,7 +1328,9 @@ export function shapeRoad(
 
   groups.forEach((group, gi) => {
     if (group.length < 2) return;
-    const current = [...group].sort((a, b) => along(b.s) - along(a.s));
+    // Perf: `groups` was cut from `active`, already sorted by along() and nothing moves a rider's s in
+    // between, so the old copy-and-sort here returned the same order. Read only below.
+    const current = group;
     const nose = current[0];
     const grade = slope(nose.s);
     const noseAlong = along(nose.s);
@@ -1363,7 +1394,9 @@ export function shapeRoad(
       (rider) => along(rider.s),
     );
     // What it costs to hold this group. The riders in the wind pay the multiple; in the wheels most of it is hidden on the flat.
-    const wind = new Set<RoadActor>();
+    // Perf: reused per group (cleared here) instead of a new Set per group per step.
+    const wind = windScratch;
+    wind.clear();
     for (let i = 0; i < Math.min(LINE_LENGTH, ordered.length); i++) {
       const rider = ordered[i];
       if (isProtectedRider(rider, field, plan) || (rider.energy ?? 1) < 0.3 || (rider.climbShare ?? 1) < 1) continue;
@@ -1382,7 +1415,9 @@ export function shapeRoad(
       rider.effort *= rider.climbShare ?? 1;
     }
     const lead = ordered[0];
-    const slot = new Map(ordered.map((rider, index) => [rider, index]));
+    const slot = slotScratch;
+    slot.clear();
+    for (let index = 0; index < ordered.length; index++) slot.set(ordered[index], index);
     // A rider's place counts only the riders ordered ahead of them who are already ahead on the road.
     // A rider still coming up from further back takes no room until they get there, so no empty
     // place opens behind the front rider while they come through.
@@ -1437,6 +1472,8 @@ export function shapeRoad(
       }
     }
   });
+  windScratch.clear();
+  slotScratch.clear();
   const breaks = field.filter((r) => !r.isPlayer && r.finishTime == null && r.mode === 'attack' && r.road).sort((a, b) => along(b.s) - along(a.s));
   const escape: RoadActor[][] = [];
   for (const r of breaks) {
