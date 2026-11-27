@@ -4,6 +4,7 @@ import { ROUTES, getRouteDef } from '../routes/definitions';
 import { REAL_RIDE, RIDE_REGIONS, rideRegion } from '../routes/regions';
 import { getRoute, riddenClimbs, routeStarts, type Climb, type Route } from '../routes/route';
 import { loadRouteTerrain } from '../routes/real/terrain';
+import { preloadPropAssets } from '../world/propAssets';
 import type { Difficulty, RouteDef } from '../routes/types';
 import { deleteAccountRide, publishRide, syncAccountRides } from '../storage/accountRides';
 import { clearLocalAccountData } from '../storage/localOwner';
@@ -528,7 +529,7 @@ export class App {
 
   private async mountWorld(route: Route, onProgress?: (visual: number) => void, writing?: RoadWriting): Promise<void> {
     await new Promise((r) => setTimeout(r, 30));
-    await loadRouteTerrain(route);
+    await Promise.all([loadRouteTerrain(route), preloadPropAssets()]);
     this.world?.dispose();
     this.world = new World(route, this.canvas, this.graphics, this.profile.graphics, this.profile.timeOfDay, { roadWriting: writing });
     this.graphics = this.world.graphicsRef;

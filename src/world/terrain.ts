@@ -3,6 +3,7 @@ import type { ChunkRequest, ChunkResult } from './terrainChunk';
 import type { FieldInput } from './terrainField';
 import type { Biome } from '../routes/types';
 import { addWindSway, broadleafDetailed, broadleafSimple, cactus, pineDetailed, pineSimple, rock, rockWarm, shrub, spruceDetailed, spruceSimple } from './models';
+import { isPropAsset, propAsset } from './propAssets';
 
 const NEAR = 512;
 const FAR = NEAR * 4;
@@ -45,21 +46,54 @@ const rectDistance = (x0: number, z0: number, size: number, px: number, pz: numb
 /** Same olive as the moor grass, so grassland trees do not read as a brighter green. */
 const MOOR_FOLIAGE = [0x6a7040, 0x746e44, 0x5c6238] as const;
 
-function propGeomsFor(biome: Biome): { detailed: THREE.BufferGeometry[]; simple: THREE.BufferGeometry[] } {
-  if (biome === 'desert') {
-    return { detailed: [shrub(), cactus(), rockWarm()], simple: [shrub(), cactus(), rockWarm()] };
-  }
-  if (biome === 'moor') {
-    return {
-      detailed: [shrub(MOOR_FOLIAGE), broadleafDetailed(MOOR_FOLIAGE), rock()],
-      simple: [shrub(MOOR_FOLIAGE), broadleafSimple(MOOR_FOLIAGE[0]), rock()],
-    };
-  }
-  if (biome === 'spruce') {
-    return { detailed: [spruceDetailed(), spruceDetailed(), rock()], simple: [spruceSimple(), spruceSimple(), rock()] };
-  }
-  return { detailed: [pineDetailed(), broadleafDetailed(), rock()], simple: [pineSimple(), broadleafSimple(), rock()] };
+/**
+ * Per prop slot (0 conifer, 1 broadleaf, 2 rock; the worker's prop type), the models
+ * that can stand there. A slot with several models picks one per prop from its
+ * position; a name listed twice is twice as common.
+ */
+type PropSlots = THREE.BufferGeometry[][];
+
+const BOULDERS = ['boulder_a', 'boulder_b', 'boulder_c', 'boulder_d', 'boulder_e'];
+
+/**
+ * Blender models by name (src/assets/models, see scripts/blender/CLAUDE.md), or the
+ * code-built fallback when none of them loaded.
+ */
+function models(names: readonly string[], far: boolean, fallback: () => THREE.BufferGeometry): THREE.BufferGeometry[] {
+  const found = names.map((n) => propAsset(n, far)).filter((g): g is THREE.BufferGeometry => g !== null);
+  return found.length ? found : [fallback()];
 }
+
+/** Which trees and rocks grow in each biome, near (`detailed`) and far (`simple`). */
+function propGeomsFor(biome: Biome): { detailed: PropSlots; simple: PropSlots } {
+  const level = (far: boolean): PropSlots => {
+    if (biome === 'desert') return [[shrub()], [cactus()], [rockWarm()]];
+    const rocks = models(BOULDERS, far, rock);
+    if (biome === 'moor') {
+      // Holm oak's dark olive crown sits with the moor grass; a bright beech would not.
+      return [[shrub(MOOR_FOLIAGE)], models(['holm_oak'], far, () => (far ? broadleafSimple(MOOR_FOLIAGE[0]) : broadleafDetailed(MOOR_FOLIAGE))), rocks];
+    }
+    if (biome === 'spruce') {
+      // The worker never asks for slot 1 here (spruce forests are all conifer).
+      const spruce = models(['spruce_a', 'spruce_a', 'spruce_b'], far, far ? spruceSimple : spruceDetailed);
+      return [spruce, spruce, rocks];
+    }
+    const conifers = biome === 'limestone' ? ['spruce_a', 'larch', 'scots_pine'] : ['spruce_a', 'spruce_a', 'spruce_b', 'larch'];
+    return [
+      models(conifers, far, far ? pineSimple : pineDetailed),
+      models(['beech'], far, () => (far ? broadleafSimple() : broadleafDetailed())),
+      rocks,
+    ];
+  };
+  return { detailed: level(false), simple: level(true) };
+}
+
+/** Stable pick of one of `n` models for a prop at world (x, z). */
+const variantAt = (x: number, z: number, n: number) => {
+  const h = Math.imul(Math.round(x * 4) ^ Math.imul(Math.round(z * 4), 0x27d4eb2d), 0x165667b1);
+  // Fold the high bits down: a multiply's low bits only depend on the inputs' low bits.
+  return ((h ^ (h >>> 15)) >>> 0) % n;
+};
 
 const overlaps = (a: ChunkSpec, b: ChunkSpec) =>
   a.x0 < b.x0 + b.size && b.x0 < a.x0 + a.size && a.z0 < b.z0 + b.size && b.z0 < a.z0 + a.size;
@@ -79,7 +113,7 @@ export class TerrainManager {
   private readyWorkers = 0;
   private material: THREE.MeshStandardMaterial;
   private propMaterial: THREE.MeshStandardMaterial;
-  private propGeoms: { detailed: THREE.BufferGeometry[]; simple: THREE.BufferGeometry[] };
+  private propGeoms: { detailed: PropSlots; simple: PropSlots };
   readonly windTime = { value: 0 };
   quality: TerrainQuality;
   onProgress?: (loaded: number, wanted: number) => void;
@@ -156,18 +190,26 @@ export class TerrainManager {
     const props = res.props;
     const count = props.length / 6;
     if (count > 0) {
-      const byType: number[][] = [[], [], []];
-      for (let i = 0; i < count; i++) byType[props[i * 6 + 5]].push(i);
       const geoms = spec.propDetail === 0 ? this.propGeoms.detailed : this.propGeoms.simple;
+      // One InstancedMesh per model, as before; a slot with several models splits its props.
+      const byModel = new Map<string, { type: number; geom: THREE.BufferGeometry; list: number[] }>();
+      for (let i = 0; i < count; i++) {
+        const type = props[i * 6 + 5];
+        const slot = geoms[type];
+        const v = slot.length > 1 ? variantAt(spec.x0 + props[i * 6], spec.z0 + props[i * 6 + 2], slot.length) : 0;
+        const key = `${type}:${slot[v].id}`;
+        let entry = byModel.get(key);
+        if (!entry) byModel.set(key, (entry = { type, geom: slot[v], list: [] }));
+        entry.list.push(i);
+      }
       const m = new THREE.Matrix4();
       const q = new THREE.Quaternion();
       const up = new THREE.Vector3(0, 1, 0);
       const s = new THREE.Vector3();
       const p = new THREE.Vector3();
       const c = new THREE.Color();
-      byType.forEach((list, type) => {
-        if (!list.length) return;
-        const inst = new THREE.InstancedMesh(geoms[type], this.propMaterial, list.length);
+      byModel.forEach(({ type, geom, list }) => {
+        const inst = new THREE.InstancedMesh(geom, this.propMaterial, list.length);
         list.forEach((i, k) => {
           const o = i * 6;
           const scale = props[o + 3];
@@ -343,6 +385,7 @@ export class TerrainManager {
     this.live.clear();
     this.material.dispose();
     this.propMaterial.dispose();
-    for (const g of new Set([...this.propGeoms.detailed, ...this.propGeoms.simple])) g.dispose();
+    // Blender models are shared by every world (propAssets caches them); only code-built ones are ours.
+    for (const g of new Set([...this.propGeoms.detailed.flat(), ...this.propGeoms.simple.flat()])) if (!isPropAsset(g)) g.dispose();
   }
 }
