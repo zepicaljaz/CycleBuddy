@@ -212,7 +212,8 @@ function defaultProfile(): Profile {
     coins: 0,
     ownedFrames: ['montvar'],
     ownedWheels: ['montvar'],
-    graphics: 'high',
+    // New installs start on Medium (laptops run hot on High); saved profiles keep their own choice.
+    graphics: 'medium',
     timeOfDay: 'golden',
     camera: 'chase',
     map: 'ahead',
@@ -400,12 +401,20 @@ export class App {
     window.addEventListener('resize', () => {
       this.canvasBox = null;
       this.world?.resize();
+      this.updateMenuCover();
     });
     // The canvas can also change size without a window resize (shown again after display: none).
     if (typeof ResizeObserver !== 'undefined') {
       new ResizeObserver(() => {
         this.canvasBox = null;
       }).observe(this.canvas);
+      // Perf: the panel's size, kept without reading layout; it decides the covered-menu frame rate.
+      new ResizeObserver((entries) => {
+        const box = entries[entries.length - 1]?.borderBoxSize?.[0];
+        const rect = entries[entries.length - 1]?.contentRect;
+        this.panelArea = box ? box.inlineSize * box.blockSize : rect ? rect.width * rect.height : 0;
+        this.updateMenuCover();
+      }).observe(this.panel);
     }
     window.addEventListener('keydown', (e) => this.onKey(e));
     window.addEventListener('pointerdown', () => {
@@ -689,6 +698,24 @@ export class App {
 
   /** Menus and the garage draw at about 30 fps. A ride draws every display frame. */
   private static readonly MENU_FRAME_MS = 1000 / 30;
+  /**
+   * Perf: behind a glass panel that covers most of the screen (career, settings, plans,
+   * analytics on a laptop) the scene is blurred and 82 % dimmed, so it draws at 10 fps
+   * with AO and bloom off (`Graphics.lite`). No panel is opaque (the CSS is a translucent
+   * glass with a backdrop blur, and the margins show the scene), so it never stops entirely.
+   */
+  private static readonly COVERED_FRAME_MS = 1000 / 10;
+  /** Share of the window a glass panel must cover to count as covering it. */
+  private static readonly COVER_SHARE = 0.55;
+  private panelArea = 0;
+  private panelGlass = false;
+  private menuCovered = false;
+
+  private updateMenuCover(): void {
+    const view = window.innerWidth * window.innerHeight;
+    this.menuCovered = this.panelGlass && view > 0 && this.panelArea >= App.COVER_SHARE * view;
+  }
+
   private loop() {
     const now = performance.now();
     this.syncOverlayPointer();
@@ -698,7 +725,8 @@ export class App {
     this.session?.settleMeter();
     const world = this.world;
     // A 2 ms allowance, so a 60 Hz display lands on every second frame and not every third.
-    if (world && !this.session && now - this.last < App.MENU_FRAME_MS - 2) {
+    const covered = !this.session && this.menuCovered;
+    if (world && !this.session && now - this.last < (covered ? App.COVERED_FRAME_MS : App.MENU_FRAME_MS) - 2) {
       requestAnimationFrame(() => this.loop());
       return;
     }
@@ -707,8 +735,9 @@ export class App {
     this.last = now;
     if (world) {
       const s = this.session;
-      // Dynamic resolution only while riding; the menus run at a fixed 30 fps.
+      // Dynamic resolution only while riding; the menus run at a fixed 30 fps (10 behind a covering panel).
       world.graphicsRef.adaptive = !!s;
+      world.graphicsRef.lite = covered;
       if (s) {
         const poses = s.riderPoses(world);
         const trial = s.config.career?.road.timeTrial === true;
@@ -859,6 +888,9 @@ export class App {
     };
     const careerHub = this.screen === 'career' && this.career.tab === 'hub';
     this.panel.className = `screen-${this.screen}${careerHub ? ' career-hub' : ''}`;
+    // Home, the career hub and the garage are see-through or a side panel; every other screen is a glass panel.
+    this.panelGlass = this.screen !== 'home' && this.screen !== 'garage' && !careerHub;
+    this.updateMenuCover();
     this.panel.innerHTML = views[this.screen]();
     const rider = document.getElementById('home-rider');
     if (rider) {
@@ -2649,6 +2681,8 @@ export class App {
   private profileFromSave(saved: Profile | null): Profile {
     if (!saved) return settleEquipment(defaultProfile());
     const merged = { ...defaultProfile(), ...saved, colors: { ...DEFAULT_COLORS, ...saved.colors } };
+    // A save without a quality was drawn at the old default, High; keep it there.
+    if (!saved.graphics) merged.graphics = 'high';
     if (!Array.isArray(saved.ownedFrames)) delete (merged as Partial<Profile>).ownedFrames;
     if (!Array.isArray(saved.ownedWheels)) delete (merged as Partial<Profile>).ownedWheels;
     if (typeof saved.coins !== 'number') delete (merged as Partial<Profile>).coins;

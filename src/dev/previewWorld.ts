@@ -24,6 +24,8 @@ await loadRouteTerrain(route);
 const names = params.get('names') === 'race' ? { dir: 1 as const } : undefined;
 const world = new World(route, canvas, null, (params.get('q') as GraphicsQuality) || 'ultra', (params.get('time') as TimeOfDay) || 'noon', { roadWriting: names });
 world.cameraMode = (params.get('cam') as CameraMode) || 'chase';
+// `&adaptive`: dynamic resolution and the auto quality step-down, as in a ride (shown in `?perf`).
+world.graphicsRef.adaptive = params.has('adaptive');
 const count = Number(params.get('riders') ?? 6);
 const jerseys = ['#e94e1b', '#1f5fbf', '#2fa84f', '#ffcd1f', '#ffffff', '#c8102e', '#7b3fbf', '#18191c'];
 world.setRiderColors(
