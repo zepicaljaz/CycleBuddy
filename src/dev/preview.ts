@@ -49,6 +49,8 @@ road.receiveShadow = true;
 scene.add(road);
 
 type Updater = (dt: number, t: number) => void;
+/** Riders scene: a fixed crank angle in radians (`&crank=` or `preview.crank(a)`), NaN to pedal. */
+let fixedCrank = Number(params.get('crank') ?? NaN);
 const scenes: Record<string, () => Updater> = {
   riders() {
     const kits: Partial<RiderColors>[] = [
@@ -69,11 +71,10 @@ const scenes: Record<string, () => Updater> = {
     }));
     const lod = params.get('lod');
     const far = lod === '1' ? new THREE.Vector3(50, 0, 0) : lod === '2' ? new THREE.Vector3(1e5, 0, 0) : undefined;
-    const crank0 = Number(params.get('crank') ?? NaN);
     return (dt) => {
       for (const p of poses) {
-        if (isNaN(crank0)) p.crank += dt * 9.4;
-        else p.crank = crank0;
+        if (isNaN(fixedCrank)) p.crank += dt * 9.4;
+        else p.crank = fixedCrank;
         p.wheel += dt * 9.4 * 0.9;
       }
       riders.update(poses, far ?? camera.position);
@@ -310,6 +311,10 @@ const api = {
   },
   pause(p = true) {
     paused = p;
+  },
+  /** Riders scene: hold the crank at `a` radians, or pedal again with no argument. */
+  crank(a = NaN) {
+    fixedCrank = a;
   },
   ao(on: boolean) {
     graphics.setQuality({ ...QUALITY.ultra, ao: on });
