@@ -49,12 +49,13 @@ const t0 = performance.now();
 const id = params.get('id') ?? 'vrsic-kranjska-gora';
 const climb = REAL_CLIMB_MAP.get(id);
 if (!climb) throw new Error(`No real climb "${id}"`);
-// Tracks load lazily, like a ride (app.ts mountWorld).
+// Tracks load on demand (trackIndex.json); without this realClimbRoute would throw.
 await ensureTrack(id);
 const def = realClimbRoute(climb);
 if (!def.track) throw new Error(`"${id}" has no real road (src/routes/real/tracks)`);
 const route = getRoute(def);
-// Prop models too, so the Blender trees, rocks and landmarks show as in a ride.
+// Like app.ts mountWorld: the Blender trees, rocks and cliffs load with the terrain. Without them the
+// shots would show the code-built fallback props, not what a ride shows.
 await Promise.all([loadRouteTerrain(route), preloadPropAssets()]);
 
 const time = (params.get('t') as TimeOfDay) || 'noon';

@@ -48,6 +48,7 @@ results, so riding costs no more CPU or GPU than a generated road.
      two parking lots, projected with the same origin as the road
      (`data/osm/vrsic-places.json`).
    - `src/assets/terrain/<id>.bin`: both grids as unsigned 16-bit decimetres.
+   - `src/assets/terrain/<id>.cover.bin`: land cover per grid point (see "Land cover").
 
 The script prints its checks: climb length vs published, start and summit elevation,
 terrain error, loop closure and hairpin count.
@@ -279,6 +280,89 @@ Built with `node scripts/real-track/build.mjs krvavec`. Same rules as Vršič, w
   Krvavcem where the road passes the village around 1,085 m. The pastures above
   Jezerca stay open (`pastureAbove` 1,400 m).
 
+## Land cover
+
+What the ground really is, per terrain grid point: forest, meadow, rock, scree, ice.
+Without it the game can only guess from slope, which greys out steep meadows and road
+banks and puts rock where there is none. Built offline by `scripts/real-track/cover.mjs`.
+
+**Sources** (credits in `ATTRIBUTION.md`):
+
+- **OpenStreetMap**, one Overpass query per road over the near grid plus 2 km (the whole
+  far grid is too heavy a query for the public servers). Polygons that reach into that box
+  come back whole. Multipolygon relations are included (most big forests are relations);
+  they are filled even-odd over all member ways, so outer and inner rings never need
+  joining, and a relation whose rings don't close is skipped. Areas imported from CORINE
+  Land Cover (`source=*CORINE*`, coarse 2006 blobs in France and Spain) are left out, as
+  in the Angliru's `places.cover`; WorldCover is sharper there.
+- **ESA WorldCover 10 m 2021 v200** for everything OSM leaves open. Read straight from the
+  public Cloud-Optimised GeoTIFF tiles with HTTP range requests (only the window around
+  the road, a few MB), with the `geotiff` dev dependency. Each cell takes the majority of
+  the 10 m pixels inside it (3×3 samples per 25 m cell, 10×10 per 100 m cell).
+
+Raw answers are cached in `data/cover-cache/` (gitignored, never commit it or any `.tif`).
+The script tries the public Overpass servers in turn (overpass-api.de, kumi.systems,
+private.coffee, maps.mail.ru) with backoff. On the night the cover was first built the
+first three answered 504 for an hour and maps.mail.ru took ~20 s per road; `--fetch-osm`
+runs one worker per server and leaves the answers in the cache for the real run.
+
+**Format.** `src/assets/terrain/<id>.cover.bin`: one unsigned byte per grid point, the
+same grids as the heights in `<id>.bin` (25 m near, then 100 m far, back to back), same
+row-major order (`index = j * w + i`, the point at `x0 + i·cell`, `z0 + j·cell`, x east,
+z south). A byte describes the cell centred on its grid point. The track JSON gets
+`terrain.cover = { file, grids, sources }`; `grids` is a copy of `terrain.grids`.
+
+| Byte | Class | From OSM | From WorldCover |
+|---|---|---|---|
+| 0 | unknown | | no data |
+| 1 | forest | `natural=wood`, `landuse=forest` | 10 tree cover, 95 mangroves |
+| 2 | meadow / grass | `natural=grassland\|fell`, `landuse=meadow\|grass\|farmland` | 30 grassland, 40 cropland, 90 wetland, 100 moss and lichen |
+| 3 | scrub / dwarf pine / heath | `natural=scrub\|heath` | 20 shrubland |
+| 4 | bare rock | `natural=bare_rock` | 60 bare, slope over 35° |
+| 5 | scree | `natural=scree\|shingle`, 1–2 cells below a cliff | 60 bare, slope up to 35° |
+| 6 | cliff | `natural=cliff` (a line) | |
+| 7 | glacier / snow | `natural=glacier` | 70 snow and ice, from 2,500 m up |
+| 8 | water | `natural=water`, `waterway=riverbank`, `water=*` | 80 water |
+| 9 | built-up | `landuse=residential\|farmyard\|industrial\|commercial\|retail` | 50 built-up |
+
+WorldCover 60 ("bare / sparse vegetation") is split by slope from the height grid: loose
+stones don't rest on faces steeper than ~35°, so those are rock and the rest is scree. The
+treeline is not used for this: above it both are common (Ventoux's summit is a gentle stone
+field, the Stelvio's ridges steep rock).
+
+WorldCover 70 ("snow and ice") also catches snow that lay late into summer 2021. Glaciers
+here don't reach below ~2,500 m, so "snow" lower than that is treated as bare ground (rock
+or scree by the same slope rule). Without this the Stelvio had ~11,000 near points of
+"glacier" between 1,400 and 2,500 m.
+
+**Merge rule, per cell:** OSM cliff > OSM specific ground (glacier, water, bare rock, scree,
+built-up) > scree below an OSM cliff > OSM forest / scrub / meadow > WorldCover > 0.
+Within one OSM tier the smaller polygon wins (a scree field inside a bare-rock area, a
+clearing inside a forest). Cliff lines mark every cell they cross as 6, then the next cells
+downhill (2 on the 25 m grid, 1 on the 100 m grid; downhill from the heights, or OSM's
+"low side on the right" where the 30 m terrain is too smooth to tell) as 5.
+
+The Angliru's hand-picked `places.cover` polygons (open ground and woods along the road)
+are separate and untouched.
+
+**Run it:**
+
+```
+node scripts/real-track/cover.mjs stelvio-prato     # one road
+node scripts/real-track/cover.mjs --all             # every track in src/routes/real/tracks
+node scripts/real-track/cover.mjs --all --fetch-osm # only download + cache the Overpass answers
+node scripts/real-track/cover.mjs --all --no-osm    # WorldCover only (Overpass down)
+```
+
+It prints the class shares per grid and how much of it OSM decided. `terrain.cover.sources`
+says which sources a road actually used. Test: `src/routes/real/cover.test.ts` (format, and
+loose checks that Ventoux's summit is stone, the Stelvio has rock and ice, Vršič has forest
+low and rock high, the Tourmalet is grass above the trees, the Angliru is meadow and wood).
+
+**A new road** gets its cover at the end of `build.mjs` automatically. If the network failed
+there, run `node scripts/real-track/cover.mjs <id>` afterwards. Add the id to `ROADS` in
+`cover.test.ts`.
+
 ## Adding the next road
 
 1. Fetch the OSM ways for the road into `data/osm/<name>.json` (Overpass; ask
@@ -294,12 +378,86 @@ Built with `node scripts/real-track/build.mjs krvavec`. Same rules as Vršič, w
    (`source_segments`) and sources.
 4. Run the script. Check that the length is within ~2 % of the published value and that
    the hairpin count matches. Add a test like `track.test.ts`.
-5. `npm run track-index`: regenerates `src/routes/real/trackIndex.json` (length and climbing
+5. The script ends by building the land cover (see "Land cover"). Check its printed class
+   shares look like the mountain, and add the id to `ROADS` in `src/routes/real/cover.test.ts`.
+6. `npm run track-index`: regenerates `src/routes/real/trackIndex.json` (length and climbing
    per road, for the Free ride list). `src/routes/real/trackIndex.test.ts` fails when a track
    was added or rebuilt and the index was not. That is the whole wiring: the game finds the
    road by its file name (`tracks/<id>.json` = climb id) and fetches it when it is needed.
    Merging two branches that each added a road: take either index, then run
    `npm run track-index` again.
+
+## Land cover at runtime
+
+How the game uses a road's land-cover grid (`terrain.cover` in the track
+JSON, `<id>.cover.bin` beside the heights). Where the data comes from is the
+data section; this is what the terrain does with it.
+
+- **Loading.** `loadRouteTerrain` fetches the cover with the heights, once per
+  file, and puts it on `route.cover`. A missing or broken file leaves it null
+  and the road keeps the generated look. The world passes it to the terrain
+  workers in `FieldInput.cover`. Heights now stay unsigned decimetres
+  (`DemGrid.scale = 0.1`) instead of a Float32 copy per worker.
+- **Reading.** `TerrainField.coverAt(x, z)`: fine grid first, then far, the
+  nearest node (node (i, j) sits at x0 + i·cell, z0 + j·cell, like the
+  heights), and a node with 0 falls through to the coarser grid. `coverMix`
+  gives the four surrounding nodes' weights per class, for colour.
+- **Slope for colour.** On a road with a DEM the steepness that colours a face
+  is the DEM's over 25 m around the face centre (`demNormalY`), not the
+  triangle's own normal. The invented facets and bumps stay in the geometry
+  but never decide a colour, a cut bank or hairpin bank takes the colour of
+  the slope it was cut into, and a face has the same class on the 8 m mesh
+  beside the rider and the 64 m far tiles. Generated roads keep the triangle
+  normal and look exactly as before (`terrainCover.test.ts` pins that).
+- **Colour.** Where cover is known: rock and cliff are the only grey (darker
+  the steeper the real ground), scree the pale stone (the gravel colour where
+  the road sets `screeLine`), glacier snow, forest the forest floor, scrub a
+  darker olive, meadow, water and built-up the altitude grass. Slope only
+  darkens vegetation by up to 12 %. Seasonal snow above `snowline` settles only
+  on bare classes. Lake sand and the worn verge are as before. The
+  treeline/noise look runs only where cover is 0. Scree (WorldCover's "bare /
+  sparse vegetation" under 35°) gets soft 40 m patches of dry grass, up to 45 %,
+  so a high slope reads as stony grass, not one pale sheet; a road with
+  `screeLine` (Ventoux) keeps its bare gravel.
+- **Rock tone.** `scenery.rockTone` ('pale' limestone/dolomite, 'grey' schist
+  or granite, 'dark' shale) replaces the biome's rock, dark rock and scree
+  colours (`paletteFor` in `terrainChunk.ts`) and tints the rock props
+  (`ROCK_TINT` in `terrain.ts`). Omitted keeps the biome's.
+- **Props.** Forest keeps its trees up to about 45° of real slope (they shrink
+  in the last 200 m below the treeline). Above the road's (noisy) treeline a
+  forest cell grows dwarf pine instead: WorldCover's "tree cover" up there is
+  krummholz, and full spruces stood at 2,300 m on the Galibier. Meadow gets the
+  odd lone tree below the treeline. Scrub gets the Blender `mugo` in prop slot 3
+  (`PROP_SCRUB`; `scrubGeom` is the fallback). Boulders only on rock, scree and
+  cliff faces under ~52°, plus the ground within 25 m of a cliff node (the cliff
+  foot, bigger and denser). They keep their whole width off the asphalt and sink
+  by 20-88 % of their size with the slope so the downhill edge does not float.
+  Glacier, water and built-up stay empty.
+- **Cliff faces** (`PROP_CLIFF`, slot 4, `cliff_face_a`–`c`): on cliff cells
+  (OSM cliff lines) where the DEM is steeper than 0.25, half the points of their
+  own 12.5 m grid (18 m on coarser near tiles, 25 m and 1.3x bigger on far
+  tiles), and on 30 % of bare-rock points steeper than `STEEP_ROCK` (rise over
+  run 1.0, ~45°): OSM maps few cliffs (Giau's towers are "bare rock") and a 30 m
+  DEM smooths a wall to 45-60°. The slope is the DEM's alone over 20 m (the
+  invented bumps would tip a 37° slope over the line). The front (+Z) turns
+  downhill (`atan2(dx, dz)` ±0.15 rad), so the width runs along the contour;
+  the base is 1.5 m per unit of scale below the lowest ground under the front
+  and both ends, and the centre stays `CLIFF_HALF_WIDTH` (9 m) x scale + 3 m off
+  the road. Cliffs, scree and boulders draw with a plain rock material: the
+  trees' wind sway grows with height and would bend a 14 m face.
+- **Scree patches** (`PROP_SCREE`, slot 5, `scree_patch_a`/`b`): on scree cells
+  only, 5 % of the near prop points, sunk until the downhill edge meets the
+  slope, off the road by their radius. Cliffs and scree have no code-built
+  fallback; without the Blender models the slots draw nothing.
+- **Tree models per road.** `scenery.trees` (`conifers` for slot 0,
+  `broadleaves` for slot 1; Blender names, a name twice is twice as common)
+  replaces the biome's set. Ventoux: holm oak, beech, larch, spruce_b for the
+  Atlas cedar; Vršič: beech, larch, some spruce; Stelvio: larch, spruce_b for
+  stone pine; Alpe d'Huez: mostly larch. Each road's `sceneryNote` cites the
+  source; `sceneryHints.test.ts` checks the names exist and reach the route.
+- **Treeline.** Cover wins over `treeline` wherever it is known, except that
+  forest above it grows dwarf pine (above). Roads without cover still need the
+  scenery hints in `climbs.json` (with a `sceneryNote` giving the sources).
 
 ## Credits and licence
 

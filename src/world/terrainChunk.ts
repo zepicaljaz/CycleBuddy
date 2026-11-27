@@ -1,5 +1,5 @@
-import type { Biome } from '../routes/types';
-import { clamp, smoothstep } from '../util/math';
+import { LandCover, type Biome, type RockTone, type SceneryDef } from '../routes/types';
+import { clamp, lerp, smoothstep } from '../util/math';
 import { Noise2D } from '../util/noise';
 import { ROAD_HALF_WIDTH, type TerrainField } from './terrainField';
 
@@ -20,11 +20,32 @@ export interface ChunkResult {
   positions: Float32Array;
   normals: Float32Array;
   colors: Float32Array;
-  /** x, y, z, scale, rotation, type per instance. type: 0 pine, 1 broadleaf, 2 rock */
+  /**
+   * x, y, z, scale, rotation, type per instance. type: 0 pine, 1 broadleaf, 2 rock, 3 low shrub / dwarf pine (PROP_SCRUB),
+   * 4 cliff face (PROP_CLIFF), 5 scree patch (PROP_SCREE). A cliff's rotation turns its +Z front downhill.
+   */
   props: Float32Array;
   minY: number;
   maxY: number;
 }
+
+/** Prop type for scrub and dwarf pine. terrain.ts picks the model for this slot. */
+export const PROP_SCRUB = 3;
+/** Prop type for a cliff face (Blender cliff_face_*), front (+Z) turned downhill. Not wind-swayed. */
+export const PROP_CLIFF = 4;
+/** Prop type for a scree patch (Blender scree_patch_*), on land-cover scree only. Not wind-swayed. */
+export const PROP_SCREE = 5;
+/**
+ * Half the width of the widest cliff model (cliff_face_b, 18 m) per unit of scale. A face keeps its
+ * centre this far plus a margin off the asphalt, so no end of it reaches the road.
+ */
+export const CLIFF_HALF_WIDTH = 9;
+/**
+ * Bare rock (class 4) this steep (rise over run over 20 m of DEM, ~45 deg) gets the odd cliff face too.
+ * OSM maps few cliff lines (Giau's towers are almost all "bare rock"), and a 30 m DEM smooths a
+ * vertical wall to 45-60 deg, so steep bare rock is where the real walls are.
+ */
+export const STEEP_ROCK = 1.0;
 
 const srgb = (hex: number): [number, number, number] => {
   const f = (c: number) => {
@@ -119,6 +140,56 @@ const BIOMES: Record<Biome, Palette> = {
 };
 
 type RGB = [number, number, number];
+
+/**
+ * Rock colours by the road's real rock (SceneryDef.rockTone): rock, rockDark, scree. 'pale' is the
+ * limestone set; 'grey' a cooler mid grey for schist and granite (Galibier's calc-schists, the
+ * Tourmalet's Palaeozoic schists); 'dark' for black shale.
+ */
+const ROCK_TONES: Record<RockTone, [RGB, RGB, RGB]> = {
+  pale: [srgb(0xd4c6a8), srgb(0xa89878), srgb(0xe6dcc6)],
+  grey: [srgb(0x7f7d79), srgb(0x5a5855), srgb(0xa6a39d)],
+  dark: [srgb(0x5c5a58), srgb(0x3c3a39), srgb(0x84817c)],
+};
+
+/** Dry high-alpine grass, late summer (see coverColor). */
+const ALPINE_DRY = srgb(0x8c8660);
+
+const TONED = new Map<string, Palette>();
+/** The biome's palette with the road's rock tone, cached per biome and tone. */
+function paletteFor(sc: Pick<SceneryDef, 'biome' | 'rockTone'>): Palette {
+  const biome = sc.biome ?? 'alpine';
+  const base = BIOMES[biome];
+  if (!sc.rockTone || biome === 'desert') return base;
+  const key = `${biome}:${sc.rockTone}`;
+  let p = TONED.get(key);
+  if (!p) {
+    const [rock, rockDark, scree] = ROCK_TONES[sc.rockTone];
+    p = { ...base, rock, rockDark, scree };
+    TONED.set(key, p);
+  }
+  return p;
+}
+
+const SCRUB = new Map<Palette, RGB>();
+/**
+ * Ground under scrub, dwarf pine and heath: between the forest floor and the
+ * high grass, a step darker, so a band of krummholz reads apart from both the
+ * wood below and the meadow above.
+ */
+function scrubColor(pal: Palette): RGB {
+  let c = SCRUB.get(pal);
+  if (!c) {
+    c = [0, 0, 0];
+    mix(pal.forest, pal.grassHigh, 0.4, c);
+    c[0] *= 0.9;
+    c[1] *= 0.9;
+    c[2] *= 0.9;
+    SCRUB.set(pal, c);
+  }
+  return c;
+}
+
 const mix = (a: RGB, b: RGB, t: number, out: RGB): RGB => {
   out[0] = a[0] + (b[0] - a[0]) * t;
   out[1] = a[1] + (b[1] - a[1]) * t;
@@ -135,14 +206,205 @@ const hash2 = (x: number, z: number): number => {
 export class ChunkBuilder {
   private noise: Noise2D;
 
+  private readonly col: RGB = [0, 0, 0];
+  private readonly tmp: RGB = [0, 0, 0];
+  private readonly grass: RGB = [0, 0, 0];
+  private readonly dry: RGB = [0, 0, 0];
+  private readonly part: RGB = [0, 0, 0];
+  private readonly coverW = new Float32Array(10);
+  /** Land-cover class that decided the last faceColor (LandCover), or for a road without cover 4 on rock and 0 elsewhere. For tests. */
+  lastKind = 0;
+
   constructor(private field: TerrainField, seed: number) {
     this.noise = new Noise2D(seed * 31 + 5);
+  }
+
+  /**
+   * Colour of one flat triangle. (cx, cy, cz) is its centre, ny the up
+   * component of its own normal, aoV the concavity shade and jitter a 0..1
+   * per-face value that keeps the facets visible.
+   *
+   * Steepness for colour is not the triangle's own normal when the road has
+   * real ground: one 8 m triangle flips across the rock threshold where the
+   * invented facets tilt it, the bank beside the road (0.9) read as 70 % rock,
+   * and a 64 m far triangle is smoother than the same slope up close, so rock
+   * popped with distance. demNormalY reads the DEM at a fixed 25 m span
+   * instead. Generated roads (no DEM) keep the triangle normal, unchanged.
+   */
+  faceColor(cx: number, cy: number, cz: number, ny: number, aoV: number, jitter: number): RGB {
+    const field = this.field;
+    const dn = field.demNormalY(cx, cz);
+    const nyC = dn.w > 0 ? lerp(ny, dn.ny, dn.w) : ny;
+    if (field.hasCover && field.coverMix(cx, cz, this.coverW) > 0) return this.coverColor(cx, cy, cz, nyC, aoV, jitter);
+    return this.generatedColor(cx, cy, cz, nyC, aoV, jitter);
+  }
+
+  /**
+   * Colour from the land-cover map: what is really there. Rock only where the
+   * map says rock or cliff, pale stone on scree, snow on glacier; forest floor,
+   * meadow and scrub stay green at any slope, a steep one is only a little
+   * darker. Each class of the four surrounding nodes is mixed by distance, so a
+   * class edge is a short blend and not a 25 m staircase.
+   */
+  private coverColor(cx: number, cy: number, cz: number, nyC: number, aoV: number, jitter: number): RGB {
+    const sc = this.field.scenery;
+    const n = this.noise;
+    const biome = sc.biome ?? 'alpine';
+    const pal = paletteFor(sc);
+    const w = this.coverW;
+    const col = this.col;
+    const part = this.part;
+    const grass = mix(pal.grassLow, pal.grassHigh, smoothstep(sc.treeline - 900, sc.treeline + 150, cy), this.grass);
+    // High alpine grass is thin and dry by late summer: from 150 m above the treeline it fades
+    // towards an olive brown, up to 55 % 650 m up. The Galibier and Stelvio tops were a fresh
+    // yellow-green lawn at 2,600 m. Not on desert (no treeline grass there).
+    if (biome !== 'desert') mix(grass, ALPINE_DRY, 0.55 * smoothstep(sc.treeline + 150, sc.treeline + 650, cy), grass);
+    const steep = smoothstep(0.7, 0.45, nyC);
+    const patch = n.noise(cx / 16, cz / 16) * 0.5 + 0.5;
+    col[0] = col[1] = col[2] = 0;
+    let best = 0;
+    let kind = 0;
+    for (let k = 1; k < 10; k++) {
+      const wk = w[k];
+      if (wk <= 0) continue;
+      if (wk > best) {
+        best = wk;
+        kind = k;
+      }
+      switch (k) {
+        case LandCover.forest:
+          mix(grass, pal.forest, 0.72, part);
+          break;
+        case LandCover.scrub:
+          mix(grass, scrubColor(pal), 0.75, part);
+          break;
+        case LandCover.rock:
+          mix(pal.rock, pal.rockDark, 0.15 + steep * 0.6, part);
+          break;
+        case LandCover.scree:
+          if (sc.screeLine != null) mix(GRAVEL, GRAVEL_DARK, patch * 0.55, part);
+          else {
+            mix(pal.scree, pal.rock, patch * 0.35, part);
+            // WorldCover's "bare / sparse vegetation" below ~35 deg is stony ground with grass in it, not a
+            // clean stone sheet: soft 40 m patches of dry grass (up to 45 %). Galibier at 2,300 m read
+            // as one pale slab. Ventoux (screeLine, the gravel branch above) stays bare, as it is.
+            const tuft = smoothstep(0.35, 0.75, n.noise(cx / 40 + 7, cz / 40) * 0.5 + 0.5) * 0.45;
+            const dry = this.dry;
+            dry[0] = grass[0] * 0.95;
+            dry[1] = grass[1] * 0.82;
+            dry[2] = grass[2] * 0.7;
+            mix(part, dry, tuft, part);
+          }
+          break;
+        case LandCover.cliff:
+          mix(pal.rock, pal.rockDark, 0.55 + steep * 0.45, part);
+          break;
+        case LandCover.glacier:
+          part[0] = pal.snow[0];
+          part[1] = pal.snow[1];
+          part[2] = pal.snow[2];
+          break;
+        default:
+          // Meadow, and also water and built-up: rivers and lakes have their own
+          // surface, towns their own houses; the ground under them stays grass.
+          part[0] = grass[0];
+          part[1] = grass[1];
+          part[2] = grass[2];
+      }
+      col[0] += part[0] * wk;
+      col[1] += part[1] * wk;
+      col[2] += part[2] * wk;
+    }
+    this.lastKind = kind;
+    const bare = w[LandCover.rock] + w[LandCover.scree] + w[LandCover.cliff];
+    // Seasonal snow above the snowline only settles on bare ground that is not too steep.
+    const snowLine = sc.snowline + n.noise(cx / 500, cz / 500) * 140;
+    const snow = biome === 'desert' ? 0 : smoothstep(snowLine - 40, snowLine + 60, cy) * smoothstep(0.45, 0.7, nyC) * bare;
+    mix(col, pal.snow, snow, col);
+    this.waterAndVerge(col, pal, cx, cy, cz);
+    // Slope darkens vegetation a little (a steep wood is in its own shade); it never turns it grey.
+    const veg = 1 - bare - w[LandCover.glacier];
+    const slopeShade = 1 - 0.12 * smoothstep(0.92, 0.62, nyC) * veg;
+    const shade = aoV * (0.94 + jitter * 0.12) * (1 - snow * 0.05) * slopeShade;
+    col[0] *= shade;
+    col[1] *= shade;
+    col[2] *= shade;
+    return col;
+  }
+
+  /** The generated look: treeline, forest noise, slope rock. Used where there is no land-cover data. */
+  private generatedColor(cx: number, cy: number, cz: number, ny: number, aoV: number, jitter: number): RGB {
+    const field = this.field;
+    const sc = field.scenery;
+    const col = this.col;
+    const tmp = this.tmp;
+    const n = this.noise;
+    const biome = sc.biome ?? 'alpine';
+    const pal = paletteFor(sc);
+    const arid = biome === 'desert';
+    const treeline = sc.treeline + n.noise(cx / 700, cz / 700) * 120;
+    const alt = smoothstep(sc.treeline - 900, sc.treeline + 150, cy);
+    mix(pal.grassLow, pal.grassHigh, alt, col);
+    const forestN = n.fbm(cx / 850, cz / 850, 2);
+    if (arid) {
+      const dune = n.noise(cx / 160, cz / 160) * 0.5 + 0.5;
+      mix(col, pal.sand, dune * 0.5, col);
+    } else {
+      const cover = field.groundCover(cx, cz, cy);
+      let forest = smoothstep(1 - sc.forestDensity * 1.25, 1.1 - sc.forestDensity, forestN * 0.5 + 0.5) * (1 - smoothstep(treeline - 120, treeline + 40, cy));
+      if (cover === 'pasture') forest = 0;
+      else if (cover === 'wood') forest = Math.max(forest, 0.82);
+      mix(col, pal.forest, forest * 0.75, col);
+    }
+    const aboveTree = smoothstep(treeline + 100, treeline + 450, cy);
+    const barren = aboveTree * smoothstep(-0.2, 0.4, n.noise(cx / 400, cz / 400));
+    // A low treeline usually means bare scree above the woods. Pasture stays grass;
+    // the steep faces still pick up rock further down.
+    const paleScree = !sc.pasture && sc.mountainHeight > 1000 && sc.treeline < 1700;
+    const gravelHere = sc.screeLine != null;
+    mix(col, gravelHere ? GRAVEL : paleScree ? pal.scree : pal.rock, barren * (sc.pasture ? 0.18 : 0.85), col);
+    // Loose gravel takes over across a short band. Steep faces stay that colour
+    // instead of turning into dark rock. The patch keeps a rubble slope from
+    // reading as one flat sheet of snow.
+    const screeAt = sc.screeLine;
+    if (screeAt != null) {
+      const patch = n.noise(cx / 16, cz / 16) * 0.5 + 0.5;
+      mix(GRAVEL, GRAVEL_DARK, patch * 0.55, tmp);
+      mix(col, tmp, smoothstep(screeAt - 25, screeAt + 30, cy), col);
+    }
+    const onScree = screeAt != null && cy > screeAt - 25;
+    const rocky = smoothstep(0.86, 0.68, ny) * (arid ? 1.15 : 1) * (onScree ? 0.28 : 1);
+    this.lastKind = rocky >= 0.5 ? LandCover.rock : 0;
+    mix(col, mix(pal.rock, pal.rockDark, smoothstep(0.7, 0.45, ny), tmp), Math.min(1, rocky), col);
+    const snowLine = sc.snowline + n.noise(cx / 500, cz / 500) * 140;
+    const snow = arid ? 0 : smoothstep(snowLine - 40, snowLine + 60, cy) * smoothstep(0.45, 0.7, ny);
+    mix(col, pal.snow, snow, col);
+    this.waterAndVerge(col, pal, cx, cy, cz);
+    const shade = aoV * (0.94 + jitter * 0.12) * (1 - snow * 0.05);
+    col[0] *= shade;
+    col[1] *= shade;
+    col[2] *= shade;
+    return col;
+  }
+
+  /** Lake shore sand and seabed, and the worn verge beside the asphalt. Same for both looks. */
+  private waterAndVerge(col: RGB, pal: Palette, cx: number, cy: number, cz: number): void {
+    const sc = this.field.scenery;
+    if (sc.waterLevel !== null) {
+      if (cy < sc.waterLevel + 3) mix(col, pal.sand, smoothstep(sc.waterLevel + 3, sc.waterLevel + 0.5, cy), col);
+      if (cy < sc.waterLevel - 1.5) mix(col, pal.seabed, smoothstep(sc.waterLevel - 1.5, sc.waterLevel - 6, cy), col);
+    }
+    const d = this.field.roadDistance(cx, cz);
+    if (d < ROAD_HALF_WIDTH + 3.5) {
+      const near = smoothstep(ROAD_HALF_WIDTH + 3.5, ROAD_HALF_WIDTH + 1, d) * 0.8;
+      if (sc.screeLine != null && cy > sc.screeLine + 15) mix(col, GRAVEL, near * 0.35, col);
+      else mix(col, pal.verge, near, col);
+    }
   }
 
   build(req: ChunkRequest): ChunkResult {
     const { x0, z0, size, segs } = req;
     const field = this.field;
-    const sc = field.scenery;
     const step = size / segs;
     const W = segs + 3; // includes a one-vertex border for curvature
     const H = new Float32Array(W * W);
@@ -170,66 +432,9 @@ export class ChunkBuilder {
     const positions: number[] = [];
     const normals: number[] = [];
     const colors: number[] = [];
-    const col: RGB = [0, 0, 0];
-    const tmp: RGB = [0, 0, 0];
 
-    const faceColor = (cx: number, cy: number, cz: number, ny: number, aoV: number, jitter: number): RGB => {
-      const n = this.noise;
-      const biome = sc.biome ?? 'alpine';
-      const pal = BIOMES[biome];
-      const arid = biome === 'desert';
-      const treeline = sc.treeline + n.noise(cx / 700, cz / 700) * 120;
-      const alt = smoothstep(sc.treeline - 900, sc.treeline + 150, cy);
-      mix(pal.grassLow, pal.grassHigh, alt, col);
-      const forestN = n.fbm(cx / 850, cz / 850, 2);
-      if (arid) {
-        const dune = n.noise(cx / 160, cz / 160) * 0.5 + 0.5;
-        mix(col, pal.sand, dune * 0.5, col);
-      } else {
-        const cover = field.groundCover(cx, cz, cy);
-        let forest = smoothstep(1 - sc.forestDensity * 1.25, 1.1 - sc.forestDensity, forestN * 0.5 + 0.5) * (1 - smoothstep(treeline - 120, treeline + 40, cy));
-        if (cover === 'pasture') forest = 0;
-        else if (cover === 'wood') forest = Math.max(forest, 0.82);
-        mix(col, pal.forest, forest * 0.75, col);
-      }
-      const aboveTree = smoothstep(treeline + 100, treeline + 450, cy);
-      const barren = aboveTree * smoothstep(-0.2, 0.4, n.noise(cx / 400, cz / 400));
-      // A low treeline usually means bare scree above the woods. Pasture stays grass;
-      // the steep faces still pick up rock further down.
-      const paleScree = !sc.pasture && sc.mountainHeight > 1000 && sc.treeline < 1700;
-      const gravelHere = sc.screeLine != null;
-      mix(col, gravelHere ? GRAVEL : paleScree ? pal.scree : pal.rock, barren * (sc.pasture ? 0.18 : 0.85), col);
-      // Loose gravel takes over across a short band. Steep faces stay that colour
-      // instead of turning into dark rock. The patch keeps a rubble slope from
-      // reading as one flat sheet of snow.
-      const screeAt = sc.screeLine;
-      if (screeAt != null) {
-        const patch = n.noise(cx / 16, cz / 16) * 0.5 + 0.5;
-        mix(GRAVEL, GRAVEL_DARK, patch * 0.55, tmp);
-        mix(col, tmp, smoothstep(screeAt - 25, screeAt + 30, cy), col);
-      }
-      const onScree = screeAt != null && cy > screeAt - 25;
-      const rocky = smoothstep(0.86, 0.68, ny) * (arid ? 1.15 : 1) * (onScree ? 0.28 : 1);
-      mix(col, mix(pal.rock, pal.rockDark, smoothstep(0.7, 0.45, ny), tmp), Math.min(1, rocky), col);
-      const snowLine = sc.snowline + n.noise(cx / 500, cz / 500) * 140;
-      const snow = arid ? 0 : smoothstep(snowLine - 40, snowLine + 60, cy) * smoothstep(0.45, 0.7, ny);
-      mix(col, pal.snow, snow, col);
-      if (sc.waterLevel !== null) {
-        if (cy < sc.waterLevel + 3) mix(col, pal.sand, smoothstep(sc.waterLevel + 3, sc.waterLevel + 0.5, cy), col);
-        if (cy < sc.waterLevel - 1.5) mix(col, pal.seabed, smoothstep(sc.waterLevel - 1.5, sc.waterLevel - 6, cy), col);
-      }
-      const d = field.roadDistance(cx, cz);
-      if (d < ROAD_HALF_WIDTH + 3.5) {
-        const near = smoothstep(ROAD_HALF_WIDTH + 3.5, ROAD_HALF_WIDTH + 1, d) * 0.8;
-        if (sc.screeLine != null && cy > sc.screeLine + 15) mix(col, GRAVEL, near * 0.35, col);
-        else mix(col, pal.verge, near, col);
-      }
-      const shade = aoV * (0.94 + jitter * 0.12) * (1 - snow * 0.05);
-      col[0] *= shade;
-      col[1] *= shade;
-      col[2] *= shade;
-      return col;
-    };
+    const faceColor = (cx: number, cy: number, cz: number, ny: number, aoV: number, jitter: number): RGB =>
+      this.faceColor(cx, cy, cz, ny, aoV, jitter);
 
     const pushTri = (
       ax: number, ay: number, az: number,
@@ -415,6 +620,11 @@ export class ChunkBuilder {
         const sink = Math.min(ground.slope, 1.5) * 0.35;
         if (sc.waterLevel !== null && ground.y < sc.waterLevel + 2) continue;
         const treeline = sc.treeline + n.noise(x / 700, z / 700) * 120;
+        const cls = field.hasCover ? field.coverAt(x, z) : 0;
+        if (cls !== 0 && (sc.biome ?? 'alpine') !== 'desert') {
+          this.coverProp(out, req, cls, x, z, d, h, treeline, ground, r1, r2, r3, hash2(gx, gz));
+          continue;
+        }
         const forestN = n.fbm(x / 850, z / 850, 2) * 0.5 + 0.5;
         const cover = field.groundCover(x, z, h);
         let density = smoothstep(1 - sc.forestDensity * 1.25, 1.1 - sc.forestDensity, forestN);
@@ -442,6 +652,179 @@ export class ChunkBuilder {
         }
       }
     }
+    if (field.hasCover && (sc.biome ?? 'alpine') !== 'desert') this.cliffs(out, req);
     return new Float32Array(out);
+  }
+
+  /**
+   * Trees, shrubs and boulders from the land-cover map. Forest keeps its trees
+   * on steep ground up to about 45° (real alpine woods grow on 30-40° slopes;
+   * the generated look thinned them from about 31°, which left bare grey
+   * faces). Meadow gets the odd lone tree below the treeline, scrub low bushes,
+   * and boulders lie only on rock, scree and cliff, and at the foot of a cliff.
+   * Glacier, water and built-up ground stay empty. The steepness here is the
+   * DEM's over 25 m, so a road bank does not thin a wood.
+   */
+  private coverProp(
+    out: number[], req: ChunkRequest, cls: number, x: number, z: number, d: number, h: number, treeline: number,
+    ground: { y: number; slope: number }, r1: number, r2: number, r3: number, rs: number,
+  ): void {
+    const field = this.field;
+    const sc = field.scenery;
+    const lx = x - req.x0;
+    const lz = z - req.z0;
+    const dn = field.demNormalY(x, z);
+    // Rise over run of the real slope; without a DEM, the face under the prop.
+    const tan = dn.w > 0.5 ? Math.sqrt(Math.max(0, 1 - dn.ny * dn.ny)) / dn.ny : ground.slope;
+    const sink = Math.min(ground.slope, 1.5) * 0.35;
+    const biome = sc.biome ?? 'alpine';
+    const broadleafAt = () =>
+      sc.broadleaf ? true : biome === 'spruce' ? false : biome === 'moor' ? this.noise.noise(x / 300 + 40, z / 300) > 0.72 : h < 1100 && this.noise.noise(x / 300 + 40, z / 300) > 0.15;
+    const tree = (keep: number) => {
+      if (r3 >= keep) return false;
+      const broadleaf = broadleafAt();
+      // Trees shrink in the last 200 m below the treeline, as they do up there.
+      const high = h > treeline - 200;
+      let scale = (0.75 + rs * 0.6) * req.treeScale * (high ? 0.8 : 1);
+      if (biome === 'moor' && !broadleaf) scale *= 0.45;
+      out.push(lx, ground.y - 0.3 - sink, lz, scale, r1 * Math.PI * 2, broadleaf ? 1 : 0);
+      return true;
+    };
+    if (cls === LandCover.forest) {
+      // Above the road's real treeline (noisy by +-120 m) WorldCover's "tree cover" is krummholz:
+      // dwarf pine and green alder, not tall conifers. Galibier's above 2,000 m, the Stelvio's
+      // above 2,100 m grew full spruces before.
+      if (h > treeline) {
+        if (r3 < 0.45 * (1 - smoothstep(1.0, 1.4, tan))) out.push(lx, ground.y - 0.15 - sink * 0.5, lz, (0.8 + r2 * 0.6) * req.treeScale, r1 * Math.PI * 2, PROP_SCRUB);
+        return;
+      }
+      tree((0.9 * 0.85 + 0.07) * (1 - smoothstep(0.9, 1.1, tan)));
+      return;
+    }
+    if (cls === LandCover.meadow) {
+      if (h < treeline && tree(0.03 * (1 - smoothstep(0.7, 1.0, tan)))) return;
+      if (req.propDetail === 0 && this.nearCliff(x, z)) this.boulder(out, req, x, z, d, ground, r1, r2, r3, 0.12, true);
+      return;
+    }
+    if (cls === LandCover.scrub) {
+      if (r3 < 0.55 * (1 - smoothstep(1.0, 1.4, tan))) {
+        // A low bush now; the dwarf pine model goes into the PROP_SCRUB slot in terrain.ts.
+        const scale = (0.9 + r2 * 0.7) * req.treeScale;
+        out.push(lx, ground.y - 0.15 - sink * 0.5, lz, scale, r1 * Math.PI * 2, PROP_SCRUB);
+        return;
+      }
+      if (req.propDetail === 0 && this.nearCliff(x, z)) this.boulder(out, req, x, z, d, ground, r1, r2, r3, 0.12, true);
+      return;
+    }
+    if (req.propDetail !== 0) return;
+    if (cls === LandCover.rock) this.boulder(out, req, x, z, d, ground, r1, r2, r3, this.nearCliff(x, z) ? 0.2 : 0.07, false);
+    else if (cls === LandCover.scree) {
+      this.boulder(out, req, x, z, d, ground, r1, r2, r3, this.nearCliff(x, z) ? 0.25 : 0.12, false);
+      this.screePatch(out, req, x, z, d, ground, r1, r2, r3);
+    }
+    // On the face itself a few: a boulder does not stay on a wall.
+    else if (cls === LandCover.cliff && ground.slope < 1.3) this.boulder(out, req, x, z, d, ground, r1, r2, r3, 0.04, false);
+  }
+
+  /**
+   * A scree patch (Blender scree_patch_*: a dozen flat stones, ~6 m across, 0.4 m tall) on scree
+   * only, sparse (5 % of prop points, from the bottom of r3, so it never shares a point with a
+   * boulder). The patch is level and the slope is not, so it is sunk until its downhill edge
+   * meets the ground: the uphill stones go under, the rest lie on the surface. Off the asphalt by
+   * its whole radius.
+   */
+  private screePatch(
+    out: number[], req: ChunkRequest, x: number, z: number, d: number,
+    ground: { y: number; slope: number }, r1: number, r2: number, r3: number,
+  ): void {
+    if (r3 >= 0.05) return;
+    const scale = 0.8 + r2 * 0.6;
+    if (d < ROAD_HALF_WIDTH + 2 + 3 * scale) return;
+    const sink = 0.1 + Math.min(ground.slope, 1.0) * 3 * scale;
+    out.push(x - req.x0, ground.y - sink, z - req.z0, scale, r1 * Math.PI * 2, PROP_SCREE);
+  }
+
+  /**
+   * Cliff faces (Blender cliff_face_*) on OSM cliff lines (class 6) and on the steepest bare rock
+   * (class 4 at STEEP_ROCK or more), sampled on their own world grid so they do not depend on the
+   * tree spacing: 12.5 m near the rider, 18 m on the coarser near tiles, 25 m on far tiles (bigger
+   * faces there). Each face turns its front (+Z) downhill, so its width runs along the contour, which
+   * is along the cliff line. Its base sits 1.5 m per unit of scale below the lowest ground under its
+   * front and both ends, so no corner floats. The centre stays CLIFF_HALF_WIDTH x scale plus 3 m off
+   * the road, so no part of it can reach the asphalt.
+   */
+  private cliffs(out: number[], req: ChunkRequest): void {
+    const f = this.field;
+    const step = req.propDetail === 0 ? 12.5 : req.size > 512 ? 25 : 18;
+    const big = req.size > 512 ? 1.3 : 1;
+    const cell = req.size / req.segs;
+    const gx0 = Math.ceil(req.x0 / step), gz0 = Math.ceil(req.z0 / step);
+    const gx1 = Math.floor((req.x0 + req.size) / step), gz1 = Math.floor((req.z0 + req.size) / step);
+    const e = 10;
+    for (let gz = gz0; gz < gz1; gz++) {
+      for (let gx = gx0; gx < gx1; gx++) {
+        const r1 = hash2(gx * 31 + 7, gz * 17 + 3);
+        const r2 = hash2(gx * 13 + 1, gz * 29 + 5);
+        const r3 = hash2(gx * 7 + 11, gz * 5 + 13);
+        const x = (gx + (r1 - 0.5) * 0.5) * step;
+        const z = (gz + (r2 - 0.5) * 0.5) * step;
+        const cls = f.coverAt(x, z);
+        if (cls !== LandCover.cliff && cls !== LandCover.rock) continue;
+        // The real ground's slope (the DEM alone): heightAt adds the invented facets and bumps, which
+        // tip a 37° slope past STEEP_ROCK and swing the downhill direction about.
+        const gxH = this.demH(x + e, z) - this.demH(x - e, z);
+        const gzH = this.demH(x, z + e) - this.demH(x, z - e);
+        const tan = Math.hypot(gxH, gzH) / (2 * e);
+        // A mapped cliff on ground the DEM sees as nearly flat has no downhill to face.
+        if (cls === LandCover.cliff ? tan < 0.25 || r3 > 0.5 : tan < STEEP_ROCK || r3 > 0.3) continue;
+        const scale = (0.9 + r3 * 0.8) * big;
+        const half = CLIFF_HALF_WIDTH * scale;
+        if (f.roadDistance(x, z) < ROAD_HALF_WIDTH + 3 + half) continue;
+        if (f.blocksProp(x, z) || f.cleared(x, z)) continue;
+        const dx = -gxH / (tan * 2 * e);
+        const dz = -gzH / (tan * 2 * e);
+        // three.js turns +Z by angle a about Y to (sin a, 0, cos a): atan2(dx, dz) points it downhill.
+        const rot = Math.atan2(dx, dz) + (r1 - 0.5) * 0.3;
+        let y = f.groundMesh(x, z, cell).y;
+        y = Math.min(
+          y,
+          f.groundMesh(x + dx * 4 * scale, z + dz * 4 * scale, cell).y,
+          f.groundMesh(x + dz * half, z - dx * half, cell).y,
+          f.groundMesh(x - dz * half, z + dx * half, cell).y,
+        );
+        out.push(x - req.x0, y - 1.5 * scale, z - req.z0, scale, rot, PROP_CLIFF);
+      }
+    }
+  }
+
+  /** DEM height where the road has real ground there, else the field's height. */
+  private demH(x: number, z: number): number {
+    const d = this.field.demAt(x, z);
+    return d.w > 0.5 ? d.h : this.field.heightAt(x, z);
+  }
+
+  /** A cliff node within one fine cell (25 m) of this point, not counting the point's own node. */
+  private nearCliff(x: number, z: number): boolean {
+    const f = this.field;
+    const s = 25;
+    return f.coverAt(x + s, z) === LandCover.cliff || f.coverAt(x - s, z) === LandCover.cliff || f.coverAt(x, z + s) === LandCover.cliff || f.coverAt(x, z - s) === LandCover.cliff;
+  }
+
+  /**
+   * One boulder with probability `chance` (taken from the top of r3, so it
+   * never competes with a tree roll). Bigger at a cliff foot. It is sunk by a
+   * fraction of its own size that grows with the slope, so the downhill edge
+   * does not hang in the air (the model is about 1.4 wide and 0.8 tall per unit
+   * of scale). It keeps its whole width off the asphalt.
+   */
+  private boulder(
+    out: number[], req: ChunkRequest, x: number, z: number, d: number,
+    ground: { y: number; slope: number }, r1: number, r2: number, r3: number, chance: number, foot: boolean,
+  ): void {
+    if (r3 <= 1 - chance) return;
+    const scale = foot ? 0.8 + r2 * 1.8 : 0.6 + r2 * 1.4;
+    if (d < ROAD_HALF_WIDTH + 2 + 1.4 * scale) return;
+    const sink = scale * (0.2 + 0.85 * Math.min(ground.slope, 0.8));
+    out.push(x - req.x0, ground.y - sink, z - req.z0, scale, r1 * Math.PI * 2, 2);
   }
 }

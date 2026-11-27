@@ -7,6 +7,8 @@ Everything drawn in a ride or behind the menus. Three.js, low-poly, vertex colou
 - `graphics.ts`: renderer, `QUALITY` presets (low/medium/high/ultra, incl. terrain distances), post-processing, dynamic resolution while riding, the auto quality step-down below the chosen preset (AO off → shadow map 2048 → bloom off, only while riding, never above the preset), and `lite` (AO and bloom out of the chain behind a covering menu panel). It also owns the sun's shadow map size (`setQuality(settings, sun)`). One `Graphics` is reused across worlds.
 - `terrainField.ts`: the height field (generated, or real DEM grids on real roads), road cut/bank, lakes, pads, clearings, `ROAD_HALF_WIDTH`.
 - `terrain.ts` (`TerrainManager`), `terrainChunk.ts` (`ChunkBuilder`), `terrainWorker.ts`: tiles built in 2–3 workers with LOD and trees; buffers are transferred back. Near detailed chunks draw props per model (`byModel`) with `castShadow` off, and cast shadows through `ShadowCaster` sub-cells (128 m, sharing the matrices) that only the sun's shadow frustum sees.
+  - Prop types (worker → `propGeomsFor` slot): 0 conifer, 1 broadleaf, 2 boulder, 3 scrub (`mugo`), 4 cliff face (`PROP_CLIFF`), 5 scree patch (`PROP_SCREE`). 2/4/5 draw with `rockMaterial` (no wind sway, grey tints × `ROCK_TINT`) but are ordinary `byModel` entries, so they share the sub-cell shadows and the frozen matrices. Cliffs and scree exist only on real roads with land cover and only as Blender models (no fallback). Placement rules: `docs/REAL_ROADS.md` → "Land cover at runtime".
+  - Per-road hints from `climbs.json`: `scenery.rockTone` (ground rock colours via `paletteFor`, prop tint) and `scenery.trees` (model names for slots 0/1). Source them in the climb's `sceneryNote`.
 - `materials.ts`: `MatKind` (matte, rough, gloss, paint, carpaint, metal, chrome, glass, glow, rubber, cloth, foliage, ground, marks), `material(kind)` cache, `Part` / `Model` (geometry + surface + optional tint slot).
 - `geometry.ts`: builders (`paint`, `colored`, `merge`, `loft`, `sweep`, `tube`, `placement`...) and detail levels: `Detail` 0/1/2, `atDetail()`, `q(close, mid)`.
 - `batch.ts`: `prepare()` (merge a model per surface), `StaticBatch` (bake static things into one mesh per surface per map cell, cull by cell), `InstancedModel` (many copies, per-instance matrix + tint, `commit()` uploads only used slots).
@@ -49,6 +51,7 @@ A real landmark that OpenStreetMap maps (hut, chapel, shrine) goes through `land
 
 ## Tests
 - `npx vitest run src/world/terrainField.test.ts` (road sits on terrain, lakes, tree seating, hairpin banks per real road; slow-ish)
+- `npx vitest run src/world/terrainCover.test.ts src/routes/real/sceneryHints.test.ts` (land cover: colours, props by class, cliffs face downhill and keep off the road, scree only on scree, dwarf pine above the treeline, hints valid and sourced; pins roads without cover)
 - `npx vitest run src/world/landmarks.test.ts src/world/propAssets.test.ts` (mapped landmarks: sources, placement, model budgets; ~2 min)
 - `npx vitest run src/world/climbs.test.ts src/world/fences.test.ts src/world/traffic.test.ts src/world/convoy.test.ts src/world/riderPick.test.ts`
 - Rendering has no tests: look at it in the preview, and check `/play?perf` (fps, draw calls, triangles) for perf work.

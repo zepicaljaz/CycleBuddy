@@ -117,12 +117,15 @@ blender -b --factory-startup --python scripts/blender/landmarks.py -- [--preview
   - spruce: spruce_a x2, spruce_b / (same) / boulders
   - moor: code-built olive shrub / holm_oak / boulders
   - desert: unchanged (code-built shrub, cactus, warm rock)
-- Not placed yet: `mugo`, `scree_patch_*`, `cliff_face_*`, `aleppo_pine`, `cypress`. To
-  place them by ground cover, take `propAsset('mugo')` etc. and add an InstancedMesh like
-  the slots do. Cliffs and scree must not use the wind-sway prop material (sway grows
-  with height above 2 m and would bend a 14 m cliff); give them a plain
-  `MeshStandardMaterial({ vertexColors: true, flatShading: true })`. Cliffs face +Z:
-  rotate each instance so +Z points away from the slope (downhill).
+  - every biome but desert also has slot 3 `mugo` (land-cover scrub, and forest above
+    the treeline), slot 4 `cliff_face_a-c` and slot 5 `scree_patch_a/b` (land-cover
+    cliffs and scree on real roads, no code-built fallback).
+  - a road's `scenery.trees` hint (climbs.json) replaces slots 0/1 by name, e.g. Ventoux
+    holm_oak/beech + larch/spruce_b.
+- Cliffs and scree (and boulders) draw with a plain `rockMaterial` in `terrain.ts`, not
+  the wind-sway prop material (sway grows with height above 2 m and would bend a 14 m
+  cliff). Cliffs face +Z and the worker turns each so +Z points downhill.
+- Not placed yet: `aleppo_pine`, `cypress` (no sourced road wants them yet).
 - Mediterranean limestone worlds (Tuscany, Sicily, Catalonia, Andalusia, Corsica) share
   the biome with Vršič, Giau and Ventoux, so they get the alpine set for now. A scenery
   flag (for example `flora: 'mediterranean'`) could switch them to aleppo_pine, cypress

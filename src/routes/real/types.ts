@@ -1,4 +1,4 @@
-import type { Biome } from '../types';
+import type { Biome, RockTone, TreeHints } from '../types';
 
 /**
  * A real, named climb. The profile is the published average gradient of each
@@ -32,6 +32,8 @@ export interface RealClimb {
   hairpinsWhere?: 'top' | 'bottom' | 'even' | 'steep';
   description: string;
   famousFor: string;
+  /** Where the scenery hints below come from (treeline, snowline…), with sources. Not used by the game. */
+  sceneryNote?: string;
   /** Scenery hints. Treeline and snowline are real elevations. */
   biome?: Biome;
   treeline?: number;
@@ -44,6 +46,10 @@ export interface RealClimb {
   pastureAbove?: number;
   /** Valley trees are broadleaf. */
   broadleaf?: boolean;
+  /** Bare rock colour where it differs from the biome's ('pale' limestone, 'grey' schist/granite, 'dark' shale). Source it in sceneryNote. */
+  rockTone?: RockTone;
+  /** Tree models for this road (conifers: slot 0, broadleaves: slot 1). Source the species in sceneryNote. */
+  trees?: TreeHints;
   /** Metres from the start of the road where the verge is open ground. */
   openAlong?: { fromM: number; toM: number; radius: number }[];
   /** Where the ground turns to loose gravel, in metres. Trees still follow the treeline. */

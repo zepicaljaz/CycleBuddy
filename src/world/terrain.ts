@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import type { ChunkRequest, ChunkResult } from './terrainChunk';
 import type { FieldInput } from './terrainField';
-import type { Biome } from '../routes/types';
+import type { Biome, SceneryDef } from '../routes/types';
 import { addWindSway, broadleafDetailed, broadleafSimple, cactus, pineDetailed, pineSimple, rock, rockWarm, shrub, spruceDetailed, spruceSimple } from './models';
 import { isPropAsset, propAsset } from './propAssets';
 
@@ -72,13 +72,31 @@ const rectDistance = (x0: number, z0: number, size: number, px: number, pz: numb
 const MOOR_FOLIAGE = [0x6a7040, 0x746e44, 0x5c6238] as const;
 
 /**
- * Per prop slot (0 conifer, 1 broadleaf, 2 rock; the worker's prop type), the models
+ * Per prop slot (0 conifer, 1 broadleaf, 2 rock, 3 scrub on land-cover scrub cells, 4 cliff face, 5 scree patch;
+ * the worker's prop type), the models
  * that can stand there. A slot with several models picks one per prop from its
  * position; a name listed twice is twice as common.
  */
 type PropSlots = THREE.BufferGeometry[][];
 
 const BOULDERS = ['boulder_a', 'boulder_b', 'boulder_c', 'boulder_d', 'boulder_e'];
+const CLIFFS = ['cliff_face_a', 'cliff_face_b', 'cliff_face_c'];
+const SCREE = ['scree_patch_a', 'scree_patch_b'];
+/** Prop types drawn with the plain rock material (no wind sway) and grey-only tints: boulder, cliff, scree. */
+export const isRockProp = (type: number) => type === 2 || type === 4 || type === 5;
+
+/**
+ * Instance tint for rock props by the road's real rock. The Blender rocks are a pale limestone
+ * grey; instance colour multiplies it, so schist reads a cooler mid grey and shale dark.
+ */
+export const ROCK_TINT: Record<NonNullable<SceneryDef['rockTone']>, [number, number, number]> = {
+  pale: [1.04, 1.02, 0.96],
+  grey: [0.72, 0.72, 0.74],
+  dark: [0.5, 0.5, 0.52],
+};
+
+/** Cliffs and scree only come from Blender models; without them the slot draws nothing. */
+const empty = () => new THREE.BufferGeometry();
 
 /**
  * Blender models by name (src/assets/models, see scripts/blender/CLAUDE.md), or the
@@ -89,25 +107,48 @@ function models(names: readonly string[], far: boolean, fallback: () => THREE.Bu
   return found.length ? found : [fallback()];
 }
 
-/** Which trees and rocks grow in each biome, near (`detailed`) and far (`simple`). */
-function propGeomsFor(biome: Biome): { detailed: PropSlots; simple: PropSlots } {
+/**
+ * Fallback for land-cover scrub (prop type PROP_SCRUB = 3: heath, alpenrose, dwarf pine)
+ * when the Blender mugo model is missing.
+ */
+function scrubGeom(biome: Biome): THREE.BufferGeometry {
+  return biome === 'moor' ? shrub(MOOR_FOLIAGE) : shrub([0x4f6a34, 0x5a7238, 0x46602e]);
+}
+
+/**
+ * Which trees and rocks grow in each biome, near (`detailed`) and far (`simple`). A road's
+ * `scenery.trees` hint (climbs.json, sourced in its sceneryNote) replaces the biome's conifer
+ * and/or broadleaf models.
+ */
+export function propGeomsFor(biome: Biome, trees?: SceneryDef['trees']): { detailed: PropSlots; simple: PropSlots } {
   const level = (far: boolean): PropSlots => {
-    if (biome === 'desert') return [[shrub()], [cactus()], [rockWarm()]];
+    if (biome === 'desert') return [[shrub()], [cactus()], [rockWarm()], [shrub()], [empty()], [empty()]];
+    const slots = biomeSlots(far);
+    if (trees?.conifers?.length) slots[0] = models(trees.conifers, far, () => slots[0][0]);
+    if (trees?.broadleaves?.length) slots[1] = models(trees.broadleaves, far, () => slots[1][0]);
+    // Cliff faces have no far version; propAsset falls back to the near one.
+    slots.push(models(CLIFFS, far, empty), models(SCREE, far, empty));
+    return slots;
+  };
+  const biomeSlots = (far: boolean): PropSlots => {
     const rocks = models(BOULDERS, far, rock);
+    // Scrub cells (heath, alpenrose, dwarf pine): the Blender mugo, else a low shrub.
+    const scrub = biome === 'moor' ? [scrubGeom(biome)] : models(['mugo'], far, () => scrubGeom(biome));
     if (biome === 'moor') {
       // Holm oak's dark olive crown sits with the moor grass; a bright beech would not.
-      return [[shrub(MOOR_FOLIAGE)], models(['holm_oak'], far, () => (far ? broadleafSimple(MOOR_FOLIAGE[0]) : broadleafDetailed(MOOR_FOLIAGE))), rocks];
+      return [[shrub(MOOR_FOLIAGE)], models(['holm_oak'], far, () => (far ? broadleafSimple(MOOR_FOLIAGE[0]) : broadleafDetailed(MOOR_FOLIAGE))), rocks, scrub];
     }
     if (biome === 'spruce') {
       // The worker never asks for slot 1 here (spruce forests are all conifer).
       const spruce = models(['spruce_a', 'spruce_a', 'spruce_b'], far, far ? spruceSimple : spruceDetailed);
-      return [spruce, spruce, rocks];
+      return [spruce, spruce, rocks, scrub];
     }
     const conifers = biome === 'limestone' ? ['spruce_a', 'larch', 'scots_pine'] : ['spruce_a', 'spruce_a', 'spruce_b', 'larch'];
     return [
       models(conifers, far, far ? pineSimple : pineDetailed),
       models(['beech'], far, () => (far ? broadleafSimple() : broadleafDetailed())),
       rocks,
+      scrub,
     ];
   };
   return { detailed: level(false), simple: level(true) };
@@ -138,6 +179,8 @@ export class TerrainManager {
   private readyWorkers = 0;
   private material: THREE.MeshStandardMaterial;
   private propMaterial: THREE.MeshStandardMaterial;
+  private rockMaterial: THREE.MeshStandardMaterial;
+  private rockTint: [number, number, number];
   private propGeoms: { detailed: PropSlots; simple: PropSlots };
   readonly windTime = { value: 0 };
   /** The sun's shadow frustum (`light.shadow.getFrustum()`), set by World. Shadow casters draw only for it. */
@@ -158,7 +201,11 @@ export class TerrainManager {
     this.propMaterial = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.9, flatShading: true });
     addWindSway(this.propMaterial, this.windTime, 0.012);
     const biome = input.scenery.biome ?? 'alpine';
-    this.propGeoms = propGeomsFor(biome);
+    this.propGeoms = propGeomsFor(biome, input.scenery.trees);
+    // Cliffs, scree and boulders: the prop look without the wind sway, which grows with height above
+    // 2 m and would bend a 14 m cliff face (scripts/blender/CLAUDE.md).
+    this.rockMaterial = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.95, flatShading: true });
+    this.rockTint = input.scenery.rockTone ? ROCK_TINT[input.scenery.rockTone] : [1, 1, 1];
     const n = Math.min(3, Math.max(2, (navigator.hardwareConcurrency || 4) - 2));
     for (let i = 0; i < n; i++) {
       const w = new Worker(new URL('./terrainWorker.ts', import.meta.url), { type: 'module' });
@@ -261,7 +308,9 @@ export class TerrainManager {
           for (const i of list) sorted[fill[cellOf(i)]++] = i;
           list = sorted;
         }
-        const inst = new THREE.InstancedMesh(geom, this.propMaterial, list.length);
+        const rockProp = isRockProp(type);
+        const inst = new THREE.InstancedMesh(geom, rockProp ? this.rockMaterial : this.propMaterial, list.length);
+        const [tr, tg, tb] = this.rockTint;
         list.forEach((i, k) => {
           const o = i * 6;
           const scale = props[o + 3];
@@ -270,12 +319,12 @@ export class TerrainManager {
           // so a hillside is not one stamped tree. Rocks only vary in brightness.
           const h1 = ((i * 2654435761) >>> 0) % 1000 / 1000;
           const h2 = ((i * 40503 + 17) >>> 0) % 1000 / 1000;
-          s.set(scale, type === 2 ? scale : scale * (0.85 + h2 * 0.5), scale);
+          s.set(scale, rockProp ? scale : scale * (0.85 + h2 * 0.5), scale);
           p.set(props[o], props[o + 1], props[o + 2]);
           m.compose(p, q, s);
           inst.setMatrixAt(k, m);
           const tint = 0.86 + ((i * 7919) % 100) / 400;
-          if (type === 2) inst.setColorAt(k, c.setRGB(tint, tint, tint));
+          if (rockProp) inst.setColorAt(k, c.setRGB(tint * tr, tint * tg, tint * tb));
           else inst.setColorAt(k, c.setRGB(tint * (0.9 + h1 * 0.2), tint * (1.0 + h2 * 0.05), tint * (0.84 + (1 - h1) * 0.14)));
         });
         inst.receiveShadow = true;
@@ -292,7 +341,8 @@ export class TerrainManager {
           const a = starts[c];
           const b = starts[c + 1];
           if (b === a) continue;
-          const caster = new ShadowCaster(geom, this.propMaterial, b - a, this.shadowView);
+          // Rock props cast with the rock material too: the sway material's depth pass would bend a cliff's shadow.
+          const caster = new ShadowCaster(geom, rockProp ? this.rockMaterial : this.propMaterial, b - a, this.shadowView);
           caster.instanceMatrix = new THREE.InstancedBufferAttribute(matrices.subarray(a * 16, b * 16), 16);
           caster.castShadow = spec.castShadow;
           caster.computeBoundingSphere();
@@ -452,6 +502,7 @@ export class TerrainManager {
     this.live.clear();
     this.material.dispose();
     this.propMaterial.dispose();
+    this.rockMaterial.dispose();
     // Blender models are shared by every world (propAssets caches them); only code-built ones are ours.
     for (const g of new Set([...this.propGeoms.detailed.flat(), ...this.propGeoms.simple.flat()])) if (!isPropAsset(g)) g.dispose();
   }

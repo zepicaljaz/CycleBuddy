@@ -35,6 +35,14 @@ export type Difficulty = 'flat' | 'hilly' | 'mountain' | 'epic';
 /** Ground colours and vegetation. Existing routes stay alpine when this is omitted. */
 export type Biome = 'alpine' | 'limestone' | 'desert' | 'moor' | 'spruce';
 
+/** 'pale' limestone/dolomite, 'grey' schist or granite, 'dark' shale. */
+export type RockTone = 'pale' | 'grey' | 'dark';
+
+export interface TreeHints {
+  conifers?: string[];
+  broadleaves?: string[];
+}
+
 export interface SceneryDef {
   /** Height of procedural mountains around the road, metres. */
   mountainHeight: number;
@@ -60,6 +68,13 @@ export interface SceneryDef {
   pastureAbove?: number;
   /** The trees below the pasture are broadleaf. Omitted keeps the usual mix of pine and broadleaf. */
   broadleaf?: boolean;
+  /** Colour of bare rock, scree and rock props where the real rock differs from the biome's. */
+  rockTone?: RockTone;
+  /**
+   * Blender tree models (src/assets/models names) for this road instead of the biome's set:
+   * `conifers` for prop slot 0, `broadleaves` for slot 1. A name listed twice is twice as common.
+   */
+  trees?: TreeHints;
   /**
    * Stretches of this road, in metres from the start, where the verge is open
    * ground. The way back along the same bend is included. Outside the radius
@@ -91,8 +106,47 @@ export interface DemGridInfo {
 }
 
 export interface DemGrid extends DemGridInfo {
-  /** Heights in metres, row by row from (x0, z0). */
-  data: Float32Array;
+  /**
+   * Heights row by row from (x0, z0), times `scale` in metres. Real roads keep
+   * the file's unsigned decimetres (scale 0.1): half the memory of metres as
+   * floats, and every terrain worker gets its own copy.
+   */
+  data: Float32Array | Uint16Array;
+  /** Metres per stored unit. Omitted means the data is already in metres. */
+  scale?: number;
+}
+
+/**
+ * Land-cover classes in a real road's `.cover.bin`. One byte per grid node,
+ * same layout as the height grids. 0 means no data there: the generated look
+ * (treeline, forest noise, slope rock) takes over.
+ */
+export const LandCover = {
+  unknown: 0,
+  forest: 1,
+  meadow: 2,
+  /** Scrub, dwarf pine, heath. */
+  scrub: 3,
+  rock: 4,
+  scree: 5,
+  cliff: 6,
+  /** Glacier and permanent snow. */
+  glacier: 7,
+  water: 8,
+  built: 9,
+} as const;
+
+/** One land-cover grid: a class per node, row by row from (x0, z0). Node (i, j) sits at (x0 + i·cell, z0 + j·cell). */
+export interface CoverGrid extends DemGridInfo {
+  data: Uint8Array;
+}
+
+/** Where a real road's land cover lives: same grids as the heights (25 m near, 100 m far). */
+export interface TrackLandCover {
+  /** `<id>.cover.bin` under src/assets/terrain: Uint8 grids back to back. */
+  file: string;
+  grids: DemGridInfo[];
+  sources?: string[];
 }
 
 /** A polygon in the road's local metres (x east, z south). The first point is not repeated. */
@@ -141,7 +195,7 @@ export interface TrackDef {
   /** Published number of hairpins on the climb; the sharpest bends of the real line get the signs. */
   hairpinCount?: number;
   /** Height grids (fine first) in a binary file under src/assets/terrain, loaded when the ride starts. */
-  terrain?: { file: string; grids: DemGridInfo[] };
+  terrain?: { file: string; grids: DemGridInfo[]; cover?: TrackLandCover };
   /** Where the data comes from, for the credits. */
   source?: string;
 }

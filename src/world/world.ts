@@ -117,7 +117,7 @@ export class World {
       for (let i = a; i <= b; i++) town[i] = 1;
     }
     if (route.def.track) markOverlappingTown(route, town);
-    const input: FieldInput = { x: route.x, z: route.z, y: route.y, seed: route.def.seed, scenery: route.def.scenery, town, dem: route.terrain, places: route.def.track?.places };
+    const input: FieldInput = { x: route.x, z: route.z, y: route.y, seed: route.def.seed, scenery: route.def.scenery, town, dem: route.terrain, cover: route.cover, places: route.def.track?.places };
     this.field = new TerrainField(input);
     // Buildings and yards first, so the terrain workers know where trees must not grow.
     this.roadWriting = options?.roadWriting;
