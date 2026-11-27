@@ -1,5 +1,5 @@
 {
-  "_about": "Fixed camera spots on the real roads for before/after screenshots (node scripts/viewpoints.mjs <outDir>). km = route distance from the ride start (route s / 1000); lat/lon = the track point projected back from the track origin (inverse of scripts/real-track/build.mjs toXZ). Spots: start (300 m into the climb), hairpin (sharpest turn over ±30 m), steep (steepest ground across the road from the height grid, ±50 m), summit (250 m before the top). looks: ahead + the lower (more open) side. Optional per spot: h (camera height m), lat (m right of centre), pitch (deg), t (time of day).",
+  "_about": "Fixed camera spots on the real roads for before/after screenshots (node scripts/viewpoints.mjs <outDir>). km = route distance from the ride start (route s / 1000); lat/lon = the track point projected back from the track origin (inverse of scripts/real-track/build.mjs toXZ). Spots: start (300 m into the climb), hairpin (sharpest turn over ±30 m), steep (steepest ground across the road from the height grid, ±50 m), summit (250 m before the top). looks: ahead + the lower (more open) side. Optional per spot: h (camera height m), off (m right of centre), pitch (deg), t (time of day).",
   "roads": [
     {
       "id": "alpe-dhuez-bourg-doisans",

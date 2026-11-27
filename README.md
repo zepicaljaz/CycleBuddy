@@ -55,7 +55,7 @@ npm start               # production server (after a build)
 | `/play?perf` | fps, frame and CPU time, draw calls, triangles, render resolution, memory |
 | `/preview.html?scene=riders` | Models up close (riders, bikes, cars, buildings…) |
 | `/preview.html?scene=world&route=alpine&s=800` | A whole world with a small group at road position `s` (metres). `window.preview.goto(s)` moves it |
-| `/preview.html?scene=road&id=vrsic-kranjska-gora&km=4.5&look=left` | A fixed camera on a real road (High preset, pixel ratio 1, noon, no traffic): `look` = ahead, back, left, right, up-slope, down-slope; `h` camera height (1.7 m), `lat` metres right of the centre, `pitch` degrees, `t` time of day. Sets `window.__viewReady` when the terrain is complete |
+| `/preview.html?scene=road&id=vrsic-kranjska-gora&km=4.5&look=left` | A fixed camera on a real road (High preset, pixel ratio 1, noon, no traffic): `look` = ahead, back, left, right, up-slope, down-slope; `h` camera height (1.7 m), `off` metres right of the centre, `pitch` degrees, `t` time of day. Sets `window.__viewReady` when the terrain is complete |
 
 ---
 

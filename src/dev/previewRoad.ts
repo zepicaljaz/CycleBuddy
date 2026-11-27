@@ -11,7 +11,7 @@ import { World } from '../world/world';
  * Dev-only: a fixed camera on a real road, for before/after screenshots.
  *
  *   /preview.html?scene=road&id=<trackId>&km=<km>&look=<ahead|back|left|right|up-slope|down-slope>
- *     &h=<camera height above the road, m, default 1.7>&lat=<m right of the centre line, default 0>
+ *     &h=<camera height above the road, m, default 1.7>&off=<m right of the centre line, default 0>
  *     &pitch=<deg, added to the look's own tilt>&t=<morning|noon|golden|overcast, default noon>
  *
  * Builds the world the way the ride does (app.ts mountWorld: realClimbRoute → loadRouteTerrain → World),
@@ -64,7 +64,7 @@ const buildMs = performance.now() - t0;
 let look = (params.get('look') as Look) || 'ahead';
 const km = Number(params.get('km') ?? 1);
 const h = Number(params.get('h') ?? 1.7);
-const lat = Number(params.get('lat') ?? 0);
+const lat = Number(params.get('off') ?? 0);
 const s = route.wrap(km * 1000);
 const here = route.place(s, lat);
 const ground = lat === 0 ? here.y : Math.max(here.y, world.field.heightAt(here.x, here.z));

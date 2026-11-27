@@ -98,7 +98,8 @@ try {
       const { road, spot, si } = job;
       consoleErrors = [];
       const q = new URLSearchParams({ scene: 'road', id: road.id, km: String(spot.km), look: spot.looks[0] });
-      for (const k of ['h', 'lat', 'pitch', 't']) if (spot[k] != null) q.set(k, String(spot[k]));
+      // Spot fields lat/lon are the GPS position; the page's sideways offset is `off`.
+      for (const k of ['h', 'off', 'pitch', 't']) if (spot[k] != null) q.set(k, String(spot[k]));
       // The page gives up waiting for terrain a little before we do, and says so in __viewInfo.timedOut.
       q.set('timeout', String(Math.max(5000, timeoutMs - 10_000)));
       const url = `${base}/preview.html?${q}`;
