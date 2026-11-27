@@ -47,7 +47,8 @@ export default defineConfig({
         // three has the higher priority so the post group (which depends on it) does not swallow it.
         codeSplitting: {
           groups: [
-            { name: 'three', test: /[\\/]node_modules[\\/]three[\\/]/, priority: 2 },
+            // Loaders (GLTFLoader for the prop models) stay out: they are imported lazily on ride start.
+            { name: 'three', test: /[\\/]node_modules[\\/]three[\\/](?!examples[\\/]jsm[\\/]loaders[\\/])/, priority: 2 },
             { name: 'post', test: /[\\/]node_modules[\\/](postprocessing|n8ao)[\\/]/, priority: 1 },
           ],
         },
