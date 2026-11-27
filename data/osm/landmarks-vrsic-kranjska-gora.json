@@ -1,0 +1,668 @@
+{
+ "query": "[out:json][timeout:60];(nwr[\"tourism\"~\"^(alpine_hut|wilderness_hut)$\"](46.43182,13.73993,46.47916,13.78849);nwr[\"building\"=\"hut\"][\"name\"](46.43182,13.73993,46.47916,13.78849);nwr[\"amenity\"=\"restaurant\"](46.43182,13.73993,46.47916,13.78849);nwr[\"historic\"~\"^(wayside_shrine|wayside_cross)$\"](46.43182,13.73993,46.47916,13.78849);nwr[\"name\"~\"Ruska kapelica\"](46.43182,13.73993,46.47916,13.78849););out tags geom;",
+ "osm3s": {
+  "timestamp_osm_base": "2026-11-27T01:24:06Z",
+  "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."
+ },
+ "elements": [
+  {
+   "type": "node",
+   "id": 3924792412,
+   "lat": 46.4450539,
+   "lon": 13.7749949,
+   "tags": {
+    "historic": "wayside_cross",
+    "name": "Ruski križ",
+    "source": "Mapillary"
+   }
+  },
+  {
+   "type": "node",
+   "id": 10055863319,
+   "lat": 46.4760654,
+   "lon": 13.7595467,
+   "tags": {
+    "historic": "wayside_cross"
+   }
+  },
+  {
+   "type": "node",
+   "id": 14406458902,
+   "lat": 46.4751538,
+   "lon": 13.7846829,
+   "tags": {
+    "amenity": "restaurant",
+    "award:michelin": "2",
+    "check_date": "2026-11-22",
+    "email": "restaurant@hotelmilka.si",
+    "name": "Milka",
+    "phone": "+386 597 79590",
+    "website": "https://www.hotelmilka.si/sl/restavracija/"
+   }
+  },
+  {
+   "type": "way",
+   "id": 365555872,
+   "bounds": {
+    "minlat": 46.4326149,
+    "minlon": 13.7443955,
+    "maxlat": 46.4328733,
+    "maxlon": 13.7447237
+   },
+   "geometry": [
+    {
+     "lat": 46.432728,
+     "lon": 13.7443955
+    },
+    {
+     "lat": 46.4328733,
+     "lon": 13.744558
+    },
+    {
+     "lat": 46.4328116,
+     "lon": 13.744674
+    },
+    {
+     "lat": 46.4327844,
+     "lon": 13.7446435
+    },
+    {
+     "lat": 46.4327549,
+     "lon": 13.7446989
+    },
+    {
+     "lat": 46.4327425,
+     "lon": 13.744685
+    },
+    {
+     "lat": 46.4327204,
+     "lon": 13.7447237
+    },
+    {
+     "lat": 46.4326843,
+     "lon": 13.7446866
+    },
+    {
+     "lat": 46.4326149,
+     "lon": 13.7446083
+    },
+    {
+     "lat": 46.432728,
+     "lon": 13.7443955
+    }
+   ],
+   "tags": {
+    "addr:city": "Soča",
+    "addr:country": "SI",
+    "addr:housenumber": "85",
+    "addr:postcode": "5232",
+    "addr:street": "Trenta",
+    "amenity": "restaurant",
+    "beds": "60",
+    "building": "yes",
+    "building:levels": "2",
+    "coffee:brand": "Qubik caffe",
+    "contact:email": "ticarjevdom@gmail.com",
+    "contact:mobile": "+38641688819",
+    "contact:phone": "+386 51 634 571",
+    "contact:website": "https://planinske-koce.si/ticarjev_dom_na_vrsicu",
+    "drink:espresso": "yes",
+    "ele": "1620",
+    "name": "Tičarjev dom na Vršiču",
+    "operator": "PD Jesenice",
+    "ref:gurs:hs_mid": "15324856",
+    "ref:gurs:sta_sid": "10140011",
+    "roof:shape": "hipped",
+    "tourism": "alpine_hut",
+    "wikidata": "Q1321895",
+    "wikipedia": "sl:Tičarjev dom na Vršiču"
+   }
+  },
+  {
+   "type": "way",
+   "id": 425740802,
+   "bounds": {
+    "minlat": 46.4390175,
+    "minlon": 13.7492123,
+    "maxlat": 46.439201,
+    "maxlon": 13.7495342
+   },
+   "geometry": [
+    {
+     "lat": 46.4390175,
+     "lon": 13.7492581
+    },
+    {
+     "lat": 46.4390537,
+     "lon": 13.7495342
+    },
+    {
+     "lat": 46.439195,
+     "lon": 13.7494951
+    },
+    {
+     "lat": 46.4391767,
+     "lon": 13.7493554
+    },
+    {
+     "lat": 46.439201,
+     "lon": 13.7493487
+    },
+    {
+     "lat": 46.4391831,
+     "lon": 13.7492123
+    },
+    {
+     "lat": 46.4390175,
+     "lon": 13.7492581
+    }
+   ],
+   "tags": {
+    "addr:city": "Kranjska Gora",
+    "addr:country": "SI",
+    "addr:housenumber": "90",
+    "addr:postcode": "4280",
+    "addr:street": "Vršiška cesta",
+    "beds": "99",
+    "building": "yes",
+    "construction_date": "1993",
+    "contact:website": "https://www.erjavcevakoca.com/",
+    "ele": "1525",
+    "name": "Erjavčeva koča",
+    "opening_hours": "Mo-Su 06:00-22:00",
+    "operator": "PD Jesenice",
+    "phone": "+386 51 399 226",
+    "ref:gurs:hs_mid": "11931715",
+    "ref:gurs:sta_sid": "10140452",
+    "source": "survey",
+    "tourism": "alpine_hut",
+    "url": "https://planinske-koce.si/erjavceva_koca_na_vrsicu",
+    "wikidata": "Q990789",
+    "wikipedia": "sl:Erjavčeva koča na Vršiču"
+   }
+  },
+  {
+   "type": "way",
+   "id": 434374587,
+   "bounds": {
+    "minlat": 46.4328584,
+    "minlon": 13.7431382,
+    "maxlat": 46.4329164,
+    "maxlon": 13.7432381
+   },
+   "geometry": [
+    {
+     "lat": 46.4329164,
+     "lon": 13.7431516
+    },
+    {
+     "lat": 46.4329089,
+     "lon": 13.7432055
+    },
+    {
+     "lat": 46.4329044,
+     "lon": 13.7432381
+    },
+    {
+     "lat": 46.4328584,
+     "lon": 13.7432247
+    },
+    {
+     "lat": 46.4328703,
+     "lon": 13.7431382
+    },
+    {
+     "lat": 46.4329164,
+     "lon": 13.7431516
+    }
+   ],
+   "tags": {
+    "addr:city": "Soča",
+    "addr:country": "SI",
+    "addr:housenumber": "85a",
+    "addr:postcode": "5232",
+    "addr:street": "Trenta",
+    "building": "hut",
+    "building:levels": "1",
+    "name": "Souvenirček",
+    "ref:gurs:hs_mid": "19898172",
+    "ref:gurs:sta_sid": "10140941",
+    "roof:shape": "hipped",
+    "shop": "gift"
+   }
+  },
+  {
+   "type": "way",
+   "id": 439853468,
+   "bounds": {
+    "minlat": 46.4322885,
+    "minlon": 13.787508,
+    "maxlat": 46.4324299,
+    "maxlon": 13.7877045
+   },
+   "geometry": [
+    {
+     "lat": 46.4323866,
+     "lon": 13.787508
+    },
+    {
+     "lat": 46.4324299,
+     "lon": 13.7876329
+    },
+    {
+     "lat": 46.4323318,
+     "lon": 13.7877045
+    },
+    {
+     "lat": 46.4322885,
+     "lon": 13.7875797
+    },
+    {
+     "lat": 46.4323866,
+     "lon": 13.787508
+    }
+   ],
+   "tags": {
+    "addr:city": "Kranjska Gora",
+    "addr:country": "SI",
+    "addr:housenumber": "82",
+    "addr:postcode": "4280",
+    "addr:street": "Vršiška cesta",
+    "beds": "18",
+    "building": "yes",
+    "ele": "1113",
+    "name": "Koča v Krnici",
+    "operator": "PD Kranjska Gora",
+    "phone": "+386 40 457 948",
+    "ref:gurs:hs_mid": "11931642",
+    "ref:gurs:sta_sid": "10140033",
+    "tourism": "alpine_hut",
+    "website": "https://planinske-koce.si/koca_v_krnici",
+    "wikidata": "Q20089982",
+    "wikipedia": "sl:Koča v Krnici"
+   }
+  },
+  {
+   "type": "way",
+   "id": 475260112,
+   "bounds": {
+    "minlat": 46.4425165,
+    "minlon": 13.7676415,
+    "maxlat": 46.442594,
+    "maxlon": 13.7677229
+   },
+   "geometry": [
+    {
+     "lat": 46.4425165,
+     "lon": 13.7676451
+    },
+    {
+     "lat": 46.4425922,
+     "lon": 13.7676415
+    },
+    {
+     "lat": 46.442594,
+     "lon": 13.7677193
+    },
+    {
+     "lat": 46.4425182,
+     "lon": 13.7677229
+    },
+    {
+     "lat": 46.4425165,
+     "lon": 13.7676451
+    }
+   ],
+   "tags": {
+    "amenity": "place_of_worship",
+    "building": "chapel",
+    "denomination": "orthodox",
+    "name": "Ruska kapelica",
+    "name:de": "Russische Kapelle",
+    "name:en": "Russian Chapel",
+    "name:it": "Cappella russa",
+    "name:ru": "Русская часовня",
+    "name:sl": "Ruska kapelica",
+    "religion": "christian",
+    "start_date": "1916",
+    "wheelchair": "no",
+    "wikidata": "Q909998",
+    "wikipedia": "en:Russian Chapel on the Vršič Pass"
+   }
+  },
+  {
+   "type": "way",
+   "id": 629981601,
+   "bounds": {
+    "minlat": 46.476051,
+    "minlon": 13.7595848,
+    "maxlat": 46.4761874,
+    "maxlon": 13.7597616
+   },
+   "geometry": [
+    {
+     "lat": 46.4761523,
+     "lon": 13.7595848
+    },
+    {
+     "lat": 46.4761874,
+     "lon": 13.7596912
+    },
+    {
+     "lat": 46.476086,
+     "lon": 13.7597616
+    },
+    {
+     "lat": 46.476051,
+     "lon": 13.7596552
+    },
+    {
+     "lat": 46.4761523,
+     "lon": 13.7595848
+    }
+   ],
+   "tags": {
+    "addr:city": "Kranjska Gora",
+    "addr:housenumber": "2",
+    "addr:postcode": "4280",
+    "addr:street": "Na Vitrancu",
+    "amenity": "restaurant",
+    "beds": "0",
+    "building": "yes",
+    "ele": "1555",
+    "email": "info@vitranc-mojcindom.si",
+    "name": "Mojčin dom na Vitrancu",
+    "phone": "+386 (0) 41 612 778",
+    "ref:gurs:hs_mid": "11929753",
+    "ref:gurs:sta_sid": "25534930",
+    "rooms": "0",
+    "tourism": "alpine_hut",
+    "website": "https://www.vitranc-mojcindom.si/",
+    "wikidata": "Q105757896"
+   }
+  },
+  {
+   "type": "way",
+   "id": 1085623381,
+   "bounds": {
+    "minlat": 46.4754208,
+    "minlon": 13.7828921,
+    "maxlat": 46.4755277,
+    "maxlon": 13.7830962
+   },
+   "geometry": [
+    {
+     "lat": 46.4754604,
+     "lon": 13.7829008
+    },
+    {
+     "lat": 46.4754208,
+     "lon": 13.7829279
+    },
+    {
+     "lat": 46.4754755,
+     "lon": 13.7830962
+    },
+    {
+     "lat": 46.4755151,
+     "lon": 13.7830691
+    },
+    {
+     "lat": 46.4755277,
+     "lon": 13.7830604
+    },
+    {
+     "lat": 46.475473,
+     "lon": 13.7828921
+    },
+    {
+     "lat": 46.4754604,
+     "lon": 13.7829008
+    }
+   ],
+   "tags": {
+    "amenity": "restaurant",
+    "building": "yes",
+    "cuisine": "burger;regional",
+    "name": "Poletna restavracija",
+    "opening_hours": "Mo-Su 12:00-22:00",
+    "operator": "Jasna Alpska",
+    "outdoor_seating": "yes"
+   }
+  },
+  {
+   "type": "way",
+   "id": 1248219138,
+   "bounds": {
+    "minlat": 46.4394035,
+    "minlon": 13.7623907,
+    "maxlat": 46.4396078,
+    "maxlon": 13.7627199
+   },
+   "geometry": [
+    {
+     "lat": 46.4394035,
+     "lon": 13.7624776
+    },
+    {
+     "lat": 46.4394849,
+     "lon": 13.7627199
+    },
+    {
+     "lat": 46.4396078,
+     "lon": 13.762633
+    },
+    {
+     "lat": 46.4395264,
+     "lon": 13.7623907
+    },
+    {
+     "lat": 46.4394035,
+     "lon": 13.7624776
+    }
+   ],
+   "tags": {
+    "addr:city": "Kranjska Gora",
+    "addr:country": "SI",
+    "addr:housenumber": "86",
+    "addr:postcode": "4280",
+    "addr:street": "Vršiška cesta",
+    "beds": "53",
+    "building": "yes",
+    "description": "Riml-hutte",
+    "ele": "1226",
+    "mobile": "+386 41 682 704",
+    "name": "Koča na Gozdu",
+    "old_name": "Rimlhütte",
+    "operator": "PD Kranjska Gora",
+    "ref:gurs:hs_mid": "11931685",
+    "ref:gurs:sta_sid": "10140188",
+    "tourism": "alpine_hut",
+    "website": "https://planinske-koce.si/koca_na_gozdu",
+    "wikidata": "Q12794206",
+    "wikipedia": "sl:Koča na Gozdu"
+   }
+  },
+  {
+   "type": "way",
+   "id": 1248219139,
+   "bounds": {
+    "minlat": 46.4322953,
+    "minlon": 13.747356,
+    "maxlat": 46.4325279,
+    "maxlon": 13.7477024
+   },
+   "geometry": [
+    {
+     "lat": 46.4324476,
+     "lon": 13.747356
+    },
+    {
+     "lat": 46.4325279,
+     "lon": 13.74746
+    },
+    {
+     "lat": 46.4324539,
+     "lon": 13.7475805
+    },
+    {
+     "lat": 46.4324677,
+     "lon": 13.7475984
+    },
+    {
+     "lat": 46.4324038,
+     "lon": 13.7477024
+    },
+    {
+     "lat": 46.4323961,
+     "lon": 13.7476924
+    },
+    {
+     "lat": 46.4323742,
+     "lon": 13.747664
+    },
+    {
+     "lat": 46.4323689,
+     "lon": 13.7476725
+    },
+    {
+     "lat": 46.4323598,
+     "lon": 13.7476873
+    },
+    {
+     "lat": 46.4322953,
+     "lon": 13.7476037
+    },
+    {
+     "lat": 46.4324476,
+     "lon": 13.747356
+    }
+   ],
+   "tags": {
+    "addr:city": "Kranjska Gora",
+    "addr:country": "SI",
+    "addr:housenumber": "92",
+    "addr:postcode": "4280",
+    "addr:street": "Vršiška cesta",
+    "beds": "66",
+    "building": "yes",
+    "ele": "1688",
+    "email": "postarskidom.vrsic@gmail.com",
+    "name": "Poštarski dom na Vršiču",
+    "operator": "PD Pošte in Telekoma Ljubljana",
+    "phone": "+386 41 610 029",
+    "ref:gurs:hs_mid": "11931731",
+    "ref:gurs:sta_sid": "10140740",
+    "tourism": "alpine_hut",
+    "website": "https://planinske-koce.si/postarski_dom_na_vrsicu",
+    "wikidata": "Q264273",
+    "wikipedia": "sl:Poštarski dom na Vršiču"
+   }
+  },
+  {
+   "type": "way",
+   "id": 1248219499,
+   "bounds": {
+    "minlat": 46.443287,
+    "minlon": 13.7716955,
+    "maxlat": 46.4434166,
+    "maxlon": 13.7719086
+   },
+   "geometry": [
+    {
+     "lat": 46.4434166,
+     "lon": 13.7718528
+    },
+    {
+     "lat": 46.4433462,
+     "lon": 13.7719086
+    },
+    {
+     "lat": 46.443287,
+     "lon": 13.7717514
+    },
+    {
+     "lat": 46.4433574,
+     "lon": 13.7716955
+    },
+    {
+     "lat": 46.4433763,
+     "lon": 13.7717459
+    },
+    {
+     "lat": 46.4434077,
+     "lon": 13.771829
+    },
+    {
+     "lat": 46.4434166,
+     "lon": 13.7718528
+    }
+   ],
+   "tags": {
+    "addr:city": "Kranjska Gora",
+    "addr:housenumber": "83",
+    "addr:postcode": "4280",
+    "addr:street": "Vršiška cesta",
+    "beds": "22",
+    "building": "yes",
+    "construction_date": "1960",
+    "ele": "1085",
+    "mobile": "+386 51 669 470",
+    "name": "Mihov dom na Vršiču",
+    "operator": "PD Kranjska Gora",
+    "ref:gurs:hs_mid": "11931669",
+    "ref:gurs:sta_sid": "25538251",
+    "tourism": "alpine_hut",
+    "website": "https://planinske-koce.si/mihov_dom_na_vrsicu",
+    "wikidata": "Q12796548",
+    "wikipedia": "sl:Mihov dom na Vršiču"
+   }
+  },
+  {
+   "type": "way",
+   "id": 1278633154,
+   "bounds": {
+    "minlat": 46.4329119,
+    "minlon": 13.7435205,
+    "maxlat": 46.432969,
+    "maxlon": 13.743603
+   },
+   "geometry": [
+    {
+     "lat": 46.4329119,
+     "lon": 13.7435612
+    },
+    {
+     "lat": 46.4329424,
+     "lon": 13.7435205
+    },
+    {
+     "lat": 46.432969,
+     "lon": 13.7435622
+    },
+    {
+     "lat": 46.4329384,
+     "lon": 13.743603
+    },
+    {
+     "lat": 46.4329119,
+     "lon": 13.7435612
+    }
+   ],
+   "tags": {
+    "addr:city": "Trenta",
+    "addr:country": "SI",
+    "addr:housenumber": "85",
+    "addr:place": "Trenta",
+    "building": "hut",
+    "building:levels": "1",
+    "construction_date": "1980",
+    "name": "I. Oskar",
+    "ref:gurs:sta_sid": "10140933",
+    "roof:shape": "hipped",
+    "shop": "gift",
+    "website": "http://www.radman.si"
+   }
+  }
+ ]
+}

@@ -1,0 +1,204 @@
+{
+ "query": "[out:json][timeout:60];(nwr[\"tourism\"~\"^(alpine_hut|wilderness_hut)$\"](46.44877,12.02645,46.49001,12.05748);nwr[\"building\"=\"hut\"][\"name\"](46.44877,12.02645,46.49001,12.05748);nwr[\"amenity\"=\"restaurant\"](46.44877,12.02645,46.49001,12.05748);nwr[\"historic\"~\"^(wayside_shrine|wayside_cross)$\"](46.44877,12.02645,46.49001,12.05748);nwr[\"name\"~\"Ruska kapelica\"](46.44877,12.02645,46.49001,12.05748););out tags geom;",
+ "osm3s": {
+  "timestamp_osm_base": "2026-11-27T01:24:06Z",
+  "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."
+ },
+ "elements": [
+  {
+   "type": "node",
+   "id": 627949709,
+   "lat": 46.487493,
+   "lon": 12.0340061,
+   "tags": {
+    "contact:phone": "+39 0437 720 182",
+    "ele": "2000",
+    "name": "Rifugio Fedare",
+    "tourism": "alpine_hut",
+    "website": "https://valfiorentinadolomiti.it/en/Rifugio-Fedare-Passo-Giau/Rifugio-Fedare/"
+   }
+  },
+  {
+   "type": "node",
+   "id": 3296657361,
+   "lat": 46.4514142,
+   "lon": 12.0355662,
+   "tags": {
+    "amenity": "restaurant",
+    "cuisine": "italian",
+    "name": "Al Crot",
+    "opening_hours": "Tu-Su 12:00-14:00,18:00-22:00"
+   }
+  },
+  {
+   "type": "way",
+   "id": 200226213,
+   "bounds": {
+    "minlat": 46.4848236,
+    "minlon": 12.0464788,
+    "maxlat": 46.4850381,
+    "maxlon": 12.0468595
+   },
+   "geometry": [
+    {
+     "lat": 46.4849308,
+     "lon": 12.0464788
+    },
+    {
+     "lat": 46.4849765,
+     "lon": 12.0465554
+    },
+    {
+     "lat": 46.4849614,
+     "lon": 12.0465744
+    },
+    {
+     "lat": 46.4850184,
+     "lon": 12.04667
+    },
+    {
+     "lat": 46.4850049,
+     "lon": 12.0466869
+    },
+    {
+     "lat": 46.4850381,
+     "lon": 12.0467425
+    },
+    {
+     "lat": 46.4849449,
+     "lon": 12.0468595
+    },
+    {
+     "lat": 46.4848907,
+     "lon": 12.0467686
+    },
+    {
+     "lat": 46.4849052,
+     "lon": 12.0467504
+    },
+    {
+     "lat": 46.4848236,
+     "lon": 12.0466135
+    },
+    {
+     "lat": 46.4849308,
+     "lon": 12.0464788
+    }
+   ],
+   "tags": {
+    "building": "yes",
+    "name": "Rifugio Piezza - Da Aurelio",
+    "tourism": "alpine_hut"
+   }
+  },
+  {
+   "type": "way",
+   "id": 200226367,
+   "bounds": {
+    "minlat": 46.4779452,
+    "minlon": 12.0315207,
+    "maxlat": 46.4780429,
+    "maxlon": 12.0316697
+   },
+   "geometry": [
+    {
+     "lat": 46.4779935,
+     "lon": 12.0315207
+    },
+    {
+     "lat": 46.4780429,
+     "lon": 12.0315714
+    },
+    {
+     "lat": 46.4779949,
+     "lon": 12.0316697
+    },
+    {
+     "lat": 46.4779452,
+     "lon": 12.0316187
+    },
+    {
+     "lat": 46.4779935,
+     "lon": 12.0315207
+    }
+   ],
+   "tags": {
+    "building": "yes",
+    "fixme": "Import CTR Veneto. Verificare se amenity=shelter ",
+    "tourism": "alpine_hut"
+   }
+  },
+  {
+   "type": "way",
+   "id": 200226716,
+   "bounds": {
+    "minlat": 46.4874243,
+    "minlon": 12.03388,
+    "maxlat": 46.4875748,
+    "maxlon": 12.0341261
+   },
+   "geometry": [
+    {
+     "lat": 46.4875748,
+     "lon": 12.0339232
+    },
+    {
+     "lat": 46.487529,
+     "lon": 12.0341261
+    },
+    {
+     "lat": 46.4874243,
+     "lon": 12.0340787
+    },
+    {
+     "lat": 46.4874715,
+     "lon": 12.03388
+    },
+    {
+     "lat": 46.4875748,
+     "lon": 12.0339232
+    }
+   ],
+   "tags": {
+    "building": "yes",
+    "tourism": "alpine_hut"
+   }
+  },
+  {
+   "type": "way",
+   "id": 932020306,
+   "bounds": {
+    "minlat": 46.4829025,
+    "minlon": 12.0532846,
+    "maxlat": 46.4830355,
+    "maxlon": 12.0534933
+   },
+   "geometry": [
+    {
+     "lat": 46.4830325,
+     "lon": 12.0532846
+    },
+    {
+     "lat": 46.4829025,
+     "lon": 12.0532896
+    },
+    {
+     "lat": 46.482906,
+     "lon": 12.0534933
+    },
+    {
+     "lat": 46.4830355,
+     "lon": 12.0534842
+    },
+    {
+     "lat": 46.4830325,
+     "lon": 12.0532846
+    }
+   ],
+   "tags": {
+    "amenity": "restaurant",
+    "building": "yes"
+   }
+  }
+ ]
+}
