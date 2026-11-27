@@ -112,6 +112,7 @@ cyclebuddy/
 ├── docs/ANALYTICS.md          What the Analytics page shows and how each number is worked out
 ├── docs/CAREER_UI.md          Career screens: what they do, decisions, what is open
 ├── docs/CAREER_UI_PLAN.md     Career screens: the original audit and redesign plan
+├── docs/PERFORMANCE.md        Budgets, how to measure, rules for hot paths, log of every perf change
 ├── README.md                  This file: what is where
 ├── ARCHITECTURE.md            How the parts fit together
 ├── CONTRIBUTING.md            How we work: branches, pull requests, versions (read this first)

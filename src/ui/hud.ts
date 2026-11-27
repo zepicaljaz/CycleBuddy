@@ -390,16 +390,23 @@ export class Hud {
     this.node(sel).style[prop] = value;
   }
 
+  /** Coach styling on the side panel, written only when it changes. */
+  private sideCoach(on: boolean): void {
+    if (this.written.get('#h-side-wrap|coach') === String(on)) return;
+    this.written.set('#h-side-wrap|coach', String(on));
+    this.node('#h-side-wrap').classList.toggle('coach', on);
+  }
+
+  // Perf: runs every 400 ms. The panel's HTML goes through html(), which writes only when the string
+  // changed, so an unchanged board does not rebuild its DOM and dirty layout.
   private updateSide(session: RideSession) {
-    const wrap = $('#h-side-wrap', this.root);
-    const side = $('#h-side', this.root);
     if (session.config.mode === 'train') {
-      wrap.classList.add('coach');
+      this.sideCoach(true);
       const workout = session.config.workout;
       const cue = session.workoutCue(session.config.profile.ftp);
       const compliance = session.compliance;
       if (!workout || !cue) {
-        side.innerHTML = '';
+        this.html('#h-side', '');
         return;
       }
       if (workout.ftpProtocol === 'twenty' && (session.inOpenEffort || session.ftpEstimate != null)) {
@@ -407,7 +414,7 @@ export class Hud {
         const average = session.twentyAverage;
         const shown = done ? session.ftpEstimate : average == null ? null : Math.round(average);
         const liveFtp = !done && average != null ? ftpFromTwentyMinutes(average) : null;
-        side.innerHTML = `
+        this.html('#h-side', `
           <div class="side-title">${esc(workout.planName)}</div>
           <div class="coach-target"><b>${shown == null ? '—' : shown}</b><span>${done ? 'W · FTP' : 'W · 20-min average'}</span></div>
           <p class="coach-text">${done ? `Test done. 20-minute average was ${session.ftpAverage ?? shown} W. Spin easy. This becomes your FTP when the ride is saved.` : 'As hard as you can hold, right to the end. Keep it even.'}</p>
@@ -416,10 +423,10 @@ export class Hud {
           <div class="kv"><span>Workout left</span><b>${formatDuration(cue.workoutLeftSec)}</b></div>
           <p class="coach-next">${done ? 'Cool down, then save the ride.' : 'FTP is 95% of this average.'}</p>
           ${barsHtml(workout.steps, session.rideTime, 42)}
-        `;
+        `);
         return;
       }
-      side.innerHTML = `
+      this.html('#h-side', `
         <div class="side-title">${esc(workout.planName)}</div>
         <div class="coach-target"><b>${cue.watts}</b><span>W · ${esc(cue.zone)}</span></div>
         <p class="coach-text">${esc(cue.text)}</p>
@@ -431,20 +438,20 @@ export class Hud {
         ${compliance == null ? '' : `<div class="kv"><span>On target</span><b>${Math.round(compliance * 100)}%</b></div>`}
         <p class="coach-next">Next: ${esc(cue.next)}</p>
         ${barsHtml(workout.steps, session.rideTime, 42)}
-      `;
+      `);
       return;
     }
-    wrap.classList.remove('coach');
+    this.sideCoach(false);
     if (session.config.mode !== 'race') {
       const efforts = session.newEfforts.slice(-3).reverse();
-      side.innerHTML = `
+      this.html('#h-side', `
         <div class="side-title">Ride</div>
         <div class="kv"><span>Lap</span><b>${session.lap}</b></div>
         <div class="kv"><span>Lap progress</span><b>${((session.route.wrap(session.playerS) / session.route.length) * 100).toFixed(0)}%</b></div>
         <div class="kv"><span>Energy</span><b>${Math.round(session.energyJ / 1000)} kJ</b></div>
         <div class="kv"><span>Difficulty</span><b>${session.config.profile.difficulty}%</b></div>
         ${efforts.length ? `<div class="side-title small">Climbs completed</div>${efforts.map((e) => `<div class="kv"><span>${esc(e.climbName)}</span><b>${formatDuration(e.timeSec)}</b></div>`).join('')}` : ''}
-      `;
+      `);
       return;
     }
     const st = session.sim.standings();
@@ -476,13 +483,13 @@ export class Hud {
           ? `Your time ${formatDuration(session.player.finishTime)} · ${still} still riding`
           : 'Time trial'
       : `Position <b>${me + 1}</b> / ${st.length}`;
-    side.innerHTML = `
+    this.html('#h-side', `
       <div class="side-title">${title}</div>
       ${board}
       ${points}
       ${energy}
       ${prime}
-    `;
+    `);
   }
 }
 

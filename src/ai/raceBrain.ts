@@ -143,8 +143,15 @@ const formCache = new Map<string, number>();
 
 /** Descending skill: speed on a descent for a rider alone or in a break, about ±1.5%. The same rider every race. */
 export function descentSkill(riderId: string): number {
-  return (hash01(`descend:${riderId}`) - 0.5) * 0.03;
+  // Perf: asked per attacking rider per step on descents; same rider, same value, so hash the string once.
+  let skill = descentCache.get(riderId);
+  if (skill === undefined) {
+    skill = (hash01(`descend:${riderId}`) - 0.5) * 0.03;
+    descentCache.set(riderId, skill);
+  }
+  return skill;
 }
+const descentCache = new Map<string, number>();
 
 /**
  * Multiple of the slider this rider can hold for as long as they like, from their rating on this

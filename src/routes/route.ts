@@ -663,6 +663,8 @@ export class Route {
   readonly bounds: { minX: number; maxX: number; minZ: number; maxZ: number; minY: number; maxY: number };
   /** Real height grids around a track road, loaded before the world is built. Null for generated roads. */
   terrain: DemGrid[] | null = null;
+  /** totalAscent, once asked for. Undefined until then (also on routes made by excerptRoute). */
+  private ascentCache: number | undefined = undefined;
 
   constructor(def: RouteDef) {
     this.def = def;
@@ -1027,11 +1029,15 @@ export class Route {
   }
 
   get totalAscent(): number {
+    // Perf: loops every 2 m sample, and the free-ride list asks for it per card and in its sort.
+    // The heights are final once the constructor is done, so it is worked out once per route.
+    if (this.ascentCache !== undefined) return this.ascentCache;
     let up = 0;
     for (let i = 0; i < this.count; i++) {
       const d = this.y[(i + 1) % this.count] - this.y[i];
       if (d > 0) up += d;
     }
+    this.ascentCache = up;
     return up;
   }
 }
