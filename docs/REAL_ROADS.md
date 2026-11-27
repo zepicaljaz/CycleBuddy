@@ -285,7 +285,9 @@ banks and puts rock where there is none. Built offline by `scripts/real-track/co
   far grid is too heavy a query for the public servers). Polygons that reach into that box
   come back whole. Multipolygon relations are included (most big forests are relations);
   they are filled even-odd over all member ways, so outer and inner rings never need
-  joining, and a relation whose rings don't close is skipped.
+  joining, and a relation whose rings don't close is skipped. Areas imported from CORINE
+  Land Cover (`source=*CORINE*`, coarse 2006 blobs in France and Spain) are left out, as
+  in the Angliru's `places.cover`; WorldCover is sharper there.
 - **ESA WorldCover 10 m 2021 v200** for everything OSM leaves open. Read straight from the
   public Cloud-Optimised GeoTIFF tiles with HTTP range requests (only the window around
   the road, a few MB), with the `geotiff` dev dependency. Each cell takes the majority of

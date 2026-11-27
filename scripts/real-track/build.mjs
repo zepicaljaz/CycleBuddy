@@ -9,7 +9,8 @@
 //   node scripts/real-track/build.mjs giau
 //   node scripts/real-track/build.mjs krvavec
 // Output: src/routes/real/tracks/<id>.json (road line, elevation, sections) and
-// src/assets/terrain/<id>.bin (height grids around the road). See ATTRIBUTION.md.
+// src/assets/terrain/<id>.bin (height grids around the road), then cover.mjs adds
+// src/assets/terrain/<id>.cover.bin (land cover on the same grids). See ATTRIBUTION.md.
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';

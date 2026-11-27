@@ -121,13 +121,17 @@ function osmShapes(osm, toXZ) {
   const polys = [];
   const cliffs = [];
   const proj = (geom) => geom.map((p) => toXZ(p));
-  let broken = 0;
+  let broken = 0, corine = 0;
   for (const el of osm.elements ?? []) {
     const tags = el.tags ?? {};
     if (el.type === 'way' && tags.natural === 'cliff' && el.geometry?.length >= 2) {
       cliffs.push(proj(el.geometry));
       continue;
     }
+    // CORINE Land Cover imports (France, Spain): 25 ha blobs traced from 2006 satellite
+    // classes. WorldCover's 10 m pixels are sharper and newer, so let it fill those areas.
+    // build.mjs drops them from the Angliru's cover for the same reason.
+    if (/CORINE/i.test(String(tags.source ?? ''))) { corine++; continue; }
     const c = osmClass(tags);
     if (!c) continue;
     let rings = [];
@@ -152,6 +156,7 @@ function osmShapes(osm, toXZ) {
     polys.push({ ...c, rings });
   }
   if (broken) console.log(`  skipped ${broken} multipolygons with open rings`);
+  if (corine) console.log(`  left out ${corine} CORINE-imported areas`);
   return { polys, cliffs };
 }
 
