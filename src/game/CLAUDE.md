@@ -10,7 +10,7 @@
 - `recorder.ts`: one sample per second, ride stats. `coins.ts`, `accountProfile.ts`, `climbRecord.ts`, `estimates.ts`: coins/kit, the rider record on the account, climb segments, lap-time estimates.
 
 ## What runs when
-- `loop()` every display frame (requestAnimationFrame). Menus draw at ~30 fps (`MENU_FRAME_MS`); a ride draws every frame, render `dt` capped at 0.1 s.
+- `loop()` every display frame (requestAnimationFrame). Menus draw at ~30 fps (`MENU_FRAME_MS`); behind a glass panel that covers ≥ 55 % of the window (`updateMenuCover`, from a `ResizeObserver` on `#panel`, not a layout read) they draw at 10 fps (`COVERED_FRAME_MS`) with `graphics.lite` (AO and bloom off). Home, the career hub and the garage never count as covered. A ride draws every frame, render `dt` capped at 0.1 s.
 - `advanceSession(now, maxSec)` first, every frame: steps the ride to real time in chunks of ≤ 0.1 s, capped at `FRAME_CATCH_UP_SEC` (5 s). Autosaves the active ride every 30 s.
 - Hidden tab: frames stop, so a 1 s `setInterval` calls `advanceSession(..., BACKGROUND_CATCH_UP_SEC)` (75 s, because Chrome throttles background timers). `sessionClock` is shared, so nothing is stepped twice.
 - `RideSession.update(dt)` splits each chunk into physics steps of ≤ 0.05 s: `sim.step()` (the peloton, `src/ai/CLAUDE.md`) + `meter.update()`. That is the hot path.
@@ -21,6 +21,7 @@
 - Ride time comes from `advanceSession` only. Never step the session from anywhere else, or a ride gets stepped twice.
 - Trainer: free ride and races send `devices.updateGrade(feltGrade * difficulty)` and `setErgWatts(null)`; workouts drive ERG. Pausing calls `devices.releaseToFlat()` (pause, finish, leaving a ride). Keep that in any new exit path.
 - Leaving the tab releases the brake and look-back (`visibilitychange`).
+- Real-road tracks load on demand (`src/routes/real/CLAUDE.md` → Loading tracks): `await ensureTrack(id)` / `ensureAllTracks()` before `realClimbRoute` or `defById` on a real climb. A screen that needs them renders without them first (index numbers or "Loading") and re-renders when they arrive.
 - Escape every user or data string in HTML with `esc()` from `ui/dom.ts`.
 - No `alert()`/`prompt()`; no new `confirm()` (the conventions test caps it at 3). Use an in-game dialog.
 - `app.ts` is ~3700 lines. Put new screen HTML in its own view module (like `homeView.ts`, `proRaceView.ts`) when it is more than a few lines, so `screens.test.ts` can render it without the app.
@@ -43,6 +44,7 @@
 - `app.ts` and `session.ts` have no direct tests: start a ride and look.
 
 ## Traps
+- New installs default to the Medium preset (`defaultProfile`); a saved profile keeps its own, and one saved without a quality stays on High (the old default). The preset is the ceiling for the auto step-down in `world/graphics.ts`.
 - `advanceSession` resets the clock (returns without stepping) on the first call for a new session; the first frame of a ride steps nothing.
 - In `countdown` the sim does not step but the trainer already gets the grade; in `finished` the rider keeps rolling (`rollOn`) but nothing is recorded.
 - A time trial records only after the player's `ttStart`; `syncLaneUsers` leaves riders still on the ramp off the road.

@@ -58,6 +58,13 @@ terrain error, loop closure and hairpin count.
   instead of sections (`src/routes/route.ts`, `trackPath`). Grades come from the real
   elevation; hairpin flags from real bends.
 - `realClimbRoute` (`src/routes/real/build.ts`) uses a track when one exists for the climb id.
+- Tracks load on demand, not at start (they are ~150–300 kB of JSON each). Every
+  `tracks/<id>.json` is its own chunk; `ensureTrack(id)` / `ensureAllTracks()` fetch them.
+  The file name is the climb id. `hasRealRoad` and `realRoadClimbs` only need the file
+  names, and the Free ride list sorts and shows length and climbing from
+  `src/routes/real/trackIndex.json` until the tracks arrive. `realClimbRoute` throws for a
+  real road whose track is not fetched yet (it would otherwise cache a generated road
+  under the same id).
 - `loadRouteTerrain` (`src/routes/real/terrain.ts`) fetches the `.bin` before the world is
   built (`App.mountWorld`). Other routes never download it.
 - `TerrainField.demAt` (`src/world/terrainField.ts`): real height inside the grids,
@@ -287,6 +294,12 @@ Built with `node scripts/real-track/build.mjs krvavec`. Same rules as Vršič, w
    (`source_segments`) and sources.
 4. Run the script. Check that the length is within ~2 % of the published value and that
    the hairpin count matches. Add a test like `track.test.ts`.
+5. `npm run track-index`: regenerates `src/routes/real/trackIndex.json` (length and climbing
+   per road, for the Free ride list). `src/routes/real/trackIndex.test.ts` fails when a track
+   was added or rebuilt and the index was not. That is the whole wiring: the game finds the
+   road by its file name (`tracks/<id>.json` = climb id) and fetches it when it is needed.
+   Merging two branches that each added a road: take either index, then run
+   `npm run track-index` again.
 
 ## Credits and licence
 

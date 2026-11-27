@@ -130,6 +130,8 @@ export class World {
     const center = new THREE.Vector3((route.bounds.minX + route.bounds.maxX) / 2, 0, (route.bounds.minZ + route.bounds.maxZ) / 2);
     this.atmosphere = new Atmosphere(this.scene, Math.max(route.bounds.maxY + 1400, 2600), center);
     this.terrain = new TerrainManager(input, QUALITY[quality].terrain);
+    // Near props cast shadows through per-cell casters that draw only for the sun's shadow frustum.
+    this.terrain.shadowView.frustum = this.atmosphere.sun.shadow.getFrustum();
     this.scene.add(this.terrain.group);
 
     this.routeGroup.add(buildRoad(route));
@@ -174,10 +176,8 @@ export class World {
 
   setQuality(q: GraphicsQuality): void {
     const settings = QUALITY[q];
-    this.graphics.setQuality(settings);
-    this.atmosphere.sun.shadow.mapSize.set(settings.shadowMapSize, settings.shadowMapSize);
-    this.atmosphere.sun.shadow.map?.dispose();
-    this.atmosphere.sun.shadow.map = null;
+    // Graphics sets the sun's shadow map size: its auto step-down may lower it while riding.
+    this.graphics.setQuality(settings, this.atmosphere.sun);
     this.atmosphere.setShadowExtent(settings.shadowExtent);
     this.terrain.quality = settings.terrain;
     this.terrain.refresh(this.focus);
@@ -308,7 +308,7 @@ export class World {
     this.atmosphere.update(this.camera, wide ? this.camLook : this.focus);
     this.waterSim?.update(dt, this.camera, this.atmosphere.sunDir);
     this.graphics.render(dt);
-    this.perf?.frame(this.graphics.renderer, performance.now() - started);
+    this.perf?.frame(this.graphics.renderer, performance.now() - started, this.graphics);
   }
 
   /** `?perf` in the URL: fps, draw calls, triangles and heap in a corner. */
