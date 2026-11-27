@@ -64,6 +64,15 @@ export const QUALITY: Record<GraphicsQuality, QualitySettings> = {
   },
 };
 
+/**
+ * What the frame budget gives up, in this order, once dynamic resolution is already at
+ * its floor (1 device pixel per CSS pixel): AO, then the 4096² shadow map (to 2048²),
+ * then bloom. Only steps the chosen preset has are used; nothing ever goes above it.
+ */
+type Step = 'ao' | 'shadows' | 'bloom';
+const STEP_ORDER: readonly Step[] = ['ao', 'shadows', 'bloom'];
+const STEP_SHADOW_SIZE = 2048;
+
 /** WebGL renderer + cinematic post-processing chain. */
 export class Graphics {
   readonly renderer: THREE.WebGLRenderer;
@@ -86,7 +95,7 @@ export class Graphics {
   /**
    * Dynamic resolution, on during a ride. The render scale steps down when frames run long
    * and back up when there is headroom, between 1 device pixel per CSS pixel and the quality's
-   * own cap. Menus draw at a fixed 30 fps on purpose, so they never adapt.
+   * own cap. Menus draw at a fixed 30 fps (10 behind a covering panel) on purpose, so they never adapt.
    */
   adaptive = false;
   private scale = 1;
@@ -98,6 +107,26 @@ export class Graphics {
   private ceiling = 1;
   private ceilingUntil = 0;
   private lastStepUp = 0;
+  /**
+   * Perf: auto step-down below the chosen preset (see STEP_ORDER). `level` steps are off.
+   * Down after 3 s over budget at the resolution floor; back up, one step at a time and
+   * before any resolution, after 10 s keeping up. A step back up that does not hold for 8 s
+   * blocks the next try for 2 minutes. Only while riding (`adaptive`).
+   */
+  private steps: Step[] = [];
+  private level = 0;
+  private badAtFloor = 0;
+  private lastLevelUp = 0;
+  private levelBlockUntil = 0;
+  /** The light whose shadow map size the shadows step changes (the sun), set with the quality. */
+  private shadowLight: THREE.DirectionalLight | null = null;
+  /**
+   * Perf: a menu panel covers most of the canvas (App sets it). AO and bloom are left out of
+   * the chain (the AO pass is kept, so closing the panel brings it back without a rebuild).
+   */
+  private liteMenu = false;
+  /** Pass chain needs reassembling (AO in or out, bloom pass swap), without rebuilding AO. */
+  private effectsDirty = false;
 
   constructor(
     private canvas: HTMLCanvasElement,
@@ -147,12 +176,60 @@ export class Graphics {
 
   /** The effect pass for the current bloom setting. Bloom that is off is left out, not drawn at zero. */
   private effectPass(): EffectPass {
-    if (this.quality.bloom) {
+    if (this.useBloom()) {
       this.effectPassBloom ??= new EffectPass(this.camera, this.bloom, this.toneMapping, this.hueSat, this.contrast, this.vignette, this.smaa);
       return this.effectPassBloom;
     }
     this.effectPassPlain ??= new EffectPass(this.camera, this.toneMapping, this.hueSat, this.contrast, this.vignette, this.smaa);
     return this.effectPassPlain;
+  }
+
+  private dropped(step: Step): boolean {
+    const i = this.steps.indexOf(step);
+    return i >= 0 && i < this.level;
+  }
+
+  private useAo(): boolean {
+    return this.quality.ao && !this.liteMenu && !this.dropped('ao');
+  }
+
+  private useBloom(): boolean {
+    return this.quality.bloom && !this.liteMenu && !this.dropped('bloom');
+  }
+
+  private shadowSize(): number {
+    return this.dropped('shadows') ? Math.min(STEP_SHADOW_SIZE, this.quality.shadowMapSize) : this.quality.shadowMapSize;
+  }
+
+  /** Sets the sun's shadow map size; a new size frees the old map so three allocates the new one. */
+  private applyShadowSize(force: boolean): void {
+    const light = this.shadowLight;
+    if (!light) return;
+    const size = this.shadowSize();
+    if (!force && light.shadow.mapSize.x === size) return;
+    light.shadow.mapSize.set(size, size);
+    light.shadow.map?.dispose();
+    light.shadow.map = null;
+  }
+
+  /** Menus behind a covering panel: AO and bloom off. Coming back is instant (no rebuild). */
+  set lite(on: boolean) {
+    if (on === this.liteMenu) return;
+    this.liteMenu = on;
+    this.effectsDirty = true;
+  }
+
+  private setLevel(level: number): void {
+    this.level = level;
+    this.applyShadowSize(false);
+    this.effectsDirty = true;
+  }
+
+  /** The quality actually drawn, for the `?perf` overlay: the preset and what the frame budget took off. */
+  qualityLabel(): string {
+    const off = this.steps.slice(0, this.level).map((s) => (s === 'shadows' ? `shadows ${STEP_SHADOW_SIZE}` : `${s === 'ao' ? 'AO' : 'bloom'} off`));
+    if (this.liteMenu) off.push('menu: AO, bloom off');
+    return off.length ? `${this.quality.label} (${off.join(', ')})` : this.quality.label;
   }
 
   private rebuildPasses() {
@@ -164,7 +241,8 @@ export class Graphics {
     this.aoPass = null;
     this.renderPass.mainScene = this.scene;
     this.renderPass.mainCamera = this.camera;
-    this.composer.addPass(this.renderPass);
+    // The AO pass exists whenever the preset has AO, even while a step or a menu leaves it
+    // out of the chain, so putting it back costs nothing.
     if (this.quality.ao) {
       const w = this.canvas.clientWidth || window.innerWidth;
       const h = this.canvas.clientHeight || window.innerHeight;
@@ -191,8 +269,16 @@ export class Graphics {
       const ao = this.aoPass as N8AOPostPass & { autoDetectTransparency: boolean };
       ao.autoDetectTransparency = false;
       ao.configuration.transparencyAware = false;
-      this.composer.addPass(this.aoPass);
     }
+    this.assemble();
+  }
+
+  /** Puts the chain together from the passes that exist: render, AO when used, effects. */
+  private assemble() {
+    this.effectsDirty = false;
+    this.composer.removeAllPasses();
+    this.composer.addPass(this.renderPass);
+    if (this.aoPass && this.useAo()) this.composer.addPass(this.aoPass);
     const effects = this.effectPass();
     effects.mainCamera = this.camera;
     effects.mainScene = this.scene;
@@ -202,8 +288,21 @@ export class Graphics {
     this.composer.setSize(w, h);
   }
 
-  setQuality(q: QualitySettings): void {
+  /**
+   * The user's preset (or a new world with the same one). A different preset starts with
+   * nothing stepped down; the same preset keeps the steps the last ride needed.
+   */
+  setQuality(q: QualitySettings, shadowLight?: THREE.DirectionalLight): void {
+    if (q !== this.quality) {
+      this.level = 0;
+      this.levelBlockUntil = 0;
+    }
     this.quality = q;
+    if (shadowLight) this.shadowLight = shadowLight;
+    this.steps = STEP_ORDER.filter((s) => (s === 'ao' ? q.ao : s === 'bloom' ? q.bloom : q.shadowMapSize > STEP_SHADOW_SIZE));
+    this.level = Math.min(this.level, this.steps.length);
+    this.badAtFloor = 0;
+    this.applyShadowSize(true);
     this.scale = 1;
     this.ceilingUntil = 0;
     this.applyPixelRatio();
@@ -220,6 +319,11 @@ export class Graphics {
     const top = Math.min(window.devicePixelRatio || 1, this.quality.pixelRatio);
     const floor = Math.min(top, 1);
     return Math.max(floor, Math.round(top * this.scale * 20) / 20);
+  }
+
+  /** The resolution cannot go lower (1 device pixel per CSS pixel, or the screen's own). */
+  private atFloor(): boolean {
+    return this.targetRatio() <= Math.min(window.devicePixelRatio || 1, this.quality.pixelRatio, 1) + 1e-9;
   }
 
   /** Current render pixel ratio, for the perf overlay. */
@@ -249,6 +353,28 @@ export class Graphics {
     this.frameMs.length = 0;
     this.windowStart = now;
     const before = this.targetRatio();
+    if (median > 20 && this.atFloor()) {
+      // Resolution has nothing left to give: after 3 s like this, drop the next effect.
+      this.goodSince = 0;
+      this.badAtFloor++;
+      if (this.badAtFloor >= 3 && this.level < this.steps.length) {
+        if (now - this.lastLevelUp < 8000) this.levelBlockUntil = now + 120000;
+        this.setLevel(this.level + 1);
+        this.badAtFloor = 0;
+      }
+      return;
+    }
+    this.badAtFloor = 0;
+    if (median <= 17.5 && this.level > 0 && now >= this.levelBlockUntil) {
+      // Effects come back before resolution climbs, the last one dropped first.
+      if (!this.goodSince) this.goodSince = now;
+      if (now - this.goodSince >= 10000) {
+        this.setLevel(this.level - 1);
+        this.lastLevelUp = now;
+        this.goodSince = now;
+      }
+      return;
+    }
     if (median > 20) {
       this.goodSince = 0;
       if (now - this.lastStepUp < 6000) {
@@ -312,6 +438,7 @@ export class Graphics {
   render(dt: number): void {
     this.adapt(performance.now());
     if (this.passesDirty) this.rebuildPasses();
+    else if (this.effectsDirty) this.assemble();
     this.composer.render(dt);
   }
 }

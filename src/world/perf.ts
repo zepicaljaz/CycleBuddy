@@ -1,4 +1,5 @@
 import type * as THREE from 'three';
+import type { Graphics } from './graphics';
 
 /**
  * Developer overlay, on only with `?perf` in the URL: frame rate, frame time,
@@ -25,7 +26,7 @@ export class PerfOverlay {
   }
 
   /** Call once per rendered frame, after the frame is drawn. cpuMs is the time spent building and submitting it. */
-  frame(renderer: THREE.WebGLRenderer, cpuMs: number): void {
+  frame(renderer: THREE.WebGLRenderer, cpuMs: number, graphics?: Graphics): void {
     if (this.renderer !== renderer) {
       // The composer renders several times a frame; count the whole frame, not the last pass.
       renderer.info.autoReset = false;
@@ -51,6 +52,7 @@ export class PerfOverlay {
       `triangles  ${Math.round(this.triangles / n).toLocaleString('en')}`,
       `geometries ${info.memory.geometries}  textures ${info.memory.textures}  programs ${info.programs?.length ?? 0}`,
       `resolution ${renderer.getPixelRatio().toFixed(2)}x  ${renderer.domElement.width}×${renderer.domElement.height}`,
+      `quality    ${graphics ? graphics.qualityLabel() : 'n/a'}`,
       `js heap    ${mem ? `${(mem.usedJSHeapSize / 1048576).toFixed(1)} MB` : 'n/a'}`,
     ].join('\n');
     this.frames = 0;

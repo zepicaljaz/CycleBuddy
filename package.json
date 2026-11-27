@@ -11,7 +11,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "dev:local": "node server/local.js",
-    "smoke": "node scripts/smoke.mjs"
+    "smoke": "node scripts/smoke.mjs",
+    "track-index": "node scripts/track-index.mjs"
   },
   "dependencies": {
     "@garmin/fitsdk": "^21.218.0",

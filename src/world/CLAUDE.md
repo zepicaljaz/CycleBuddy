@@ -4,9 +4,9 @@ Everything drawn in a ride or behind the menus. Three.js, low-poly, vertex colou
 
 ## What lives here
 - `world.ts`: owns the scene, camera modes and `World.update()` (the per-frame entry). `dispose()` / `disposeObject()` free GPU memory but keep `SHARED_MATERIALS`.
-- `graphics.ts`: renderer, `QUALITY` presets (low/medium/high/ultra, incl. terrain distances), post-processing, dynamic resolution while riding. One `Graphics` is reused across worlds.
+- `graphics.ts`: renderer, `QUALITY` presets (low/medium/high/ultra, incl. terrain distances), post-processing, dynamic resolution while riding, the auto quality step-down below the chosen preset (AO off → shadow map 2048 → bloom off, only while riding, never above the preset), and `lite` (AO and bloom out of the chain behind a covering menu panel). It also owns the sun's shadow map size (`setQuality(settings, sun)`). One `Graphics` is reused across worlds.
 - `terrainField.ts`: the height field (generated, or real DEM grids on real roads), road cut/bank, lakes, pads, clearings, `ROAD_HALF_WIDTH`.
-- `terrain.ts` (`TerrainManager`), `terrainChunk.ts` (`ChunkBuilder`), `terrainWorker.ts`: tiles built in 2–3 workers with LOD and trees; buffers are transferred back.
+- `terrain.ts` (`TerrainManager`), `terrainChunk.ts` (`ChunkBuilder`), `terrainWorker.ts`: tiles built in 2–3 workers with LOD and trees; buffers are transferred back. Near detailed chunks draw props per model (`byModel`) with `castShadow` off, and cast shadows through `ShadowCaster` sub-cells (128 m, sharing the matrices) that only the sun's shadow frustum sees.
 - `materials.ts`: `MatKind` (matte, rough, gloss, paint, carpaint, metal, chrome, glass, glow, rubber, cloth, foliage, ground, marks), `material(kind)` cache, `Part` / `Model` (geometry + surface + optional tint slot).
 - `geometry.ts`: builders (`paint`, `colored`, `merge`, `loft`, `sweep`, `tube`, `placement`...) and detail levels: `Detail` 0/1/2, `atDetail()`, `q(close, mid)`.
 - `batch.ts`: `prepare()` (merge a model per surface), `StaticBatch` (bake static things into one mesh per surface per map cell, cull by cell), `InstancedModel` (many copies, per-instance matrix + tint, `commit()` uploads only used slots).
@@ -46,7 +46,14 @@ Everything drawn in a ride or behind the menus. Three.js, low-poly, vertex colou
 - `npx vitest run src/world/climbs.test.ts src/world/fences.test.ts src/world/traffic.test.ts src/world/convoy.test.ts src/world/riderPick.test.ts`
 - Rendering has no tests: look at it in the preview, and check `/play?perf` (fps, draw calls, triangles) for perf work.
 
+## Quality and shadows (perf)
+- The chosen preset is the ceiling. While riding, once dynamic resolution is at its floor and frames stay over 20 ms for 3 s, `Graphics` drops AO, then the 4096² shadow map to 2048², then bloom; after 10 s keeping up it brings them back in reverse, before resolution. A step up that falls back within 8 s blocks the next try for 2 minutes. `?perf` shows the level on the `quality` line.
+- Menus behind a big glass panel (career, settings, plans, analytics on a laptop) draw at 10 fps with `graphics.lite` (AO and bloom out). App decides it from the panel size (`updateMenuCover`); no panel is opaque, so it never stops drawing.
+- Shadows: a new kind of static prop that casts shadows should get bounds no bigger than ~128 m (or go through `ShadowCaster`), or the shadow pass draws all of it wherever the shadow camera is. Set the sun's shadow map size through `Graphics.setQuality`, not on the light.
+- Dev preview: `&adaptive` turns on dynamic resolution and the step-down as in a ride; `&perf` adds the overlay.
+
 ## Traps
+- `ShadowCaster` draws only when the frustum is the one in `terrain.shadowView` (World sets it to `sun.shadow.getFrustum()`). A new world or a replaced sun must set it again, or near props lose their shadows.
 - The main thread and every worker build their own `TerrainField` from the same `FieldInput`. `World` creates the main field first, `buildScenery` then sets clearings and pads on it (`setClearings`, `setPads`) and copies them into `input` before `TerrainManager` starts the workers. Anything new that changes heights must reach both, or trees and buildings sit on a different ground than the one drawn.
 - `StaticBatch` stores positions cell-local (float precision far from the origin) and files a model by its matrix translation. For world-space geometry use `Props.addWorld()`, which recentres it first.
 - `models.ts` and `geometry.ts` both export `colored()`; the `models.ts` one has its own `merge` that does not skip empty parts.

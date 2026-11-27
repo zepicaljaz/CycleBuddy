@@ -6,8 +6,11 @@ import { Minimap } from '../../ui/minimap';
 import { ChunkBuilder } from '../../world/terrainChunk';
 import { TerrainField } from '../../world/terrainField';
 import { getRoute, ROUTE_DS } from '../route';
-import { hasRealRoad, realClimbRoute } from './build';
+import { ensureAllTracks, hasRealRoad, realClimbRoute } from './build';
 import { REAL_CLIMB_MAP, REAL_CLIMBS } from './data';
+
+// Real-road tracks load on demand in the game (routes/real/build.ts); these tests build them synchronously.
+await ensureAllTracks();
 
 function fieldFor(id: string) {
   const c = REAL_CLIMB_MAP.get(id)!;
