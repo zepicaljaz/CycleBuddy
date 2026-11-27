@@ -13,6 +13,7 @@ Blender 5.3 CLI, headless, from the repo root. No Blender MCP, no paid or AI 3D 
 ```
 blender -b --factory-startup --python scripts/blender/trees.py -- [--preview DIR] [name ...]
 blender -b --factory-startup --python scripts/blender/rocks.py -- [--preview DIR] [name ...]
+blender -b --factory-startup --python scripts/blender/landmarks.py -- [--preview DIR] [name ...]
 ```
 
 - No names = every model in that script. Each run prints triangles, KB and size per model.
@@ -31,6 +32,7 @@ blender -b --factory-startup --python scripts/blender/rocks.py -- [--preview DIR
 | `common.py` | `Model` (verts + faces with one linear colour per face), primitives (`frustum`, `star_cone`, `blob`, `lathe`, `hull`), `xform`, GLB export, preview sheets |
 | `trees.py` | One function per species, `far=True` gives the far version |
 | `rocks.py` | Boulders (sliced-box convex hulls), scree patches, cliff faces |
+| `landmarks.py` | Russian Chapel, two mountain huts, wayside shrine and cross: boxes, gable/hip prisms, lathed onion domes. Preview `landmarks.png` (front) and `landmarks_turned.png` (back, from above) |
 
 ## Models
 
@@ -48,6 +50,27 @@ blender -b --factory-startup --python scripts/blender/rocks.py -- [--preview DIR
 | `boulder_a`..`e` | 32-46 | 1.4-3.1 m | Angular limestone / granite: block, slab, shard, split, chunky |
 | `scree_patch_a`, `_b` | 144 | 5.5-6 m across, 0.4 m tall | 12 small flat stones as one mesh |
 | `cliff_face_a`, `_b`, `_c` | 84 / 112 / 72 | 14x10, 18x14, 11x8 m | Rock face with ledges (green tops), ribs, ragged top |
+
+| `ruska_kapelica` | 429 | 9.5 x 6.3 m, 13.5 m to the cross | Russian Chapel on Vršič: dark log walls on a stone plinth, steep grey shingle roof, octagonal drum + big onion dome, porch tower + small dome; door end at +X |
+| `mountain_hut_a` | 242 | 11.8 x 9.8 m, 10.4 m | Small hut: stone ground floor, board upper floor, steep gable, front balcony (+Z), green shutters |
+| `mountain_hut_b` | 430 | 18.4 x 14.7 m, 13.2 m | Big dom/refuge: two stone storeys, board top floor, hipped roof, front terrace, lean-to at -X |
+| `wayside_shrine` | 68 | 1.9 x 2 m, 4.2 m | Whitewashed kapelica, blue niche facing +Z, gable toward the road |
+| `wayside_cross` | 58 | 1.7 x 0.9 m, 4.2 m | Wooden crucifix with a little roof, on a stone foot |
+
+## Landmarks
+
+- One copy each per road, so the budget is richer than for props: chapel <= 1,500
+  triangles, huts <= 800, wayside pieces <= 200, files under 64 KB (checked by
+  `propAssets.test.ts`, families `chapel`, `hut`, `wayside`).
+- Walls go 0.6 m (wayside 0.4 m) below z = 0, so the game can seat a building on its
+  lowest corner and the downhill side is bedded in. Everything else on z >= 0.
+- Front (balcony, door, niche) faces Blender -Y = three.js +Z; the long axis is X. The
+  chapel's door is at +X. `src/world/landmarks.ts` matches X to the OSM outline's long
+  axis and turns the front (or door end) toward the road, and scales huts to the outline
+  (0.75-1.5 per axis), so keep huts near their nominal 10 x 7.4 / 14 x 10 m walls. If a
+  model's size changes, update `LANDMARK_MODELS` there (a test compares them).
+- Colours: weathered wood 0x4b3727 / 0x6b4c32, grey shingle 0x6c6964, dark domes
+  0x3b3734, stone 0x9a948a.
 
 ## Rules
 

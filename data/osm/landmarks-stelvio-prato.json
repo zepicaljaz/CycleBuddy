@@ -1,0 +1,1508 @@
+{
+ "query": "[out:json][timeout:60];(nwr[\"tourism\"~\"^(alpine_hut|wilderness_hut)$\"](46.52621,10.44938,46.62837,10.60839);nwr[\"building\"=\"hut\"][\"name\"](46.52621,10.44938,46.62837,10.60839);nwr[\"amenity\"=\"restaurant\"](46.52621,10.44938,46.62837,10.60839);nwr[\"historic\"~\"^(wayside_shrine|wayside_cross)$\"](46.52621,10.44938,46.62837,10.60839);nwr[\"name\"~\"Ruska kapelica\"](46.52621,10.44938,46.62837,10.60839););out tags geom;",
+ "osm3s": {
+  "timestamp_osm_base": "2026-11-27T01:24:06Z",
+  "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."
+ },
+ "elements": [
+  {
+   "type": "node",
+   "id": 287355831,
+   "lat": 46.6241323,
+   "lon": 10.5959019,
+   "tags": {
+    "amenity": "restaurant",
+    "contact:facebook": "100088448045237",
+    "contact:instagram": "sandheimpizzeriarestaurant",
+    "cuisine": "italian",
+    "email": "info@sandheim.it",
+    "name": "Sandheim",
+    "opening_hours": "Th-Mo 12:00-14:00,17:30-20:30; Tu 12:00-14:00; We off",
+    "outdoor_seating": "yes",
+    "phone": "+39 0473 616166",
+    "self_service": "no",
+    "website": "https://www.sandheim.it/",
+    "website:menu": "https://www.sandheim.it/_files/ugd/f4dd4d_21fefb85bbd94171860b278b32bca7af.pdf"
+   }
+  },
+  {
+   "type": "node",
+   "id": 466140974,
+   "lat": 46.5292185,
+   "lon": 10.452613,
+   "tags": {
+    "amenity": "restaurant",
+    "bar": "yes",
+    "check_date": "2025-07-19",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/b/bf/TAA_Stilfser_Joch_Passh%C3%B6he_08.JPG",
+    "name": "Genziana"
+   }
+  },
+  {
+   "type": "node",
+   "id": 466142099,
+   "lat": 46.5302026,
+   "lon": 10.4531616,
+   "tags": {
+    "historic": "wayside_cross"
+   }
+  },
+  {
+   "type": "node",
+   "id": 483034364,
+   "lat": 46.6170093,
+   "lon": 10.5906511,
+   "tags": {
+    "addr:housenumber": "98",
+    "addr:street": "Hauptstraße - Via Principale",
+    "amenity": "restaurant",
+    "cuisine": "regional",
+    "name": "Bistrot Alte Post",
+    "outdoor_seating": "yes",
+    "phone": "+39 0473 616884",
+    "self_service": "no"
+   }
+  },
+  {
+   "type": "node",
+   "id": 2450882783,
+   "lat": 46.6175941,
+   "lon": 10.5964951,
+   "tags": {
+    "amenity": "restaurant",
+    "cuisine": "regional",
+    "name": "Restaurant Al Bun Bacun",
+    "phone": "+39 0473 616078",
+    "website": "https://www.saegemuehle.it/de/camping/essen-trinken-camping/restaurant-al-bun-bacun/",
+    "wheelchair": "yes"
+   }
+  },
+  {
+   "type": "node",
+   "id": 2492225410,
+   "lat": 46.5281715,
+   "lon": 10.5878892,
+   "tags": {
+    "addr:city": "Sulden - Solda",
+    "addr:housenumber": "77a",
+    "addr:postcode": "39029",
+    "addr:street": "Hauptstraße - Via Principale",
+    "amenity": "restaurant",
+    "cuisine": "italian;regional",
+    "name": "Roland's Bistro",
+    "phone": "+39 0473 613155",
+    "smoking": "no"
+   }
+  },
+  {
+   "type": "node",
+   "id": 2665417797,
+   "lat": 46.5265222,
+   "lon": 10.5841348,
+   "tags": {
+    "amenity": "restaurant",
+    "cuisine": "italian",
+    "name": "Hartmanns Weinstube"
+   }
+  },
+  {
+   "type": "node",
+   "id": 4304739891,
+   "lat": 46.5725818,
+   "lon": 10.5661079,
+   "tags": {
+    "historic": "wayside_cross"
+   }
+  },
+  {
+   "type": "node",
+   "id": 4336807571,
+   "lat": 46.5280402,
+   "lon": 10.582996,
+   "tags": {
+    "amenity": "restaurant"
+   }
+  },
+  {
+   "type": "node",
+   "id": 4560937729,
+   "lat": 46.6173758,
+   "lon": 10.6019002,
+   "tags": {
+    "covered": "yes",
+    "denomination": "catholic",
+    "historic": "wayside_cross",
+    "religion": "christian"
+   }
+  },
+  {
+   "type": "node",
+   "id": 4842117027,
+   "lat": 46.5349196,
+   "lon": 10.6068061,
+   "tags": {
+    "historic": "wayside_cross"
+   }
+  },
+  {
+   "type": "node",
+   "id": 4899841003,
+   "lat": 46.6152438,
+   "lon": 10.594275,
+   "tags": {
+    "historic": "wayside_cross"
+   }
+  },
+  {
+   "type": "node",
+   "id": 5752130831,
+   "lat": 46.595898,
+   "lon": 10.5556083,
+   "tags": {
+    "historic": "wayside_cross",
+    "source": "survey"
+   }
+  },
+  {
+   "type": "node",
+   "id": 9233852177,
+   "lat": 46.6250041,
+   "lon": 10.5932901,
+   "tags": {
+    "amenity": "restaurant",
+    "name": "camping kiefernhain"
+   }
+  },
+  {
+   "type": "node",
+   "id": 9925119376,
+   "lat": 46.5287222,
+   "lon": 10.5849536,
+   "tags": {
+    "historic": "wayside_cross"
+   }
+  },
+  {
+   "type": "node",
+   "id": 9926739707,
+   "lat": 46.5288274,
+   "lon": 10.5881951,
+   "tags": {
+    "historic": "wayside_cross"
+   }
+  },
+  {
+   "type": "node",
+   "id": 9927083402,
+   "lat": 46.5274203,
+   "lon": 10.5895574,
+   "tags": {
+    "historic": "wayside_shrine",
+    "religion": "christian"
+   }
+  },
+  {
+   "type": "node",
+   "id": 12918609367,
+   "lat": 46.6179362,
+   "lon": 10.5938594,
+   "tags": {
+    "historic": "wayside_cross"
+   }
+  },
+  {
+   "type": "node",
+   "id": 12922566062,
+   "lat": 46.6156593,
+   "lon": 10.5930308,
+   "tags": {
+    "historic": "wayside_cross"
+   }
+  },
+  {
+   "type": "node",
+   "id": 12922582520,
+   "lat": 46.6167284,
+   "lon": 10.593151,
+   "tags": {
+    "historic": "wayside_cross"
+   }
+  },
+  {
+   "type": "node",
+   "id": 12925112250,
+   "lat": 46.6182936,
+   "lon": 10.5871131,
+   "tags": {
+    "historic": "wayside_shrine",
+    "religion": "christian"
+   }
+  },
+  {
+   "type": "node",
+   "id": 12925156829,
+   "lat": 46.6145381,
+   "lon": 10.5868021,
+   "tags": {
+    "historic": "wayside_cross"
+   }
+  },
+  {
+   "type": "node",
+   "id": 13013450307,
+   "lat": 46.5285857,
+   "lon": 10.4527158,
+   "tags": {
+    "addr:postcode": "23032",
+    "alt_name": "Ristorante Perego",
+    "amenity": "restaurant",
+    "bar": "yes",
+    "check_date": "2025-07-19",
+    "cuisine": "regional",
+    "level": "1",
+    "name": "Caffè Perego",
+    "operator": "Confortola s.r.l.",
+    "outdoor_seating": "yes",
+    "phone": "+39 339 447 0450",
+    "ref:vatin": "IT00692880149",
+    "website": "https://www.hotelperego.it/"
+   }
+  },
+  {
+   "type": "node",
+   "id": 13865636443,
+   "lat": 46.5324362,
+   "lon": 10.5045885,
+   "tags": {
+    "historic": "wayside_cross"
+   }
+  },
+  {
+   "type": "node",
+   "id": 13943639725,
+   "lat": 46.5340043,
+   "lon": 10.5043293,
+   "tags": {
+    "addr:city": "Trafoi",
+    "addr:street": "Drei-Brunnen-Weg - Via Tre Fontane",
+    "amenity": "restaurant",
+    "cuisine": "italian;german;cake",
+    "name": "Ristorante Sogbodn",
+    "opening_hours": "Fr-We 09:00-18:30, Th 09:00-16:00",
+    "phone": "+393498467451"
+   }
+  },
+  {
+   "type": "way",
+   "id": 77383435,
+   "bounds": {
+    "minlat": 46.5299937,
+    "minlon": 10.5506665,
+    "maxlat": 46.5301812,
+    "maxlon": 10.5508785
+   },
+   "geometry": [
+    {
+     "lat": 46.5301812,
+     "lon": 10.5507178
+    },
+    {
+     "lat": 46.5300175,
+     "lon": 10.5506665
+    },
+    {
+     "lat": 46.5299937,
+     "lon": 10.5508272
+    },
+    {
+     "lat": 46.5301573,
+     "lon": 10.5508785
+    },
+    {
+     "lat": 46.5301812,
+     "lon": 10.5507178
+    }
+   ],
+   "tags": {
+    "building": "yes",
+    "ele": "2556",
+    "elevation": "2556",
+    "image": "https://photos.komoot.de/www/zc/zcjczqjmfxzg1hscfppx5ga514ony847p-p383835886-full/18a12453626?width=3072&height=2304&crop=false&q=70",
+    "name": "Tabarettahütte - Rifugio Tabaretta",
+    "name:de": "Tabarettahütte",
+    "name:it": "Rifugio Tabaretta",
+    "opening_hours": "Jun 20-Oct 15; Oct 16-Jun 19 off",
+    "operator": "Società Guide Alpine Solda",
+    "ref:refuges.info": "7268",
+    "tourism": "alpine_hut",
+    "wikidata": "Q1544290",
+    "wikipedia": "it:Rifugio Tabaretta"
+   }
+  },
+  {
+   "type": "way",
+   "id": 129219141,
+   "bounds": {
+    "minlat": 46.5522692,
+    "minlon": 10.5092833,
+    "maxlat": 46.5527221,
+    "maxlon": 10.5095473
+   },
+   "geometry": [
+    {
+     "lat": 46.5527101,
+     "lon": 10.5095301
+    },
+    {
+     "lat": 46.5524904,
+     "lon": 10.5095001
+    },
+    {
+     "lat": 46.5524873,
+     "lon": 10.5095473
+    },
+    {
+     "lat": 46.5523248,
+     "lon": 10.5095251
+    },
+    {
+     "lat": 46.5523281,
+     "lon": 10.5094751
+    },
+    {
+     "lat": 46.5522692,
+     "lon": 10.509467
+    },
+    {
+     "lat": 46.5522712,
+     "lon": 10.5094356
+    },
+    {
+     "lat": 46.5522765,
+     "lon": 10.5093543
+    },
+    {
+     "lat": 46.5522811,
+     "lon": 10.5092833
+    },
+    {
+     "lat": 46.5527221,
+     "lon": 10.5093436
+    },
+    {
+     "lat": 46.5527101,
+     "lon": 10.5095301
+    }
+   ],
+   "tags": {
+    "addr:city": "Stilfs - Stelvio",
+    "addr:city:de": "Stilfs",
+    "addr:city:it": "Stelvio",
+    "addr:housenumber": "58",
+    "addr:place": "Trafoi",
+    "addr:postcode": "39029",
+    "amenity": "restaurant",
+    "building": "yes",
+    "email": "info@trafoi.it",
+    "fax": "+39 0473 611540",
+    "name": "Hotel Madatsch - Hotel Madaccio",
+    "name:de": "Hotel Madatsch",
+    "name:it": "Hotel Madaccio",
+    "operator": "Familie Angerer",
+    "phone": "+39 0473 611767",
+    "stars": "4",
+    "tourism": "hotel",
+    "website": "http://www.trafoi.it/",
+    "wikidata": "Q111879297"
+   }
+  },
+  {
+   "type": "way",
+   "id": 129219164,
+   "bounds": {
+    "minlat": 46.5274441,
+    "minlon": 10.4557428,
+    "maxlat": 46.5276295,
+    "maxlon": 10.4560705
+   },
+   "geometry": [
+    {
+     "lat": 46.5275835,
+     "lon": 10.4557902
+    },
+    {
+     "lat": 46.5276127,
+     "lon": 10.4558188
+    },
+    {
+     "lat": 46.5276287,
+     "lon": 10.4558661
+    },
+    {
+     "lat": 46.5276295,
+     "lon": 10.4559116
+    },
+    {
+     "lat": 46.5276199,
+     "lon": 10.4559612
+    },
+    {
+     "lat": 46.5276022,
+     "lon": 10.4560066
+    },
+    {
+     "lat": 46.5275711,
+     "lon": 10.4560369
+    },
+    {
+     "lat": 46.5275338,
+     "lon": 10.4560543
+    },
+    {
+     "lat": 46.5275051,
+     "lon": 10.4560593
+    },
+    {
+     "lat": 46.5275037,
+     "lon": 10.4560705
+    },
+    {
+     "lat": 46.5274717,
+     "lon": 10.4560561
+    },
+    {
+     "lat": 46.5274441,
+     "lon": 10.4560297
+    },
+    {
+     "lat": 46.527489,
+     "lon": 10.4559556
+    },
+    {
+     "lat": 46.5274771,
+     "lon": 10.4559161
+    },
+    {
+     "lat": 46.5274811,
+     "lon": 10.4558666
+    },
+    {
+     "lat": 46.5275035,
+     "lon": 10.4558343
+    },
+    {
+     "lat": 46.5274849,
+     "lon": 10.4557948
+    },
+    {
+     "lat": 46.5275189,
+     "lon": 10.4557766
+    },
+    {
+     "lat": 46.5275412,
+     "lon": 10.4557675
+    },
+    {
+     "lat": 46.5275466,
+     "lon": 10.4557428
+    },
+    {
+     "lat": 46.5275706,
+     "lon": 10.4557456
+    },
+    {
+     "lat": 46.5276008,
+     "lon": 10.455768
+    },
+    {
+     "lat": 46.5275835,
+     "lon": 10.4557902
+    }
+   ],
+   "tags": {
+    "addr:city": "Stilfs - Stelvio",
+    "addr:city:de": "Stilfs",
+    "addr:city:it": "Stelvio",
+    "addr:housenumber": "10",
+    "addr:place": "Passo Stelvio - Stilfserjoch",
+    "addr:place:de": "Stilfserjoch",
+    "addr:place:it": "Passo dello Stelvio",
+    "addr:postcode": "39029",
+    "amenity": "restaurant",
+    "building": "yes",
+    "check_date": "2025-07-19",
+    "cuisine": "regional",
+    "email": "tibet.passostelvio@rolmail.net",
+    "fax": "+39 0342 903360",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/2/23/Stelvio-pass-4.JPG",
+    "name": "Alpengasthof Tibet Hütte - Albergo e Ristorante Rifugio Tibet",
+    "name:de": "Alpengasthof Tibet Hütte",
+    "name:it": "Albergo e Ristorante Rifugio Tibet",
+    "opening_hours": "Jun-Oct",
+    "operator": "Familie Thoma",
+    "phone": "+39 0342 903360",
+    "tourism": "hotel",
+    "website": "https://www.tibet-stelvio.com/"
+   }
+  },
+  {
+   "type": "way",
+   "id": 131324636,
+   "bounds": {
+    "minlat": 46.537036,
+    "minlon": 10.5003077,
+    "maxlat": 46.537199,
+    "maxlon": 10.5005593
+   },
+   "geometry": [
+    {
+     "lat": 46.537199,
+     "lon": 10.50038
+    },
+    {
+     "lat": 46.5370949,
+     "lon": 10.5003077
+    },
+    {
+     "lat": 46.537036,
+     "lon": 10.500487
+    },
+    {
+     "lat": 46.5371401,
+     "lon": 10.5005593
+    },
+    {
+     "lat": 46.537199,
+     "lon": 10.50038
+    }
+   ],
+   "tags": {
+    "addr:city:de": "Stilfs",
+    "addr:city:it": "Stelvio",
+    "amenity": "restaurant",
+    "building": "yes",
+    "name": "Weißer Knott",
+    "wikidata": "Q3748657"
+   }
+  },
+  {
+   "type": "way",
+   "id": 132634265,
+   "bounds": {
+    "minlat": 46.589049,
+    "minlon": 10.5862093,
+    "maxlat": 46.5891163,
+    "maxlon": 10.5863813
+   },
+   "geometry": [
+    {
+     "lat": 46.5891163,
+     "lon": 10.5862184
+    },
+    {
+     "lat": 46.5891035,
+     "lon": 10.5863813
+    },
+    {
+     "lat": 46.589049,
+     "lon": 10.5863722
+    },
+    {
+     "lat": 46.5890617,
+     "lon": 10.5862093
+    },
+    {
+     "lat": 46.5891163,
+     "lon": 10.5862184
+    }
+   ],
+   "tags": {
+    "building": "hut",
+    "name": "Gampenalm - Malga Gampen",
+    "name:de": "Gampenalm",
+    "name:it": "Malga Gampen"
+   }
+  },
+  {
+   "type": "way",
+   "id": 152260076,
+   "bounds": {
+    "minlat": 46.5276218,
+    "minlon": 10.5432604,
+    "maxlat": 46.5277983,
+    "maxlon": 10.5435444
+   },
+   "geometry": [
+    {
+     "lat": 46.5277983,
+     "lon": 10.543367
+    },
+    {
+     "lat": 46.5277195,
+     "lon": 10.543439
+    },
+    {
+     "lat": 46.5277447,
+     "lon": 10.5434973
+    },
+    {
+     "lat": 46.5276931,
+     "lon": 10.5435444
+    },
+    {
+     "lat": 46.5276218,
+     "lon": 10.5433795
+    },
+    {
+     "lat": 46.5277523,
+     "lon": 10.5432604
+    },
+    {
+     "lat": 46.5277597,
+     "lon": 10.5432776
+    },
+    {
+     "lat": 46.5277983,
+     "lon": 10.543367
+    }
+   ],
+   "tags": {
+    "addr:city": "solda",
+    "addr:postcode": "39029",
+    "building": "yes",
+    "ele": "3029",
+    "email": "rifugiopayer@caimilano.eu",
+    "name": "Payerhütte - Rifugio Payer",
+    "name:de": "Payerhütte",
+    "name:it": "Rifugio Julius von Payer",
+    "operator": "CAI Milano",
+    "phone": "+39 0473 613010",
+    "tourism": "alpine_hut",
+    "website": "https://www.payerhuette.com/",
+    "wikidata": "Q2065333",
+    "wikipedia": "it:Rifugio Payer"
+   }
+  },
+  {
+   "type": "way",
+   "id": 155182192,
+   "bounds": {
+    "minlat": 46.5753702,
+    "minlon": 10.5399751,
+    "maxlat": 46.5755916,
+    "maxlon": 10.5402862
+   },
+   "geometry": [
+    {
+     "lat": 46.5754694,
+     "lon": 10.5399751
+    },
+    {
+     "lat": 46.5755916,
+     "lon": 10.5401458
+    },
+    {
+     "lat": 46.5755373,
+     "lon": 10.5402282
+    },
+    {
+     "lat": 46.5755302,
+     "lon": 10.5402183
+    },
+    {
+     "lat": 46.5754854,
+     "lon": 10.5402862
+    },
+    {
+     "lat": 46.5753702,
+     "lon": 10.5401254
+    },
+    {
+     "lat": 46.5754694,
+     "lon": 10.5399751
+    }
+   ],
+   "tags": {
+    "addr:city:de": "Stilfs",
+    "addr:city:it": "Stelvio",
+    "amenity": "restaurant",
+    "building": "yes",
+    "email": "info@gomagoierhof.it",
+    "fax": "+39 0473 612221",
+    "internet_access": "yes",
+    "name": "Hotel Gomagoierhof",
+    "operator": "Georg Ellmer",
+    "phone": "+39 0473 611761",
+    "stars": "3",
+    "tourism": "hotel",
+    "website": "http://www.gomagoierhof.it/",
+    "wheelchair": "limited"
+   }
+  },
+  {
+   "type": "way",
+   "id": 155185836,
+   "bounds": {
+    "minlat": 46.5306736,
+    "minlon": 10.5797119,
+    "maxlat": 46.5308048,
+    "maxlon": 10.5799296
+   },
+   "geometry": [
+    {
+     "lat": 46.5307567,
+     "lon": 10.5797119
+    },
+    {
+     "lat": 46.5308048,
+     "lon": 10.579879
+    },
+    {
+     "lat": 46.5307218,
+     "lon": 10.5799296
+    },
+    {
+     "lat": 46.5307029,
+     "lon": 10.5798625
+    },
+    {
+     "lat": 46.5306736,
+     "lon": 10.5797625
+    },
+    {
+     "lat": 46.5307567,
+     "lon": 10.5797119
+    }
+   ],
+   "tags": {
+    "addr:city": "Sulden - Solda",
+    "addr:city:de": "Sulden",
+    "addr:city:it": "Solda",
+    "addr:housenumber": "28",
+    "addr:postcode": "39029",
+    "addr:street": "Forststraße - Via Forestale",
+    "addr:street:de": "Forststraße",
+    "addr:street:it": "Via Forestale",
+    "amenity": "restaurant",
+    "building": "yes",
+    "contact:facebook": "yakundyeti.sulden",
+    "name": "Yak & Yeti",
+    "opening_hours": "24/7 closed"
+   }
+  },
+  {
+   "type": "way",
+   "id": 155303893,
+   "bounds": {
+    "minlat": 46.5949989,
+    "minlon": 10.5446419,
+    "maxlat": 46.5952687,
+    "maxlon": 10.544955
+   },
+   "geometry": [
+    {
+     "lat": 46.5952687,
+     "lon": 10.5447949
+    },
+    {
+     "lat": 46.5950888,
+     "lon": 10.5446419
+    },
+    {
+     "lat": 46.595053,
+     "lon": 10.544731
+    },
+    {
+     "lat": 46.5950274,
+     "lon": 10.5447092
+    },
+    {
+     "lat": 46.5949989,
+     "lon": 10.5447801
+    },
+    {
+     "lat": 46.5952045,
+     "lon": 10.544955
+    },
+    {
+     "lat": 46.5952687,
+     "lon": 10.5447949
+    }
+   ],
+   "tags": {
+    "addr:city:de": "Stilfs",
+    "addr:city:it": "Stelvio",
+    "addr:place:de": "Stilfs Dorf",
+    "addr:place:it": "Stelvio Paese",
+    "amenity": "restaurant",
+    "building": "yes",
+    "cuisine": "regional",
+    "email": "info@hotel-stilfserhof.com",
+    "fax": "+39 0473 611545",
+    "name": "Hotel Stilfserhof",
+    "opening_hours": "Jun-Oct: Mo-Su 12:00-14:00,18:30-21:00; Nov-May: Mo-Fr 18:30-21:00; Sa,Su 12:00-14:00,18:30-21:00",
+    "opening_hours:url": "http://www.hotel-stilfserhof.com/de/hotel/kulinarisches/index.php?navid=4",
+    "phone": "+39 0473 611740",
+    "tourism": "hotel",
+    "website": "https://www.hotel-stilfserhof.com/"
+   }
+  },
+  {
+   "type": "way",
+   "id": 155305530,
+   "bounds": {
+    "minlat": 46.5977191,
+    "minlon": 10.5457798,
+    "maxlat": 46.5980089,
+    "maxlon": 10.5461481
+   },
+   "geometry": [
+    {
+     "lat": 46.5979096,
+     "lon": 10.5460377
+    },
+    {
+     "lat": 46.597875,
+     "lon": 10.5460738
+    },
+    {
+     "lat": 46.597894,
+     "lon": 10.5461152
+    },
+    {
+     "lat": 46.5978789,
+     "lon": 10.5461481
+    },
+    {
+     "lat": 46.5977191,
+     "lon": 10.5460244
+    },
+    {
+     "lat": 46.5977417,
+     "lon": 10.5459464
+    },
+    {
+     "lat": 46.597763,
+     "lon": 10.5459392
+    },
+    {
+     "lat": 46.5977945,
+     "lon": 10.5459317
+    },
+    {
+     "lat": 46.5978352,
+     "lon": 10.5458883
+    },
+    {
+     "lat": 46.597815,
+     "lon": 10.5458488
+    },
+    {
+     "lat": 46.597879,
+     "lon": 10.5457798
+    },
+    {
+     "lat": 46.5980089,
+     "lon": 10.546035
+    },
+    {
+     "lat": 46.5979439,
+     "lon": 10.5461051
+    },
+    {
+     "lat": 46.5979096,
+     "lon": 10.5460377
+    }
+   ],
+   "tags": {
+    "addr:city:de": "Stilfs",
+    "addr:city:it": "Stelvio",
+    "addr:place:de": "Stilfs Dorf",
+    "addr:place:it": "Stelvio Paese",
+    "amenity": "restaurant",
+    "building": "yes",
+    "cuisine": "regional",
+    "email": "info@stilfs.it",
+    "fax": "+39 0473 612034",
+    "internet_access": "wlan",
+    "internet_access:fee": "no",
+    "name": "Hotel Gasthof zur Sonne",
+    "opening_hours": "Mo-Su 08:00-22:00",
+    "operator": "Paul Hofer GmbH",
+    "phone": "+39 0473 611750",
+    "smoking": "no",
+    "stars": "3",
+    "tourism": "hotel",
+    "website": "https://www.stilfs.it/"
+   }
+  },
+  {
+   "type": "way",
+   "id": 176687538,
+   "bounds": {
+    "minlat": 46.6000944,
+    "minlon": 10.508823,
+    "maxlat": 46.600227,
+    "maxlon": 10.5091109
+   },
+   "geometry": [
+    {
+     "lat": 46.600227,
+     "lon": 10.5089245
+    },
+    {
+     "lat": 46.6002094,
+     "lon": 10.5091109
+    },
+    {
+     "lat": 46.6001021,
+     "lon": 10.5090894
+    },
+    {
+     "lat": 46.6000944,
+     "lon": 10.5090879
+    },
+    {
+     "lat": 46.600099,
+     "lon": 10.5090387
+    },
+    {
+     "lat": 46.6001194,
+     "lon": 10.508823
+    },
+    {
+     "lat": 46.6001789,
+     "lon": 10.5088349
+    },
+    {
+     "lat": 46.6001714,
+     "lon": 10.5089134
+    },
+    {
+     "lat": 46.600227,
+     "lon": 10.5089245
+    }
+   ],
+   "tags": {
+    "amenity": "restaurant",
+    "building": "farm",
+    "ele": "2077",
+    "email": "johann.mazagg@me.com",
+    "name": "Obere Stilfser Alm - Malga Stelvio di Sopra",
+    "name:de": "Obere Stilfser Alm",
+    "name:it": "Malga Stelvio di Sopra",
+    "phone": "+39 345 6034124"
+   }
+  },
+  {
+   "type": "way",
+   "id": 190168425,
+   "bounds": {
+    "minlat": 46.5698329,
+    "minlon": 10.504685,
+    "maxlat": 46.5699651,
+    "maxlon": 10.5049189
+   },
+   "geometry": [
+    {
+     "lat": 46.5699651,
+     "lon": 10.5047068
+    },
+    {
+     "lat": 46.5699457,
+     "lon": 10.5049189
+    },
+    {
+     "lat": 46.5698329,
+     "lon": 10.5048971
+    },
+    {
+     "lat": 46.5698523,
+     "lon": 10.504685
+    },
+    {
+     "lat": 46.5699651,
+     "lon": 10.5047068
+    }
+   ],
+   "tags": {
+    "amenity": "restaurant",
+    "building": "yes",
+    "ele": "2155",
+    "fax": "+39 0473 613112",
+    "name": "Furkelhütte - Rifugio Forcola",
+    "name:de": "Furkelhütte",
+    "name:it": "Rifugio Forcola",
+    "phone": "+39 0473 613047",
+    "wikidata": "Q29015785"
+   }
+  },
+  {
+   "type": "way",
+   "id": 230039379,
+   "bounds": {
+    "minlat": 46.6171496,
+    "minlon": 10.5913996,
+    "maxlat": 46.6173704,
+    "maxlon": 10.5916795
+   },
+   "geometry": [
+    {
+     "lat": 46.6173211,
+     "lon": 10.5913996
+    },
+    {
+     "lat": 46.6173651,
+     "lon": 10.5915357
+    },
+    {
+     "lat": 46.6173704,
+     "lon": 10.5915515
+    },
+    {
+     "lat": 46.6172031,
+     "lon": 10.5916795
+    },
+    {
+     "lat": 46.6171496,
+     "lon": 10.5915214
+    },
+    {
+     "lat": 46.6173211,
+     "lon": 10.5913996
+    }
+   ],
+   "tags": {
+    "addr:city": "Prad am Stilfser Joch - Prato allo Stelvio",
+    "addr:city:de": "Prad am Stilfser Joch",
+    "addr:city:it": "Prato allo Stelvio",
+    "addr:housenumber": "92",
+    "addr:postcode": "39026",
+    "addr:street": "Hauptstraße - Via Principale",
+    "addr:street:de": "Hauptstraße",
+    "addr:street:it": "Via Principale",
+    "amenity": "restaurant",
+    "building": "yes",
+    "cuisine": "regional",
+    "email": "info@hotel-neuepost.com",
+    "name": "Gasthof Neue Post",
+    "opening_hours": "Mo,Tu 12:00-14:00,18:30-21:00; Th-Su 12:00-14:00,18:30-21:00; We off",
+    "operator": "Familie Ortler",
+    "phone": "+39 0473 616062",
+    "tourism": "hotel",
+    "website": "http://hotel-neuepost.com/"
+   }
+  },
+  {
+   "type": "way",
+   "id": 233040343,
+   "bounds": {
+    "minlat": 46.6170015,
+    "minlon": 10.5946167,
+    "maxlat": 46.6172692,
+    "maxlon": 10.5949257
+   },
+   "geometry": [
+    {
+     "lat": 46.6172692,
+     "lon": 10.594907
+    },
+    {
+     "lat": 46.6170108,
+     "lon": 10.5949257
+    },
+    {
+     "lat": 46.6170015,
+     "lon": 10.594652
+    },
+    {
+     "lat": 46.6170528,
+     "lon": 10.5946483
+    },
+    {
+     "lat": 46.6170615,
+     "lon": 10.5946246
+    },
+    {
+     "lat": 46.6170752,
+     "lon": 10.5946167
+    },
+    {
+     "lat": 46.6170914,
+     "lon": 10.5946234
+    },
+    {
+     "lat": 46.6171062,
+     "lon": 10.5946445
+    },
+    {
+     "lat": 46.6172599,
+     "lon": 10.5946334
+    },
+    {
+     "lat": 46.6172692,
+     "lon": 10.594907
+    }
+   ],
+   "tags": {
+    "addr:city": "Prad am Stilfser Joch - Prato allo Stelvio",
+    "addr:city:de": "Prad am Stilfser Joch",
+    "addr:city:it": "Prato allo Stelvio",
+    "addr:housenumber": "1",
+    "addr:postcode": "39026",
+    "addr:street": "Silberstraße - Via Argentieri",
+    "addr:street:de": "Silberstraße",
+    "addr:street:it": "Via Argentieri",
+    "amenity": "restaurant",
+    "building": "yes",
+    "cuisine": "regional",
+    "email": "info@gasthof-stern.it",
+    "fax": "+39 0473 617056",
+    "name": "Pizzeria Gasthof Stern",
+    "opening_hours": "Tu-Su 12:00-14:00,17:00-22:30; Mo off",
+    "operator": "Familie Nigg",
+    "phone": "+39 0473 616123",
+    "tourism": "hotel",
+    "website": "https://www.gasthof-stern.it/"
+   }
+  },
+  {
+   "type": "way",
+   "id": 233835059,
+   "bounds": {
+    "minlat": 46.5305366,
+    "minlon": 10.4525802,
+    "maxlat": 46.5306679,
+    "maxlon": 10.452785
+   },
+   "geometry": [
+    {
+     "lat": 46.5305366,
+     "lon": 10.4526512
+    },
+    {
+     "lat": 46.5305782,
+     "lon": 10.452632
+    },
+    {
+     "lat": 46.5305743,
+     "lon": 10.4526139
+    },
+    {
+     "lat": 46.5306475,
+     "lon": 10.4525802
+    },
+    {
+     "lat": 46.5306679,
+     "lon": 10.4526736
+    },
+    {
+     "lat": 46.5306616,
+     "lon": 10.4527151
+    },
+    {
+     "lat": 46.5306095,
+     "lon": 10.4527391
+    },
+    {
+     "lat": 46.5306146,
+     "lon": 10.4527626
+    },
+    {
+     "lat": 46.5305657,
+     "lon": 10.452785
+    },
+    {
+     "lat": 46.5305366,
+     "lon": 10.4526512
+    }
+   ],
+   "tags": {
+    "beds": "25",
+    "building": "yes",
+    "ele": "2845",
+    "email": "info@rifugiogaribaldi.it",
+    "internet_access": "no",
+    "name": "Rifugio Garibaldi - Dreisprachenspitze",
+    "name:de": "Dreisprachenspitze",
+    "name:it": "Rifugio Garibaldi",
+    "operator": "Michele Magatelli",
+    "phone": "+39 0342 904312",
+    "tourism": "alpine_hut",
+    "website": "https://www.rifugiogaribaldi.it/",
+    "wheelchair": "no",
+    "wikidata": "Q112944958"
+   }
+  },
+  {
+   "type": "way",
+   "id": 244623271,
+   "bounds": {
+    "minlat": 46.5267783,
+    "minlon": 10.5138669,
+    "maxlat": 46.5269076,
+    "maxlon": 10.5140589
+   },
+   "geometry": [
+    {
+     "lat": 46.5269076,
+     "lon": 10.5138999
+    },
+    {
+     "lat": 46.5267974,
+     "lon": 10.5138669
+    },
+    {
+     "lat": 46.5267783,
+     "lon": 10.5140011
+    },
+    {
+     "lat": 46.5268284,
+     "lon": 10.5140161
+    },
+    {
+     "lat": 46.5268249,
+     "lon": 10.5140409
+    },
+    {
+     "lat": 46.526885,
+     "lon": 10.5140589
+    },
+    {
+     "lat": 46.5269076,
+     "lon": 10.5138999
+    }
+   ],
+   "tags": {
+    "building": "yes",
+    "ele": "2188",
+    "name": "Berglhütte - Rifugio Borletti",
+    "name:de": "Berglhütte",
+    "name:it": "Rifugio Borletti",
+    "opening_hours": "Jun-Oct",
+    "operator": "Hilli Jocham",
+    "phone": "+39 338 3877344",
+    "source": "bing",
+    "tourism": "alpine_hut",
+    "website": "http://www.berglhuette.it/",
+    "wikidata": "Q819964",
+    "wikipedia": "de:Berglhütte"
+   }
+  },
+  {
+   "type": "way",
+   "id": 287931925,
+   "bounds": {
+    "minlat": 46.6199619,
+    "minlon": 10.5948467,
+    "maxlat": 46.6201364,
+    "maxlon": 10.59512
+   },
+   "geometry": [
+    {
+     "lat": 46.620072,
+     "lon": 10.59512
+    },
+    {
+     "lat": 46.6199619,
+     "lon": 10.5949932
+    },
+    {
+     "lat": 46.6200415,
+     "lon": 10.5948467
+    },
+    {
+     "lat": 46.6201254,
+     "lon": 10.5949434
+    },
+    {
+     "lat": 46.6201103,
+     "lon": 10.5949713
+    },
+    {
+     "lat": 46.6201364,
+     "lon": 10.5950014
+    },
+    {
+     "lat": 46.620072,
+     "lon": 10.59512
+    }
+   ],
+   "tags": {
+    "addr:city": "Prad am Stilfser Joch - Prato allo Stelvio",
+    "addr:city:de": "Prad am Stilfser Joch",
+    "addr:city:it": "Prato allo Stelvio",
+    "addr:housenumber": "11a",
+    "addr:postcode": "39026",
+    "addr:street": "Sandweg - Via Arena",
+    "addr:street:de": "Sandweg",
+    "addr:street:it": "Via Arena",
+    "amenity": "restaurant",
+    "building": "yes",
+    "cuisine": "pizza",
+    "email": "free2747@dnet.it",
+    "fax": "+39 0473 617172",
+    "name": "Pizzeria Panorama",
+    "opening_hours": "Mo,Tu,Th,Fr 16:00-22:00; Sa,Su 14:00-22:00; We off",
+    "phone": "+39 0473 617172"
+   }
+  },
+  {
+   "type": "way",
+   "id": 291972948,
+   "bounds": {
+    "minlat": 46.5468745,
+    "minlon": 10.5687343,
+    "maxlat": 46.5470668,
+    "maxlon": 10.5689432
+   },
+   "geometry": [
+    {
+     "lat": 46.5470454,
+     "lon": 10.5687343
+    },
+    {
+     "lat": 46.5469282,
+     "lon": 10.5687728
+    },
+    {
+     "lat": 46.5469303,
+     "lon": 10.5687867
+    },
+    {
+     "lat": 46.5468931,
+     "lon": 10.5687989
+    },
+    {
+     "lat": 46.5468745,
+     "lon": 10.568805
+    },
+    {
+     "lat": 46.5468847,
+     "lon": 10.5688709
+    },
+    {
+     "lat": 46.546896,
+     "lon": 10.5689432
+    },
+    {
+     "lat": 46.5470273,
+     "lon": 10.5689001
+    },
+    {
+     "lat": 46.547025,
+     "lon": 10.5688855
+    },
+    {
+     "lat": 46.5470668,
+     "lon": 10.5688717
+    },
+    {
+     "lat": 46.5470454,
+     "lon": 10.5687343
+    }
+   ],
+   "tags": {
+    "addr:city:de": "Stilfs",
+    "addr:city:it": "Stelvio",
+    "addr:place:de": "Sulden",
+    "addr:place:it": "Solda",
+    "amenity": "restaurant",
+    "building": "yes",
+    "cuisine": "regional",
+    "email": "gasthof.waldruhe@gmail.com",
+    "fax": "+39 0473 613093",
+    "name": "Gasthof Waldruhe",
+    "operator": "Familie Mattivi",
+    "phone": "+39 0473 613093",
+    "stars": "2",
+    "tourism": "guest_house",
+    "website": "http://www.waldruhe.it/"
+   }
+  },
+  {
+   "type": "way",
+   "id": 369460111,
+   "bounds": {
+    "minlat": 46.5393735,
+    "minlon": 10.5831536,
+    "maxlat": 46.5395155,
+    "maxlon": 10.5833597
+   },
+   "geometry": [
+    {
+     "lat": 46.5395155,
+     "lon": 10.5832344
+    },
+    {
+     "lat": 46.5394286,
+     "lon": 10.5833597
+    },
+    {
+     "lat": 46.5393735,
+     "lon": 10.583279
+    },
+    {
+     "lat": 46.5394604,
+     "lon": 10.5831536
+    },
+    {
+     "lat": 46.5395155,
+     "lon": 10.5832344
+    }
+   ],
+   "tags": {
+    "amenity": "restaurant",
+    "building": "yes",
+    "ele": "2247",
+    "name": "Kälberalm - Malga dei vitelli"
+   }
+  },
+  {
+   "type": "way",
+   "id": 1531485102,
+   "bounds": {
+    "minlat": 46.6242682,
+    "minlon": 10.4495258,
+    "maxlat": 46.624381,
+    "maxlon": 10.4496368
+   },
+   "geometry": [
+    {
+     "lat": 46.624381,
+     "lon": 10.4495873
+    },
+    {
+     "lat": 46.6243671,
+     "lon": 10.4496368
+    },
+    {
+     "lat": 46.6243052,
+     "lon": 10.4495955
+    },
+    {
+     "lat": 46.6242682,
+     "lon": 10.4495707
+    },
+    {
+     "lat": 46.6242828,
+     "lon": 10.4495258
+    },
+    {
+     "lat": 46.6243286,
+     "lon": 10.4495545
+    },
+    {
+     "lat": 46.624381,
+     "lon": 10.4495873
+    }
+   ],
+   "tags": {
+    "amenity": "restaurant",
+    "building:part": "yes",
+    "description": "Bistro für Frühstück als auch Abendessen.",
+    "opening_hours": "Mo 08:00-12:00,14:30-19:00; Tu-Sa 08:00-12:00,14:30-22:00; Su 08:00-12:00,14:30-19:00"
+   }
+  }
+ ]
+}

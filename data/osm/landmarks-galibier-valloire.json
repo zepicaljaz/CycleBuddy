@@ -1,0 +1,933 @@
+{
+ "query": "[out:json][timeout:60];(nwr[\"tourism\"~\"^(alpine_hut|wilderness_hut)$\"](45.06164,6.40417,45.16664,6.44058);nwr[\"building\"=\"hut\"][\"name\"](45.06164,6.40417,45.16664,6.44058);nwr[\"amenity\"=\"restaurant\"](45.06164,6.40417,45.16664,6.44058);nwr[\"historic\"~\"^(wayside_shrine|wayside_cross)$\"](45.06164,6.40417,45.16664,6.44058);nwr[\"name\"~\"Ruska kapelica\"](45.06164,6.40417,45.16664,6.44058););out tags geom;",
+ "osm3s": {
+  "timestamp_osm_base": "2026-11-27T01:24:06Z",
+  "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."
+ },
+ "elements": [
+  {
+   "type": "node",
+   "id": 1711857382,
+   "lat": 45.1262256,
+   "lon": 6.4185651,
+   "tags": {
+    "height": "5",
+    "historic": "wayside_cross"
+   }
+  },
+  {
+   "type": "node",
+   "id": 1711857439,
+   "lat": 45.1363841,
+   "lon": 6.4194078,
+   "tags": {
+    "height": "3",
+    "historic": "wayside_cross",
+    "source": "GPS"
+   }
+  },
+  {
+   "type": "node",
+   "id": 1915810122,
+   "lat": 45.1656542,
+   "lon": 6.4282708,
+   "tags": {
+    "amenity": "restaurant",
+    "capacity": "90",
+    "cuisine": "regional",
+    "name": "L'Asile des Fondues",
+    "website": "https://www.valloire.net/restauration/lasile-des-fondues-restaurant-valloire/"
+   }
+  },
+  {
+   "type": "node",
+   "id": 1932758585,
+   "lat": 45.1653509,
+   "lon": 6.4281885,
+   "tags": {
+    "amenity": "restaurant",
+    "capacity": "142",
+    "capacity:bar": "12",
+    "capacity:indoor": "40",
+    "capacity:outdoor": "90",
+    "name": "La Maison d'Angeline",
+    "website": "https://www.valloire.net/restauration/la-maison-dangeline-valloire/"
+   }
+  },
+  {
+   "type": "node",
+   "id": 1932758594,
+   "lat": 45.1654304,
+   "lon": 6.4303074,
+   "tags": {
+    "amenity": "restaurant",
+    "capacity": "70",
+    "cuisine": "pizza",
+    "name": "La Pizza",
+    "ref:FR:SIRET": "92925111400021",
+    "takeaway": "yes",
+    "website": "https://www.valloire.net/restauration/la-pizza-valloire/"
+   }
+  },
+  {
+   "type": "node",
+   "id": 3269457973,
+   "lat": 45.1480645,
+   "lon": 6.4146785,
+   "tags": {
+    "historic": "wayside_cross",
+    "name": "Crêt de Sarbètche"
+   }
+  },
+  {
+   "type": "node",
+   "id": 4888049207,
+   "lat": 45.1623162,
+   "lon": 6.4242886,
+   "tags": {
+    "historic": "wayside_cross",
+    "name": "Croix du Rocher Saint-Pierre"
+   }
+  },
+  {
+   "type": "node",
+   "id": 4889729710,
+   "lat": 45.1261917,
+   "lon": 6.4167009,
+   "tags": {
+    "historic": "wayside_cross",
+    "name": "Croix de la Roche Bernard"
+   }
+  },
+  {
+   "type": "node",
+   "id": 5516678708,
+   "lat": 45.163683,
+   "lon": 6.4240638,
+   "tags": {
+    "historic": "wayside_shrine",
+    "name": "Grotte de la Vierge",
+    "religion": "christian"
+   }
+  },
+  {
+   "type": "node",
+   "id": 5877939154,
+   "lat": 45.1658399,
+   "lon": 6.4274928,
+   "tags": {
+    "denomination": "catholic",
+    "historic": "wayside_shrine",
+    "inscription": "St Antoine De Padoue",
+    "religion": "christian"
+   }
+  },
+  {
+   "type": "node",
+   "id": 6110651322,
+   "lat": 45.1633887,
+   "lon": 6.4276802,
+   "tags": {
+    "historic": "wayside_cross"
+   }
+  },
+  {
+   "type": "node",
+   "id": 7830605106,
+   "lat": 45.1637055,
+   "lon": 6.4240548,
+   "tags": {
+    "historic": "wayside_shrine",
+    "lit": "yes",
+    "name": "Grotte de la Vierge",
+    "natural": "cave_entrance",
+    "religion": "christian"
+   }
+  },
+  {
+   "type": "node",
+   "id": 8358589223,
+   "lat": 45.1136346,
+   "lon": 6.4239161,
+   "tags": {
+    "denomination": "catholic",
+    "historic": "wayside_cross",
+    "religion": "christian"
+   }
+  },
+  {
+   "type": "node",
+   "id": 8399948972,
+   "lat": 45.1645662,
+   "lon": 6.4280782,
+   "tags": {
+    "amenity": "restaurant",
+    "capacity": "40",
+    "cuisine": "french",
+    "name": "Au Resto",
+    "website": "https://www.valloire.net/restauration/au-resto-pasta-grill-restaurant-valloire/"
+   }
+  },
+  {
+   "type": "node",
+   "id": 8512763712,
+   "lat": 45.148575,
+   "lon": 6.41666,
+   "tags": {
+    "historic": "wayside_cross",
+    "source": "IGN - 09/2020"
+   }
+  },
+  {
+   "type": "node",
+   "id": 8514946989,
+   "lat": 45.145633,
+   "lon": 6.419682,
+   "tags": {
+    "amenity": "restaurant",
+    "capacity": "70",
+    "name": "Le Relais du Galibier",
+    "official_name": "Hôtel le Relais du Galibier",
+    "source": "data.gouv.fr:DATAtourisme - 05/2020",
+    "website": "https://www.valloire.net/restauration/le-relais-du-galibier-restaurant-valloire/"
+   }
+  },
+  {
+   "type": "node",
+   "id": 8516238890,
+   "lat": 45.1640244,
+   "lon": 6.4284906,
+   "tags": {
+    "amenity": "restaurant",
+    "cuisine": "pizza",
+    "name": "Le P'tit Galibier",
+    "takeaway": "yes",
+    "website": "https://www.valloire.net/restauration/le-ptit-galibier-valloire/"
+   }
+  },
+  {
+   "type": "node",
+   "id": 8517538594,
+   "lat": 45.165595,
+   "lon": 6.4302072,
+   "tags": {
+    "amenity": "restaurant",
+    "cuisine": "crepe",
+    "name": "La Grange",
+    "website": "https://www.valloire.net/restauration/la-grange-valloire/"
+   }
+  },
+  {
+   "type": "node",
+   "id": 8517602321,
+   "lat": 45.1649265,
+   "lon": 6.4299001,
+   "tags": {
+    "amenity": "restaurant",
+    "capacity": "200",
+    "cuisine": "sandwich",
+    "name": "Le Kôsa Krûta",
+    "ref:FR:SIRET": "50139471200019",
+    "takeaway": "yes",
+    "website": "https://www.valloire.net/restauration/le-kosa-kruta-le-pre-du-kosa-valloire/"
+   }
+  },
+  {
+   "type": "node",
+   "id": 8519992458,
+   "lat": 45.1598712,
+   "lon": 6.4214323,
+   "tags": {
+    "historic": "wayside_cross",
+    "inscription": "2011",
+    "man_made": "cross",
+    "start_date": "2011"
+   }
+  },
+  {
+   "type": "node",
+   "id": 8546825849,
+   "lat": 45.1640471,
+   "lon": 6.429601,
+   "tags": {
+    "amenity": "restaurant",
+    "capacity": "110",
+    "capacity:indoor": "50",
+    "capacity:outdoor": "60",
+    "long_name": "Brasserie Le K",
+    "name": "Le K",
+    "takeaway": "yes",
+    "website": "https://www.valloire.net/restauration/brasserie-le-k-restaurant-brasserie-valloire/"
+   }
+  },
+  {
+   "type": "node",
+   "id": 8546825857,
+   "lat": 45.1642811,
+   "lon": 6.4285898,
+   "tags": {
+    "amenity": "restaurant",
+    "cuisine": "crepe",
+    "long_name": "Crêperie l'Hermine",
+    "name": "L'Hermine",
+    "phone": "+33 7 50 16 06 78",
+    "website": "https://www.valloire.net/restauration/lhermine-valloire/"
+   }
+  },
+  {
+   "type": "node",
+   "id": 8556529212,
+   "lat": 45.1655217,
+   "lon": 6.4279482,
+   "tags": {
+    "addr:city": "Valloire",
+    "addr:housenumber": "315",
+    "addr:postcode": "73450",
+    "addr:street": "Rue des Grandes Alpes",
+    "amenity": "restaurant",
+    "cuisine": "burger;steak_house;salad;dessert;thai;pasta;ice_cream",
+    "name": "Le Globe",
+    "opening_hours": "Mo-Tu 12:00-14:00,18:00-22:00; We off; Th-Su 12:00-14:00,18:00-22:00",
+    "phone": "+33 4 79 05 91 98",
+    "ref:FR:SIRET": "93772801200017",
+    "website": "https://www.valloire.net/restauration/le-globe-valloire/"
+   }
+  },
+  {
+   "type": "node",
+   "id": 8557995396,
+   "lat": 45.1642409,
+   "lon": 6.4252987,
+   "tags": {
+    "amenity": "restaurant",
+    "cuisine": "italian;french",
+    "name": "Le Don Camillo",
+    "outdoor_seating": "yes",
+    "website": "https://www.valloire.net/restauration/le-don-camillo-valloire/"
+   }
+  },
+  {
+   "type": "node",
+   "id": 8557996380,
+   "lat": 45.1657047,
+   "lon": 6.4269698,
+   "tags": {
+    "amenity": "restaurant",
+    "capacity": "70",
+    "cuisine": "regional",
+    "name": "Restaurant de l'hôtel de la Poste",
+    "outdoor_seating": "yes",
+    "website": "https://www.valloire.net/restauration/la-poste-restaurant-valloire/"
+   }
+  },
+  {
+   "type": "node",
+   "id": 8566525194,
+   "lat": 45.1623696,
+   "lon": 6.4289653,
+   "tags": {
+    "amenity": "restaurant",
+    "capacity": "165",
+    "capacity:indoor": "50",
+    "capacity:outdoor": "115",
+    "cuisine": "burger",
+    "name": "Le Bar du Soleil",
+    "operator": "Cloé et Bastien",
+    "outdoor_seating": "yes",
+    "takeaway": "yes",
+    "website": "https://www.valloire.net/restauration/le-bar-du-soleil-restaurant-a-emporter-valloire/",
+    "wheelchair": "yes"
+   }
+  },
+  {
+   "type": "node",
+   "id": 8566577631,
+   "lat": 45.1628214,
+   "lon": 6.4297978,
+   "tags": {
+    "amenity": "restaurant",
+    "name": "Les Mélèzes",
+    "toilets:wheelchair": "no",
+    "website": "https://www.valloire.net/restauration/les-melezes-restaurant-valloire/",
+    "wheelchair": "limited"
+   }
+  },
+  {
+   "type": "node",
+   "id": 8566626790,
+   "lat": 45.1635374,
+   "lon": 6.4298102,
+   "tags": {
+    "amenity": "restaurant",
+    "capacity": "100",
+    "capacity:indoor": "50",
+    "capacity:outdoor": "50",
+    "cuisine": "crepe",
+    "name": "Le Plancher des Vaches",
+    "outdoor_seating": "yes",
+    "website": "https://www.valloire.net/restauration/le-plancher-des-vaches-valloire/"
+   }
+  },
+  {
+   "type": "node",
+   "id": 8567988361,
+   "lat": 45.1655472,
+   "lon": 6.4278334,
+   "tags": {
+    "amenity": "restaurant",
+    "capacity": "43",
+    "name": "Le Planté du Bâton",
+    "website": "https://www.valloire.net/restauration/le-plante-du-baton-valloire/"
+   }
+  },
+  {
+   "type": "node",
+   "id": 9008350901,
+   "lat": 45.1615795,
+   "lon": 6.4373889,
+   "tags": {
+    "historic": "wayside_cross",
+    "source": "IGN - 2021-06"
+   }
+  },
+  {
+   "type": "node",
+   "id": 9348987345,
+   "lat": 45.1496842,
+   "lon": 6.4202797,
+   "tags": {
+    "amenity": "restaurant",
+    "name": "Restaurant du Crêt Rond",
+    "official_name": "Le Crêt Rond",
+    "phone": "+33 4 79 59 01 64",
+    "source": "data.gouv.fr:DATAtourisme - 05/2020",
+    "website": "https://www.valloire.net/restauration/le-cret-rond-restaurant-valloire/"
+   }
+  },
+  {
+   "type": "node",
+   "id": 10293584362,
+   "lat": 45.1159359,
+   "lon": 6.4237998,
+   "tags": {
+    "historic": "wayside_shrine"
+   }
+  },
+  {
+   "type": "node",
+   "id": 12133429940,
+   "lat": 45.0669549,
+   "lon": 6.4086938,
+   "tags": {
+    "amenity": "restaurant",
+    "name": "Galibier 2550",
+    "phone": "+33 6 69 33 64 10",
+    "survey:date": "2024-08-24",
+    "website": "https://www.valloire.net/restauration/galibier-2050-valloire/"
+   }
+  },
+  {
+   "type": "node",
+   "id": 12507057574,
+   "lat": 45.164322,
+   "lon": 6.4286941,
+   "tags": {
+    "addr:city": "Valloire",
+    "addr:housenumber": "319",
+    "addr:postcode": "73450",
+    "addr:street": "Avenue de la Vallée d'Or",
+    "amenity": "restaurant",
+    "capacity": "70",
+    "name": "Bistronomique Chez Fred",
+    "website": "https://www.valloire.net/restauration/bistronomique-chez-fred-valloire/"
+   }
+  },
+  {
+   "type": "node",
+   "id": 12769995996,
+   "lat": 45.1643389,
+   "lon": 6.4249733,
+   "tags": {
+    "amenity": "restaurant",
+    "name": "Sous la Roche",
+    "ref:FR:SIRET": "97774478800018",
+    "website": "https://www.valloire.net/restauration/sous-la-roche-valloire/"
+   }
+  },
+  {
+   "type": "node",
+   "id": 12798470918,
+   "lat": 45.1638901,
+   "lon": 6.4255391,
+   "tags": {
+    "amenity": "restaurant",
+    "name": "Le Croq'Âne",
+    "outdoor_seating": "yes",
+    "takeaway": "yes",
+    "website": "https://www.valloire.net/restauration/le-croqane-valloire/"
+   }
+  },
+  {
+   "type": "node",
+   "id": 12798596203,
+   "lat": 45.1656872,
+   "lon": 6.4287769,
+   "tags": {
+    "amenity": "restaurant",
+    "capacity": "80",
+    "name": "La Fontaine",
+    "website": "https://www.valloire.net/restauration/la-fontaine-valloire/"
+   }
+  },
+  {
+   "type": "node",
+   "id": 12798608449,
+   "lat": 45.1659184,
+   "lon": 6.4295004,
+   "tags": {
+    "amenity": "restaurant",
+    "name": "Le Contoir",
+    "website": "https://www.valloire.net/restauration/le-contoir-restaurant-valloire/"
+   }
+  },
+  {
+   "type": "node",
+   "id": 12798608914,
+   "lat": 45.1489186,
+   "lon": 6.4201087,
+   "tags": {
+    "amenity": "restaurant",
+    "cuisine": "buffet",
+    "name": "La Table du Galibier",
+    "website": "https://www.valloire.net/restauration/la-table-du-galibier-valloire/"
+   }
+  },
+  {
+   "type": "node",
+   "id": 12798613525,
+   "lat": 45.1653605,
+   "lon": 6.4316569,
+   "tags": {
+    "amenity": "restaurant",
+    "capacity": "90",
+    "name": "L'Escarnavé",
+    "website": "https://www.valloire.net/restauration/lescarnave-valloire/"
+   }
+  },
+  {
+   "type": "node",
+   "id": 12798615426,
+   "lat": 45.1640944,
+   "lon": 6.4301576,
+   "tags": {
+    "amenity": "restaurant",
+    "capacity": "80",
+    "name": "Le Christiania",
+    "website": "https://www.valloire.net/restauration/le-christiania-valloire/"
+   }
+  },
+  {
+   "type": "node",
+   "id": 12798615606,
+   "lat": 45.1464139,
+   "lon": 6.4198056,
+   "tags": {
+    "amenity": "restaurant",
+    "name": "La Boulange",
+    "website": "https://www.valloire.net/restauration/la-boulange-restaurant-valloire/"
+   }
+  },
+  {
+   "type": "node",
+   "id": 12798640556,
+   "lat": 45.1624869,
+   "lon": 6.4297311,
+   "tags": {
+    "amenity": "restaurant",
+    "name": "Ô Refuge",
+    "takeaway": "yes",
+    "website": "https://www.valloire.net/restauration/o-refuge-valloire/"
+   }
+  },
+  {
+   "type": "node",
+   "id": 12798654582,
+   "lat": 45.1169867,
+   "lon": 6.4227406,
+   "tags": {
+    "amenity": "restaurant",
+    "cuisine": "regional",
+    "name": "La Poutre",
+    "outdoor_seating": "yes",
+    "ref:FR:SIRET": "99363938400011",
+    "website": "https://www.valloire.net/restauration/auberge-la-poutre-valloire/"
+   }
+  },
+  {
+   "type": "node",
+   "id": 12798730580,
+   "lat": 45.1656593,
+   "lon": 6.4289398,
+   "tags": {
+    "amenity": "restaurant",
+    "cuisine": "waffle",
+    "name": "Bubble Waffle",
+    "takeaway": "yes",
+    "website": "https://www.valloire.net/restauration/bubble-waffle-valloire/"
+   }
+  },
+  {
+   "type": "node",
+   "id": 12798750817,
+   "lat": 45.1245074,
+   "lon": 6.4189433,
+   "tags": {
+    "amenity": "restaurant",
+    "name": "Ferme des Étroits",
+    "website": "https://www.valloire.net/restauration/la-ferme-des-etroits-ferme-auberge-valloire/"
+   }
+  },
+  {
+   "type": "node",
+   "id": 12825423375,
+   "lat": 45.1653841,
+   "lon": 6.4269832,
+   "tags": {
+    "access": "private",
+    "amenity": "restaurant",
+    "name": "Cantine scolaire Les Loupiots",
+    "operator": "Communauté de Communes Maurienne Galibier"
+   }
+  },
+  {
+   "type": "node",
+   "id": 12900397456,
+   "lat": 45.1600793,
+   "lon": 6.421783,
+   "tags": {
+    "amenity": "restaurant",
+    "cuisine": "pizza",
+    "name": "Le Repère",
+    "ref:FR:SIRET": "92891691500046",
+    "start_date": "2025-07",
+    "survey:date": "2025-06-09"
+   }
+  },
+  {
+   "type": "node",
+   "id": 13073817012,
+   "lat": 45.1529179,
+   "lon": 6.4194512,
+   "tags": {
+    "historic": "wayside_cross"
+   }
+  },
+  {
+   "type": "way",
+   "id": 130914414,
+   "bounds": {
+    "minlat": 45.163072,
+    "minlon": 6.42987,
+    "maxlat": 45.163152,
+    "maxlon": 6.429942
+   },
+   "geometry": [
+    {
+     "lat": 45.163152,
+     "lon": 6.429878
+    },
+    {
+     "lat": 45.163073,
+     "lon": 6.42987
+    },
+    {
+     "lat": 45.163072,
+     "lon": 6.429931
+    },
+    {
+     "lat": 45.163148,
+     "lon": 6.429942
+    },
+    {
+     "lat": 45.163152,
+     "lon": 6.429878
+    }
+   ],
+   "tags": {
+    "amenity": "place_of_worship",
+    "building": "chapel",
+    "denomination": "catholic",
+    "historic": "wayside_shrine",
+    "name": "Chapelle Notre-Dame-de-Bon-Secours",
+    "religion": "christian",
+    "source": "cadastre-dgi-fr source : Direction Générale des Impôts - Cadastre. Mise à jour : 2011"
+   }
+  },
+  {
+   "type": "way",
+   "id": 130914853,
+   "bounds": {
+    "minlat": 45.0981384,
+    "minlon": 6.4305056,
+    "maxlat": 45.0982233,
+    "maxlon": 6.4306226
+   },
+   "geometry": [
+    {
+     "lat": 45.0982233,
+     "lon": 6.4305718
+    },
+    {
+     "lat": 45.098192,
+     "lon": 6.4305056
+    },
+    {
+     "lat": 45.0981384,
+     "lon": 6.4305564
+    },
+    {
+     "lat": 45.0981697,
+     "lon": 6.4306226
+    },
+    {
+     "lat": 45.0982233,
+     "lon": 6.4305718
+    }
+   ],
+   "tags": {
+    "amenity": "shelter",
+    "building": "yes",
+    "name": "Refuge les Thymelets",
+    "source": "Le ministère de la ville, de la jeunesse et des sports - 01/2018",
+    "surface": "concrete",
+    "tourism": "alpine_hut",
+    "wikidata": "Q120313854"
+   }
+  },
+  {
+   "type": "way",
+   "id": 130916172,
+   "bounds": {
+    "minlat": 45.0877072,
+    "minlon": 6.4359853,
+    "maxlat": 45.0877941,
+    "maxlon": 6.4362257
+   },
+   "geometry": [
+    {
+     "lat": 45.0877939,
+     "lon": 6.4359853
+    },
+    {
+     "lat": 45.0877072,
+     "lon": 6.4359857
+    },
+    {
+     "lat": 45.0877078,
+     "lon": 6.4362257
+    },
+    {
+     "lat": 45.0877692,
+     "lon": 6.4362253
+    },
+    {
+     "lat": 45.0877688,
+     "lon": 6.4360541
+    },
+    {
+     "lat": 45.0877941,
+     "lon": 6.4360539
+    },
+    {
+     "lat": 45.0877939,
+     "lon": 6.4359853
+    }
+   ],
+   "tags": {
+    "amenity": "restaurant",
+    "building": "yes",
+    "cuisine": "regional;french",
+    "ele": "1976",
+    "name": "L'Auberge de Plan Lachat",
+    "opening_hours": "May-Sep",
+    "outdoor_seating": "yes",
+    "phone": "+33479592316",
+    "source": "cadastre-dgi-fr source : Direction Générale des Impôts - Cadastre. Mise à jour : 2011",
+    "website": "https://www.valloire.net/restauration/lauberge-de-plan-lachat-restaurant-valloire/"
+   }
+  },
+  {
+   "type": "way",
+   "id": 130916219,
+   "bounds": {
+    "minlat": 45.1503447,
+    "minlon": 6.4351968,
+    "maxlat": 45.1506483,
+    "maxlon": 6.435665
+   },
+   "geometry": [
+    {
+     "lat": 45.150487,
+     "lon": 6.435665
+    },
+    {
+     "lat": 45.1505079,
+     "lon": 6.4356036
+    },
+    {
+     "lat": 45.1505225,
+     "lon": 6.4356082
+    },
+    {
+     "lat": 45.1505452,
+     "lon": 6.4355398
+    },
+    {
+     "lat": 45.1505959,
+     "lon": 6.4355667
+    },
+    {
+     "lat": 45.1506483,
+     "lon": 6.4353984
+    },
+    {
+     "lat": 45.1505953,
+     "lon": 6.4353615
+    },
+    {
+     "lat": 45.150606,
+     "lon": 6.4353329
+    },
+    {
+     "lat": 45.1505499,
+     "lon": 6.4352957
+    },
+    {
+     "lat": 45.1505622,
+     "lon": 6.4352528
+    },
+    {
+     "lat": 45.1504551,
+     "lon": 6.4351968
+    },
+    {
+     "lat": 45.1503447,
+     "lon": 6.4355157
+    },
+    {
+     "lat": 45.1503787,
+     "lon": 6.4355975
+    },
+    {
+     "lat": 45.150487,
+     "lon": 6.435665
+    }
+   ],
+   "tags": {
+    "amenity": "restaurant",
+    "building": "yes",
+    "name": "Le Thymel",
+    "ref:FR:SIRET": "49323492600035",
+    "source": "cadastre-dgi-fr source : Direction Générale des Impôts - Cadastre. Mise à jour : 2011",
+    "website": "https://www.valloire.net/restauration/thymel-restaurant-daltitude-valloire/"
+   }
+  },
+  {
+   "type": "way",
+   "id": 186543078,
+   "bounds": {
+    "minlat": 45.0624419,
+    "minlon": 6.4063596,
+    "maxlat": 45.0626732,
+    "maxlon": 6.4065901
+   },
+   "geometry": [
+    {
+     "lat": 45.0624814,
+     "lon": 6.4063596
+    },
+    {
+     "lat": 45.0624419,
+     "lon": 6.4065573
+    },
+    {
+     "lat": 45.0625234,
+     "lon": 6.4065901
+    },
+    {
+     "lat": 45.0625375,
+     "lon": 6.4065199
+    },
+    {
+     "lat": 45.0626369,
+     "lon": 6.4065603
+    },
+    {
+     "lat": 45.0626475,
+     "lon": 6.4065642
+    },
+    {
+     "lat": 45.0626732,
+     "lon": 6.4064366
+    },
+    {
+     "lat": 45.0624814,
+     "lon": 6.4063596
+    }
+   ],
+   "tags": {
+    "building": "yes",
+    "name": "Refuge du Galibier",
+    "outdoor": "yes",
+    "ref:refuges.info": "11304",
+    "source": "cadastre-dgi-fr source : Direction Générale des Impôts - Cadastre. Mise à jour : 2012",
+    "tourism": "alpine_hut"
+   }
+  },
+  {
+   "type": "way",
+   "id": 498324336,
+   "bounds": {
+    "minlat": 45.1642311,
+    "minlon": 6.4279701,
+    "maxlat": 45.164261,
+    "maxlon": 6.42802
+   },
+   "geometry": [
+    {
+     "lat": 45.1642311,
+     "lon": 6.4279724
+    },
+    {
+     "lat": 45.1642594,
+     "lon": 6.4279701
+    },
+    {
+     "lat": 45.164261,
+     "lon": 6.428017
+    },
+    {
+     "lat": 45.1642327,
+     "lon": 6.42802
+    },
+    {
+     "lat": 45.1642311,
+     "lon": 6.4279724
+    }
+   ],
+   "tags": {
+    "addr:city": "Valloire",
+    "addr:housenumber": "179",
+    "addr:postcode": "73450",
+    "addr:street": "Avenue de la Vallée d'Or",
+    "amenity": "restaurant",
+    "building": "cabin",
+    "cuisine": "pizza;crepe;waffle",
+    "name": "La Cabane à Nono",
+    "phone": "+33 6 67 11 36 74",
+    "takeaway": "yes",
+    "website": "https://www.valloire.net/restauration/la-cabane-a-nono-valloire/"
+   }
+  }
+ ]
+}

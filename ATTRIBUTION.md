@@ -13,6 +13,10 @@ Real roads (`src/routes/real/tracks/*.json`, `src/assets/terrain/*.bin`) are bui
   Contains modified Copernicus Sentinel data (2021) processed by ESA WorldCover consortium.
   Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/). The classes are
   remapped and resampled to the game's 25 m and 100 m grids (see `docs/REAL_ROADS.md`, "Land cover").
+- **Landmarks beside the real roads** (`src/routes/real/landmarks.json`, built by
+  `scripts/real-track/landmarks.mjs`; Overpass answers in `data/osm/landmarks-<id>.json`):
+  the Russian Chapel, mountain huts and refuges, wayside shrines and crosses on Vršič,
+  the Galibier, the Stelvio and Passo Giau. © OpenStreetMap contributors, ODbL.
 - **Terrain:** Terrain Tiles on AWS Open Data (Mapzen/Tilezen). Sources include SRTM
   (NASA, public domain) and EU-DEM, produced using Copernicus data and information
   funded by the European Union.
