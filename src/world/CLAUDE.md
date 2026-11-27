@@ -14,7 +14,7 @@ Everything drawn in a ride or behind the menus. Three.js, low-poly, vertex colou
 - `scenery.ts`, `site.ts`, `settlement.ts`, `buildings.ts`: roadside, towns and the `Site` placement helper (`at`, `ground`, `free`, `occupy`, `solid`).
 - `climbs.ts`, `fences.ts`, `spectators.ts`: climb furniture, hairpin fences, crowds.
 - `riders.ts`, `riderBody.ts`, `bikes.ts`, `riderPick.ts`: instanced riders with three detail levels; mouse picking without raycasts.
-- Landmarks: `alpineHotel.ts`, `modernHotel.ts`, `alpineRestaurant.ts`, `ventouxAntenna.ts`, `island.ts`, `mappedPlaces.ts` (OSM lakes, car parks).
+- Landmarks: `alpineHotel.ts`, `modernHotel.ts`, `alpineRestaurant.ts`, `ventouxAntenna.ts`, `island.ts`, `mappedPlaces.ts` (OSM lakes, car parks), `landmarks.ts` (OSM-mapped Russian Chapel, mountain huts, wayside shrines and crosses on the real roads; Blender models).
 - Movers: `traffic.ts`, `cars.ts`, `convoy.ts`, `motorcycle.ts`, `motorhome.ts`, `tractor.ts`, `boats.ts`, `birds.ts`. `perf.ts` = the `?perf` overlay.
 
 ## Rules
@@ -38,11 +38,18 @@ Everything drawn in a ride or behind the menus. Three.js, low-poly, vertex colou
 3. A flat terrace needs a pad: `field.setPads(...)` (see `alpineHotel.ts`).
 4. Call it from `buildScenery` in `scenery.ts`.
 
+A real landmark that OpenStreetMap maps (hut, chapel, shrine) goes through `landmarks.ts` instead, no new placer:
+1. Make the model in `scripts/blender/landmarks.py` (rules in `scripts/blender/CLAUDE.md`) and add its name to `PROP_MODELS.landmarks` and its size to `LANDMARK_MODELS`.
+2. Teach `classify()` in `scripts/real-track/landmarks.mjs` the OSM tags (and the road in `TRACKS`), run it with `--fetch` once, then without; it writes `src/routes/real/landmarks.json` with the OSM id as the source.
+3. `placeMappedLandmarks` (called from `buildScenery` after the hand-placed buildings) seats it at the mapped point: outline angle and size from OSM, front/door toward the road, moved straight away from the road only to clear the verge (`MAX_SHIFT`), skipped where `site.free` says something is built, terrace pad cut at most `MAX_CUT` deep. `src/world/landmarks.test.ts` checks source, distance and clearance per road.
+4. Landmarks need the prop models (`preloadPropAssets`): rides and `?scene=road` have them, the home page and route previews do not, and simply show no landmarks.
+
 ## Dev preview
 `npm run dev:local`, then `/preview.html?scene=<name>`: riders, cars, buildings, farm, spectators, fences, hotel, modern, restaurant, waterfront. `?scene=world&route=<id>&q=ultra&time=noon&cam=chase&riders=6` loads a whole world. `&still` pauses.
 
 ## Tests
 - `npx vitest run src/world/terrainField.test.ts` (road sits on terrain, lakes, tree seating, hairpin banks per real road; slow-ish)
+- `npx vitest run src/world/landmarks.test.ts src/world/propAssets.test.ts` (mapped landmarks: sources, placement, model budgets; ~2 min)
 - `npx vitest run src/world/climbs.test.ts src/world/fences.test.ts src/world/traffic.test.ts src/world/convoy.test.ts src/world/riderPick.test.ts`
 - Rendering has no tests: look at it in the preview, and check `/play?perf` (fps, draw calls, triangles) for perf work.
 

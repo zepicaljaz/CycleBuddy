@@ -1,0 +1,203 @@
+{
+ "source": "Landmarks © OpenStreetMap contributors (ODbL), via Overpass; raw answers in data/osm/landmarks-<id>.json.",
+ "vrsic-kranjska-gora": [
+  {
+   "kind": "shrine",
+   "name": "Ruski križ",
+   "osm": "node/3924792412",
+   "cross": true,
+   "lat": 46.4450539,
+   "lon": 13.7749949,
+   "x": 438,
+   "z": 898,
+   "road": 4.9
+  },
+  {
+   "kind": "hut",
+   "name": "Mihov dom na Vršiču",
+   "osm": "way/1248219499",
+   "lat": 46.4433652,
+   "lon": 13.7717972,
+   "length": 13.7,
+   "width": 8.9,
+   "angle": -0.5,
+   "x": 193.1,
+   "z": 1085.8,
+   "road": 17.2
+  },
+  {
+   "kind": "chapel",
+   "name": "Ruska kapelica",
+   "osm": "way/475260112",
+   "lat": 46.4425552,
+   "lon": 13.7676822,
+   "length": 8.4,
+   "width": 6,
+   "angle": 1.538,
+   "x": -122.2,
+   "z": 1175.9,
+   "road": 69.4
+  },
+  {
+   "kind": "hut",
+   "name": "Koča na Gozdu",
+   "osm": "way/1248219138",
+   "lat": 46.4395057,
+   "lon": 13.7625553,
+   "length": 20.7,
+   "width": 15.2,
+   "angle": -0.454,
+   "x": -514.9,
+   "z": 1515,
+   "road": 19.3
+  },
+  {
+   "kind": "hut",
+   "name": "Erjavčeva koča",
+   "osm": "way/425740802",
+   "lat": 46.4391378,
+   "lon": 13.7493673,
+   "length": 21.5,
+   "width": 18.7,
+   "angle": -0.188,
+   "x": -1525.2,
+   "z": 1555.9,
+   "road": 52.6
+  },
+  {
+   "kind": "hut",
+   "name": "Tičarjev dom na Vršiču",
+   "osm": "way/365555872",
+   "lat": 46.432746,
+   "lon": 13.7446304,
+   "length": 20.6,
+   "width": 20.4,
+   "angle": 0.657,
+   "x": -1888.1,
+   "z": 2266.6,
+   "road": 172.1
+  }
+ ],
+ "galibier-valloire": [
+  {
+   "kind": "shrine",
+   "name": "Grotte de la Vierge",
+   "osm": "node/5516678708",
+   "lat": 45.163683,
+   "lon": 6.4240638,
+   "x": 169.4,
+   "z": -7555.7,
+   "road": 13.4
+  },
+  {
+   "kind": "shrine",
+   "name": "Wayside cross",
+   "osm": "node/8519992458",
+   "cross": true,
+   "lat": 45.1598712,
+   "lon": 6.4214323,
+   "x": -37.1,
+   "z": -7131.8,
+   "road": 6.5
+  },
+  {
+   "kind": "shrine",
+   "name": "Wayside cross",
+   "osm": "node/1711857382",
+   "cross": true,
+   "lat": 45.1262256,
+   "lon": 6.4185651,
+   "x": -262.2,
+   "z": -3390.6,
+   "road": 5.4
+  },
+  {
+   "kind": "shrine",
+   "name": "Wayside cross",
+   "osm": "node/8358589223",
+   "cross": true,
+   "lat": 45.1136346,
+   "lon": 6.4239161,
+   "x": 157.8,
+   "z": -1990.6,
+   "road": 22.4
+  },
+  {
+   "kind": "hut",
+   "name": "Refuge du Galibier",
+   "osm": "way/186543078",
+   "lat": 45.0625631,
+   "lon": 6.4065126,
+   "length": 22.2,
+   "width": 16.1,
+   "angle": -1.295,
+   "x": -1208.3,
+   "z": 3688.3,
+   "road": 166.5
+  },
+  {
+   "kind": "hut",
+   "name": "Refuge les Thymelets",
+   "osm": "way/130914853",
+   "lat": 45.0981808,
+   "lon": 6.4305641,
+   "length": 7.2,
+   "width": 6.3,
+   "angle": 0.981,
+   "x": 679.7,
+   "z": -272.2,
+   "road": 62.8
+  }
+ ],
+ "stelvio-prato": [
+  {
+   "kind": "shrine",
+   "name": "Wayside cross",
+   "osm": "node/12925156829",
+   "cross": true,
+   "lat": 46.6145381,
+   "lon": 10.5868021,
+   "x": 6857.7,
+   "z": -7654.8,
+   "road": 7
+  },
+  {
+   "kind": "hut",
+   "name": "Rifugio Garibaldi - Dreisprachenspitze",
+   "osm": "way/233835059",
+   "lat": 46.5306062,
+   "lon": 10.4526836,
+   "length": 13.4,
+   "width": 12.2,
+   "angle": 1.264,
+   "x": -3399.3,
+   "z": 1678,
+   "road": 157.6
+  }
+ ],
+ "giau-selva": [
+  {
+   "kind": "hut",
+   "name": "Rifugio Fedare",
+   "osm": "node/627949709",
+   "lat": 46.487493,
+   "lon": 12.0340061,
+   "x": -104.6,
+   "z": -1367,
+   "road": 78.8
+  },
+  {
+   "kind": "hut",
+   "name": "Rifugio Piezza - Da Aurelio",
+   "osm": "way/200226213",
+   "lat": 46.4849495,
+   "lon": 12.04667,
+   "length": 23.1,
+   "width": 17.9,
+   "angle": -0.713,
+   "x": 865.2,
+   "z": -1084.2,
+   "road": 31.1
+  }
+ ]
+}

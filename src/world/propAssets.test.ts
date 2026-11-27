@@ -29,15 +29,31 @@ const FAMILY: Record<string, { tris: [number, number]; width: [number, number]; 
   boulder: { tris: [30, 150], width: [1, 3.5], height: [0.6, 2.6] },
   scree: { tris: [30, 150], width: [4, 6.5], height: [0.1, 1] },
   cliff: { tris: [30, 150], width: [10, 20], height: [6, 15] },
+  // Landmarks: one copy each per road, so a richer budget: chapel up to 1,500 triangles,
+  // huts up to 800, wayside pieces small.
+  chapel: { tris: [200, 1500], width: [6, 14], height: [9, 16] },
+  hut: { tris: [150, 800], width: [9, 22], height: [8, 15] },
+  wayside: { tris: [24, 200], width: [0.8, 3], height: [2.5, 5] },
 };
 
+const LANDMARK_FAMILY: Record<string, string> = {
+  ruska_kapelica: 'chapel',
+  mountain_hut_a: 'hut',
+  mountain_hut_b: 'hut',
+  wayside_shrine: 'wayside',
+  wayside_cross: 'wayside',
+};
+/** Landmark walls run this far below y = 0 to bed into a slope. */
+const LANDMARK_SINK = 0.65;
+
 const familyOf = (name: string) =>
-  name.startsWith('mugo') ? 'mugo' : name.startsWith('boulder') ? 'boulder' : name.startsWith('scree') ? 'scree' : name.startsWith('cliff') ? 'cliff' : 'tree';
+  LANDMARK_FAMILY[name] ??
+  (name.startsWith('mugo') ? 'mugo' : name.startsWith('boulder') ? 'boulder' : name.startsWith('scree') ? 'scree' : name.startsWith('cliff') ? 'cliff' : 'tree');
 
 describe('prop models (GLB)', () => {
   it('has a file for every registered model, and a far version of every tree', () => {
     const names = new Set(files.map((f) => f.replace(/\.glb$/, '')));
-    const all = [...PROP_MODELS.trees, ...PROP_MODELS.boulders, ...PROP_MODELS.scree, ...PROP_MODELS.cliffs];
+    const all = [...PROP_MODELS.trees, ...PROP_MODELS.boulders, ...PROP_MODELS.scree, ...PROP_MODELS.cliffs, ...PROP_MODELS.landmarks];
     for (const n of all) expect(names.has(n), n).toBe(true);
     for (const n of PROP_MODELS.trees) expect(names.has(`${n}_far`), `${n}_far`).toBe(true);
   });
@@ -46,7 +62,8 @@ describe('prop models (GLB)', () => {
     const name = file.replace(/\.glb$/, '');
     it(`${name}: small, only POSITION/NORMAL/COLOR_0, within budget and size, on the ground`, async () => {
       const { gltf, bytes } = await load(file);
-      expect(bytes).toBeLessThan(30 * 1024);
+      // Plain GLB is about 70-100 bytes a triangle; landmarks (one copy per road) may be bigger.
+      expect(bytes).toBeLessThan((LANDMARK_FAMILY[name] ? 64 : 30) * 1024);
       const json = gltf.parser.json;
       expect(json.meshes).toHaveLength(1);
       expect(json.images ?? []).toHaveLength(0);
@@ -84,8 +101,12 @@ describe('prop models (GLB)', () => {
 
       const box = geom.boundingBox!;
       // Origin at the ground centre, +Y up: the base sits on y = 0 (scree bedded in a little).
-      expect(Math.abs(box.min.y)).toBeLessThan(0.15);
-      expect(Math.abs((box.min.x + box.max.x) / 2)).toBeLessThan(familyOf(name) === 'cliff' ? 1 : 1.5);
+      if (LANDMARK_FAMILY[name]) {
+        expect(box.min.y).toBeLessThan(0);
+        expect(box.min.y).toBeGreaterThanOrEqual(-LANDMARK_SINK);
+      } else expect(Math.abs(box.min.y)).toBeLessThan(0.15);
+      // The big hut's lean-to sits off one end, so its box centre is 1.7 m off the origin.
+      expect(Math.abs((box.min.x + box.max.x) / 2)).toBeLessThan(familyOf(name) === 'cliff' ? 1 : familyOf(name) === 'hut' ? 2 : 1.5);
       const size = box.getSize(new THREE.Vector3());
       const width = Math.max(size.x, size.z);
       expect(width).toBeGreaterThanOrEqual(fam.width[0]);
@@ -128,5 +149,20 @@ describe('preloadPropAssets', () => {
     expect(warnings).toBeLessThanOrEqual(1);
     expect(propAsset('no_such_model')).toBeNull();
     expect(propAsset('no_such_model', true)).toBeNull();
+  });
+});
+
+describe('landmark models (GLB)', () => {
+  it('match the sizes src/world/landmarks.ts plans with', async () => {
+    const { LANDMARK_MODELS } = await import('./landmarks');
+    for (const name of PROP_MODELS.landmarks) {
+      const g = toPropGeometry((await load(`${name}.glb`)).gltf.scene)!;
+      const size = g.boundingBox!.getSize(new THREE.Vector3());
+      const dims = LANDMARK_MODELS[name as keyof typeof LANDMARK_MODELS];
+      // The planned footprint covers the whole model (eaves, balcony, terrace), within 0.3 m.
+      expect(size.x, name).toBeLessThanOrEqual(dims.foot[0] + 0.3);
+      expect(size.z, name).toBeLessThanOrEqual(dims.foot[1] + 0.3);
+      expect(Math.abs(size.y - dims.h), name).toBeLessThan(0.5);
+    }
   });
 });

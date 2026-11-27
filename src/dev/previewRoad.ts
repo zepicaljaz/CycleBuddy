@@ -1,10 +1,11 @@
 import * as THREE from 'three';
 import { getRoute } from '../routes/route';
-import { realClimbRoute } from '../routes/real/build';
+import { ensureTrack, realClimbRoute } from '../routes/real/build';
 import { REAL_CLIMB_MAP } from '../routes/real/data';
 import { loadRouteTerrain } from '../routes/real/terrain';
 import type { TimeOfDay } from '../world/atmosphere';
 import { QUALITY } from '../world/graphics';
+import { preloadPropAssets } from '../world/propAssets';
 import { World } from '../world/world';
 
 /**
@@ -48,10 +49,13 @@ const t0 = performance.now();
 const id = params.get('id') ?? 'vrsic-kranjska-gora';
 const climb = REAL_CLIMB_MAP.get(id);
 if (!climb) throw new Error(`No real climb "${id}"`);
+// Tracks load lazily, like a ride (app.ts mountWorld).
+await ensureTrack(id);
 const def = realClimbRoute(climb);
 if (!def.track) throw new Error(`"${id}" has no real road (src/routes/real/tracks)`);
 const route = getRoute(def);
-await loadRouteTerrain(route);
+// Prop models too, so the Blender trees, rocks and landmarks show as in a ride.
+await Promise.all([loadRouteTerrain(route), preloadPropAssets()]);
 
 const time = (params.get('t') as TimeOfDay) || 'noon';
 const world = new World(route, canvas, null, 'high', time);

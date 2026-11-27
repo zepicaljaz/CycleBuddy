@@ -99,8 +99,8 @@ cyclebuddy/
 ├── server/                    Node API: accounts, sessions, ride sync, static files
 ├── api/index.js                Vercel: every /api/... request runs the same API handler
 ├── vercel.json                Vercel: build, page routes, asset caching
-├── scripts/real-track/        Offline builder for real roads (OSM + elevation)
-├── scripts/blender/           Blender scripts that build the low-poly tree and rock models (GLB)
+├── scripts/real-track/        Offline builder for real roads (OSM + elevation) and their mapped landmarks (landmarks.mjs)
+├── scripts/blender/           Blender scripts that build the low-poly tree, rock and landmark models (GLB)
 ├── scripts/smoke.mjs          After a build: checks the production server serves the game
 ├── scripts/track-index.mjs    `npm run track-index`: regenerates the real-road length/climbing index
 ├── scripts/viewpoints.mjs     Dev: before/after screenshots of the spots in scripts/viewpoints.json
@@ -183,6 +183,7 @@ cyclebuddy/
 | `traffic.ts`, `cars.ts`, `convoy.ts`, `motorcycle.ts`, `motorhome.ts`, `tractor.ts`, `boats.ts`, `birds.ts` | Things that move: traffic, the race convoy and broom car, boats, birds |
 | `props.ts`, `batch.ts`, `models.ts`, `geometry.ts`, `materials.ts`, `textures.ts` | Shared model building, merging and instancing |
 | `propAssets.ts` | Loads the Blender tree and rock models (`assets/models/`) on ride start; terrain falls back to the code-built ones in `models.ts` |
+| `landmarks.ts` | OpenStreetMap landmarks on the real roads (Russian Chapel, mountain huts, wayside shrines and crosses), from `routes/real/landmarks.json` |
 | `atmosphere.ts`, `water.ts`, `mappedPlaces.ts`, `verge.ts`, `road.ts` | Sky, light and fog presets; water; OpenStreetMap lakes and parking lots on a real road; grass verge; road surface |
 | `routePreview.ts` | Renders the loop preview stills |
 | `perf.ts` | The `?perf` overlay |
