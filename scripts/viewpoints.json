@@ -1,0 +1,464 @@
+{
+  "_about": "Fixed camera spots on the real roads for before/after screenshots (node scripts/viewpoints.mjs <outDir>). km = route distance from the ride start (route s / 1000); lat/lon = the track point projected back from the track origin (inverse of scripts/real-track/build.mjs toXZ). Spots: start (300 m into the climb), hairpin (sharpest turn over ±30 m), steep (steepest ground across the road from the height grid, ±50 m), summit (250 m before the top). looks: ahead + the lower (more open) side. Optional per spot: h (camera height m), off (m right of centre), pitch (deg), t (time of day).",
+  "roads": [
+    {
+      "id": "alpe-dhuez-bourg-doisans",
+      "spots": [
+        {
+          "kind": "start",
+          "km": 0.302,
+          "lat": 45.062025,
+          "lon": 6.037138,
+          "elevation": 725,
+          "looks": [
+            "ahead",
+            "left"
+          ]
+        },
+        {
+          "kind": "steep",
+          "km": 1.868,
+          "lat": 45.069222,
+          "lon": 6.040835,
+          "elevation": 853,
+          "looks": [
+            "ahead",
+            "right"
+          ],
+          "crossSlopePct": 88
+        },
+        {
+          "kind": "hairpin",
+          "km": 12.049,
+          "lat": 45.091392,
+          "lon": 6.055421,
+          "elevation": 1708,
+          "looks": [
+            "ahead",
+            "left"
+          ],
+          "turnDeg": 180
+        },
+        {
+          "kind": "summit",
+          "km": 14.345,
+          "lat": 45.093742,
+          "lon": 6.071333,
+          "elevation": 1829,
+          "looks": [
+            "ahead",
+            "right"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "angliru-la-vega",
+      "spots": [
+        {
+          "kind": "start",
+          "km": 0.303,
+          "lat": 43.23163,
+          "lon": -5.885213,
+          "elevation": 336,
+          "looks": [
+            "ahead",
+            "right"
+          ]
+        },
+        {
+          "kind": "steep",
+          "km": 10.561,
+          "lat": 43.233598,
+          "lon": -5.938579,
+          "elevation": 1309,
+          "looks": [
+            "ahead",
+            "left"
+          ],
+          "crossSlopePct": 95
+        },
+        {
+          "kind": "hairpin",
+          "km": 11.34,
+          "lat": 43.228575,
+          "lon": -5.935041,
+          "elevation": 1430,
+          "looks": [
+            "ahead",
+            "right"
+          ],
+          "turnDeg": 179
+        },
+        {
+          "kind": "summit",
+          "km": 12.293,
+          "lat": 43.225568,
+          "lon": -5.936625,
+          "elevation": 1545,
+          "looks": [
+            "ahead",
+            "right"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "galibier-valloire",
+      "spots": [
+        {
+          "kind": "start",
+          "km": 0.302,
+          "lat": 45.164086,
+          "lon": 6.426128,
+          "elevation": 1419,
+          "looks": [
+            "ahead",
+            "right"
+          ]
+        },
+        {
+          "kind": "hairpin",
+          "km": 10.832,
+          "lat": 45.089922,
+          "lon": 6.431236,
+          "elevation": 2049,
+          "looks": [
+            "ahead",
+            "right"
+          ],
+          "turnDeg": 180
+        },
+        {
+          "kind": "steep",
+          "km": 11.478,
+          "lat": 45.088639,
+          "lon": 6.430158,
+          "elevation": 2103,
+          "looks": [
+            "ahead",
+            "left"
+          ],
+          "crossSlopePct": 54
+        },
+        {
+          "kind": "summit",
+          "km": 17.675,
+          "lat": 45.065287,
+          "lon": 6.410482,
+          "elevation": 2621,
+          "looks": [
+            "ahead",
+            "right"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "giau-selva",
+      "spots": [
+        {
+          "kind": "start",
+          "km": 1.014,
+          "lat": 46.458659,
+          "lon": 12.032026,
+          "elevation": 1340,
+          "looks": [
+            "ahead",
+            "left"
+          ]
+        },
+        {
+          "kind": "hairpin",
+          "km": 5.701,
+          "lat": 46.478258,
+          "lon": 12.031849,
+          "elevation": 1784,
+          "looks": [
+            "ahead",
+            "right"
+          ],
+          "turnDeg": 180
+        },
+        {
+          "kind": "steep",
+          "km": 7.038,
+          "lat": 46.482659,
+          "lon": 12.035537,
+          "elevation": 1908,
+          "looks": [
+            "ahead",
+            "left"
+          ],
+          "crossSlopePct": 68
+        },
+        {
+          "kind": "summit",
+          "km": 10.211,
+          "lat": 46.484051,
+          "lon": 12.051793,
+          "elevation": 2209,
+          "looks": [
+            "ahead",
+            "right"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "krvavec-cerklje",
+      "spots": [
+        {
+          "kind": "start",
+          "km": 0.302,
+          "lat": 46.267523,
+          "lon": 14.493306,
+          "elevation": 435,
+          "looks": [
+            "ahead",
+            "right"
+          ]
+        },
+        {
+          "kind": "hairpin",
+          "km": 4.486,
+          "lat": 46.273659,
+          "lon": 14.511724,
+          "elevation": 771,
+          "looks": [
+            "ahead",
+            "left"
+          ],
+          "turnDeg": 179
+        },
+        {
+          "kind": "steep",
+          "km": 14.003,
+          "lat": 46.293461,
+          "lon": 14.524575,
+          "elevation": 1487,
+          "looks": [
+            "ahead",
+            "left"
+          ],
+          "crossSlopePct": 68
+        },
+        {
+          "kind": "summit",
+          "km": 15.252,
+          "lat": 46.299702,
+          "lon": 14.524888,
+          "elevation": 1565,
+          "looks": [
+            "ahead",
+            "left"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "stelvio-prato",
+      "spots": [
+        {
+          "kind": "start",
+          "km": 1.27,
+          "lat": 46.61752,
+          "lon": 10.593466,
+          "elevation": 922,
+          "looks": [
+            "ahead",
+            "right"
+          ]
+        },
+        {
+          "kind": "hairpin",
+          "km": 17.493,
+          "lat": 46.531979,
+          "lon": 10.48756,
+          "elevation": 2001,
+          "looks": [
+            "ahead",
+            "right"
+          ],
+          "turnDeg": 180
+        },
+        {
+          "kind": "steep",
+          "km": 24.631,
+          "lat": 46.531549,
+          "lon": 10.458219,
+          "elevation": 2612,
+          "looks": [
+            "ahead",
+            "right"
+          ],
+          "crossSlopePct": 79
+        },
+        {
+          "kind": "summit",
+          "km": 25.936,
+          "lat": 46.530391,
+          "lon": 10.454775,
+          "elevation": 2734,
+          "looks": [
+            "ahead",
+            "left"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "tourmalet-luz",
+      "spots": [
+        {
+          "kind": "start",
+          "km": 0.299,
+          "lat": 42.872717,
+          "lon": -0.000195,
+          "elevation": 722,
+          "looks": [
+            "ahead",
+            "left"
+          ]
+        },
+        {
+          "kind": "hairpin",
+          "km": 5.562,
+          "lat": 42.890175,
+          "lon": 0.048079,
+          "elevation": 1059,
+          "looks": [
+            "ahead",
+            "right"
+          ],
+          "turnDeg": 179
+        },
+        {
+          "kind": "steep",
+          "km": 17.742,
+          "lat": 42.908173,
+          "lon": 0.140274,
+          "elevation": 2006,
+          "looks": [
+            "ahead",
+            "right"
+          ],
+          "crossSlopePct": 71
+        },
+        {
+          "kind": "summit",
+          "km": 18.582,
+          "lat": 42.906351,
+          "lon": 0.145805,
+          "elevation": 2089,
+          "looks": [
+            "ahead",
+            "left"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ventoux-bedoin",
+      "spots": [
+        {
+          "kind": "start",
+          "km": 0.302,
+          "lat": 44.124548,
+          "lon": 5.18395,
+          "elevation": 316,
+          "looks": [
+            "ahead",
+            "right"
+          ]
+        },
+        {
+          "kind": "hairpin",
+          "km": 5.658,
+          "lat": 44.113607,
+          "lon": 5.239678,
+          "elevation": 540,
+          "looks": [
+            "ahead",
+            "right"
+          ],
+          "turnDeg": 164
+        },
+        {
+          "kind": "steep",
+          "km": 18.412,
+          "lat": 44.164255,
+          "lon": 5.300889,
+          "elevation": 1645,
+          "looks": [
+            "ahead",
+            "left"
+          ],
+          "crossSlopePct": 36
+        },
+        {
+          "kind": "summit",
+          "km": 21.016,
+          "lat": 44.172963,
+          "lon": 5.27866,
+          "elevation": 1874,
+          "looks": [
+            "ahead",
+            "left"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "vrsic-kranjska-gora",
+      "spots": [
+        {
+          "kind": "start",
+          "km": 0.302,
+          "lat": 46.47559,
+          "lon": 13.782712,
+          "elevation": 839,
+          "looks": [
+            "ahead",
+            "right"
+          ]
+        },
+        {
+          "kind": "steep",
+          "km": 3.006,
+          "lat": 46.456295,
+          "lon": 13.780104,
+          "elevation": 939,
+          "looks": [
+            "ahead",
+            "left"
+          ],
+          "crossSlopePct": 68
+        },
+        {
+          "kind": "hairpin",
+          "km": 4.503,
+          "lat": 46.444313,
+          "lon": 13.774373,
+          "elevation": 1043,
+          "looks": [
+            "ahead",
+            "left"
+          ],
+          "turnDeg": 180
+        },
+        {
+          "kind": "summit",
+          "km": 10.351,
+          "lat": 46.436718,
+          "lon": 13.74541,
+          "elevation": 1595,
+          "looks": [
+            "ahead",
+            "left"
+          ]
+        }
+      ]
+    }
+  ]
+}

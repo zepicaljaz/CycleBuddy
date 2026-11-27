@@ -55,6 +55,7 @@ npm start               # production server (after a build)
 | `/play?perf` | fps, frame and CPU time, draw calls, triangles, render resolution, memory |
 | `/preview.html?scene=riders` | Models up close (riders, bikes, cars, buildings…) |
 | `/preview.html?scene=world&route=alpine&s=800` | A whole world with a small group at road position `s` (metres). `window.preview.goto(s)` moves it |
+| `/preview.html?scene=road&id=vrsic-kranjska-gora&km=4.5&look=left` | A fixed camera on a real road (High preset, pixel ratio 1, noon, no traffic): `look` = ahead, back, left, right, up-slope, down-slope; `h` camera height (1.7 m), `off` metres right of the centre, `pitch` degrees, `t` time of day. Sets `window.__viewReady` when the terrain is complete |
 
 ---
 
@@ -102,6 +103,8 @@ cyclebuddy/
 ├── scripts/blender/           Blender scripts that build the low-poly tree and rock models (GLB)
 ├── scripts/smoke.mjs          After a build: checks the production server serves the game
 ├── scripts/track-index.mjs    `npm run track-index`: regenerates the real-road length/climbing index
+├── scripts/viewpoints.mjs     Dev: before/after screenshots of the spots in scripts/viewpoints.json
+├── scripts/viewpoints.json    Dev: 4 camera spots per real road (start, hairpin, steepest ground, summit)
 ├── tests/                     House-rule tests (versions, README map, no secrets, no alert())
 ├── .github/workflows/test.yml Checks every pull request: types, tests, build, smoke
 ├── data/                      Climb research data and OSM extracts; DEM cache (not in git)
@@ -208,7 +211,7 @@ cyclebuddy/
 | `site/` | Public homepage, sign-in, training-plans page |
 | `audio/sound.ts` | Wind, freewheel, crowds, music (from `assets/audio/`) |
 | `assets/` | Music, real-road terrain grids, tree and rock models (`models/`, built by `scripts/blender/`) |
-| `dev/` | The `preview.html` model and world viewer |
+| `dev/` | The `preview.html` model and world viewer (`entry.ts` picks the scene; `preview.ts` models, `previewWorld.ts` a world with riders, `previewRoad.ts` a fixed camera on a real road for screenshots). Dev only: not in the game build |
 | `util/` | Seeded random numbers, noise, rolling windows |
 | `types/` | Type declarations: the build stamp, n8ao |
 
@@ -326,6 +329,17 @@ npm run typecheck && npm test && npm run build && npm run smoke
 | Build + smoke | `npm run build`, `scripts/smoke.mjs` | The game compiles and the production server serves `/`, `/play`, every built file and the API |
 
 A new feature comes with a test for it. A bug fix comes with a test that fails without the fix.
+
+### Before/after screenshots
+
+`node scripts/viewpoints.mjs <outDir>` photographs every spot in `scripts/viewpoints.json` (9 real
+roads × 4 spots × 2 looks) through `/preview.html?scene=road`, so a change to terrain, rock, trees
+or land cover can be compared shot for shot: run it on `main`, then on the branch, into another
+folder. Options: `--only <id>[,<id>]`, `--url <running vite>`, `--jobs <pages at once>` (1),
+`--timeout <s>` (60). It needs Playwright, which is not a dependency:
+`npm i --no-save playwright@1.62` (Chromium build 1234). WebGL runs on the GPU (ANGLE Metal, new
+headless mode); the log prints the renderer. A spot takes about 25–60 s on a laptop, the second
+look of a spot a few seconds. Screenshots are never committed.
 
 ---
 
