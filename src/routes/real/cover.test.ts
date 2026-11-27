@@ -92,14 +92,14 @@ describe('real land cover', () => {
   it('Mont Ventoux: the summit is a field of stones', () => {
     // 800 m: the north face drops fast and is wooded higher up than the bare south side.
     const s = shares('ventoux-bedoin', within(summit('ventoux-bedoin'), 800));
-    expect(s.share(4, 5, 6)).toBeGreaterThan(0.4);
+    expect(s.share(4, 5, 6)).toBeGreaterThan(0.5);
     expect(s.share(1)).toBeLessThan(0.3);
   });
 
   it('Stelvio: rock and scree at the pass, ice not far off', () => {
     const top = summit('stelvio-prato');
     const pass = shares('stelvio-prato', within(top, 1500));
-    expect(pass.share(4, 5, 6)).toBeGreaterThan(0.15);
+    expect(pass.share(4, 5, 6)).toBeGreaterThan(0.3);
     expect(pass.share(1)).toBeLessThan(0.05);
     expect(shares('stelvio-prato', within(top, 4000)).share(7)).toBeGreaterThan(0.05);
   });

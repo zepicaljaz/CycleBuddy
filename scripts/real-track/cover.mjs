@@ -46,6 +46,7 @@ const OVERPASS = [
   'https://overpass-api.de/api/interpreter',
   'https://overpass.kumi.systems/api/interpreter',
   'https://overpass.private.coffee/api/interpreter',
+  'https://maps.mail.ru/osm/tools/overpass/api/interpreter',
 ];
 // Generic client name: no personal details go to outside services.
 const UA = 'CycleBuddy-real-track/1.0 (land cover build script)';
@@ -73,7 +74,7 @@ function osmClass(tags) {
   return null;
 }
 
-export async function overpass(id, bbox, tries = 4) {
+export async function overpass(id, bbox, tries = 4, endpoints = OVERPASS) {
   const file = path.join(CACHE, 'osm', `${id}.json`);
   if (fs.existsSync(file)) return JSON.parse(fs.readFileSync(file, 'utf8'));
   const b = `${bbox.south.toFixed(5)},${bbox.west.toFixed(5)},${bbox.north.toFixed(5)},${bbox.east.toFixed(5)}`;
@@ -92,7 +93,7 @@ export async function overpass(id, bbox, tries = 4) {
 out geom;`;
   let wait = 20;
   for (let attempt = 0; attempt < tries; attempt++) {
-    const url = OVERPASS[attempt % OVERPASS.length];
+    const url = endpoints[attempt % endpoints.length];
     try {
       console.log(`  overpass ${new URL(url).host} (try ${attempt + 1})…`);
       const res = await fetch(url, {
@@ -476,10 +477,21 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
   if (!ids) throw new Error('usage: cover.mjs <track id> | --all  [--no-osm] [--fetch-osm]');
   if (flags.includes('--fetch-osm')) {
     // Only download + cache the Overpass answers, patiently (for a busy Overpass day).
-    for (const id of ids) {
-      const track = JSON.parse(fs.readFileSync(path.join(TRACKS, `${id}.json`), 'utf8'));
-      console.log(id);
-      await overpass(id, osmBox(track), 8).catch((e) => console.log(`  !! ${id}: ${e.message}`));
-    }
+    // One worker per public server, each starting on a different one, so there are never
+    // more requests in flight than servers and each road is still asked one query at a time.
+    const queue = ids.filter((id) => !fs.existsSync(path.join(CACHE, 'osm', `${id}.json`)));
+    await Promise.all(
+      OVERPASS.map(async (_, w) => {
+        const order = OVERPASS.map((_, k) => OVERPASS[(w + k) % OVERPASS.length]);
+        for (let id = queue.shift(); id; id = queue.shift()) {
+          const track = JSON.parse(fs.readFileSync(path.join(TRACKS, `${id}.json`), 'utf8'));
+          console.log(`${id} (worker ${w})`);
+          await overpass(id, osmBox(track), 6, order).then(
+            () => console.log(`  ok ${id}`),
+            (e) => console.log(`  !! ${id}: ${e.message}`),
+          );
+        }
+      }),
+    );
   } else for (const id of ids) await buildCover(id, { osm: !flags.includes('--no-osm') });
 }

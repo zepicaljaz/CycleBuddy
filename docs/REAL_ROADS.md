@@ -294,6 +294,10 @@ banks and puts rock where there is none. Built offline by `scripts/real-track/co
   the 10 m pixels inside it (3×3 samples per 25 m cell, 10×10 per 100 m cell).
 
 Raw answers are cached in `data/cover-cache/` (gitignored, never commit it or any `.tif`).
+The script tries the public Overpass servers in turn (overpass-api.de, kumi.systems,
+private.coffee, maps.mail.ru) with backoff. On the night the cover was first built the
+first three answered 504 for an hour and maps.mail.ru took ~20 s per road; `--fetch-osm`
+runs one worker per server and leaves the answers in the cache for the real run.
 
 **Format.** `src/assets/terrain/<id>.cover.bin`: one unsigned byte per grid point, the
 same grids as the heights in `<id>.bin` (25 m near, then 100 m far, back to back), same
