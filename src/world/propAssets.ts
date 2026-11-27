@@ -34,6 +34,12 @@ export const PROP_MODELS = {
   cliffs: ['cliff_face_a', 'cliff_face_b', 'cliff_face_c'],
   /** Dwarf mountain pine for scrub / krummholz above the trees. */
   scrub: ['mugo'],
+  /**
+   * Mapped landmarks on the real roads (src/world/landmarks.ts): the Russian Chapel,
+   * two mountain huts, a wayside shrine and cross. Walls reach 0.4-0.6 m below y = 0
+   * so they bed into a slope. Static, never under the wind-sway material.
+   */
+  landmarks: ['ruska_kapelica', 'mountain_hut_a', 'mountain_hut_b', 'wayside_shrine', 'wayside_cross'],
 } as const;
 
 const geoms = new Map<string, THREE.BufferGeometry>();

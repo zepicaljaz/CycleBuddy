@@ -6,6 +6,10 @@ Real roads (`src/routes/real/tracks/*.json`, `src/assets/terrain/*.bin`) are bui
 - **Road lines (Vršič, Alpe d'Huez, the Stelvio from Prato, the D 974 up Mont Ventoux from Bédoin, the D 918 up the Tourmalet from Luz-Saint-Sauveur, the RI-2 and Carretera a L'Angliru from La Vega, the D 902 up the Galibier from Valloire, the SP 638 up Passo Giau from Selva di Cadore, Grad to Plaža on Krvavec), Lake Jasna, the Vršič parking lots, the Angliru summit parking, the meadows and woods along the Angliru, the Galibier summit parking and the Passo Giau parking:** © OpenStreetMap contributors,
   available under the Open Database License (ODbL). The track files are derived
   databases and are shared under the same licence. Raw extracts are in `data/osm/`.
+- **Landmarks beside the real roads** (`src/routes/real/landmarks.json`, built by
+  `scripts/real-track/landmarks.mjs`; Overpass answers in `data/osm/landmarks-<id>.json`):
+  the Russian Chapel, mountain huts and refuges, wayside shrines and crosses on Vršič,
+  the Galibier, the Stelvio and Passo Giau. © OpenStreetMap contributors, ODbL.
 - **Terrain:** Terrain Tiles on AWS Open Data (Mapzen/Tilezen). Sources include SRTM
   (NASA, public domain) and EU-DEM, produced using Copernicus data and information
   funded by the European Union.

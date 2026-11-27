@@ -10,6 +10,7 @@ import { placeAlpineHotel } from './alpineHotel';
 import { placeModernHotel } from './modernHotel';
 import { ventouxAntennaGroup } from './ventouxAntenna';
 import { placeAlpineRestaurants } from './alpineRestaurant';
+import { placeMappedLandmarks } from './landmarks';
 import { buildFarms, placeMotorhomes } from './farms';
 import { fencePost, fenceSpan, guardrailBeam, guardrailPost, stoneWall, woodPost, woodRails } from './fences';
 import { addCrowdMotion, colored, flagPole, nationFlag } from './models';
@@ -77,6 +78,8 @@ export function buildScenery(route: Route, field: TerrainField, towns: TownSpan[
     placeAlpineHotel(site);
     placeModernHotel(site);
     placeAlpineRestaurants(site);
+    // After everything hand-placed, so a mapped hut never lands on a pass restaurant or hotel.
+    placeMappedLandmarks(site);
     solids = site.boxes();
   }
   const clear = Float32Array.from(props.clear);
