@@ -99,6 +99,7 @@ cyclebuddy/
 ├── api/index.js                Vercel: every /api/... request runs the same API handler
 ├── vercel.json                Vercel: build, page routes, asset caching
 ├── scripts/real-track/        Offline builder for real roads (OSM + elevation)
+├── scripts/blender/           Blender scripts that build the low-poly tree and rock models (GLB)
 ├── scripts/smoke.mjs          After a build: checks the production server serves the game
 ├── tests/                     House-rule tests (versions, README map, no secrets, no alert())
 ├── .github/workflows/test.yml Checks every pull request: types, tests, build, smoke
@@ -176,6 +177,7 @@ cyclebuddy/
 | `alpineHotel.ts`, `modernHotel.ts`, `alpineRestaurant.ts`, `ventouxAntenna.ts`, `island.ts`, `buildings.ts`, `settlement.ts`, `site.ts`, `farms.ts`, `mills.ts` | Buildings and places |
 | `traffic.ts`, `cars.ts`, `convoy.ts`, `motorcycle.ts`, `motorhome.ts`, `tractor.ts`, `boats.ts`, `birds.ts` | Things that move: traffic, the race convoy and broom car, boats, birds |
 | `props.ts`, `batch.ts`, `models.ts`, `geometry.ts`, `materials.ts`, `textures.ts` | Shared model building, merging and instancing |
+| `propAssets.ts` | Loads the Blender tree and rock models (`assets/models/`) on ride start; terrain falls back to the code-built ones in `models.ts` |
 | `atmosphere.ts`, `water.ts`, `mappedPlaces.ts`, `verge.ts`, `road.ts` | Sky, light and fog presets; water; OpenStreetMap lakes and parking lots on a real road; grass verge; road surface |
 | `routePreview.ts` | Renders the loop preview stills |
 | `perf.ts` | The `?perf` overlay |
@@ -203,7 +205,7 @@ cyclebuddy/
 | `storage/` | IndexedDB with a memory fallback, account ride sync, FIT import/export, backups |
 | `site/` | Public homepage, sign-in, training-plans page |
 | `audio/sound.ts` | Wind, freewheel, crowds, music (from `assets/audio/`) |
-| `assets/` | Music and real-road terrain grids |
+| `assets/` | Music, real-road terrain grids, tree and rock models (`models/`, built by `scripts/blender/`) |
 | `dev/` | The `preview.html` model and world viewer |
 | `util/` | Seeded random numbers, noise, rolling windows |
 | `types/` | Type declarations: the build stamp, n8ao |
