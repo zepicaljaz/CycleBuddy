@@ -123,7 +123,7 @@ describe('land cover', () => {
     it('a steep meadow is only a little darker, never grey', () => {
       const flat = [...covered.faceColor(200, 1230, 300, 1, 1, 0.5)];
       // A steep DEM under the meadow: same node class, steeper real ground.
-      const steepField = new TerrainField({ ...road, seed: 5, scenery: SCENERY, dem: demFrom((x, z) => 1200 + 0.9 * z), cover: coverFrom(() => LandCover.meadow) });
+      const steepField = new TerrainField({ ...road, seed: 5, scenery: SCENERY, dem: demFrom((_x, z) => 1200 + 0.9 * z), cover: coverFrom(() => LandCover.meadow) });
       const steep = [...new ChunkBuilder(steepField, 5).faceColor(200, 1230, 300, BANK_NY, 1, 0.5)];
       const hue = (c: number[]) => c[1] / (c[0] + c[1] + c[2]);
       expect(hue(steep)).toBeCloseTo(hue(flat), 2);
@@ -192,7 +192,7 @@ describe('land cover', () => {
   describe('props', () => {
     const road = straightRoad();
     // Real ground rising south of the road at 0.75 (about 37°): steep, but alpine woods grow there.
-    const dem = demFrom((x, z) => 1200 + 0.75 * Math.max(0, z));
+    const dem = demFrom((_x, z) => 1200 + 0.75 * Math.max(0, z));
     const stripe = (x: number, z: number) => {
       if (z < 0) return LandCover.meadow;
       if (x < 512) return LandCover.forest;
