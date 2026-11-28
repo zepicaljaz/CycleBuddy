@@ -177,6 +177,7 @@ cyclebuddy/
 | `scenery.ts` | Roadside: towns, fences (culled per 500 m cell), race crowd (culled per 400 m cell), finish, signs |
 | `climbs.ts` | Climb furniture: km bornes, hairpin numbers, stone walls, graffiti |
 | `riders.ts`, `riderBody.ts`, `bikes.ts` | Instanced riders with three levels of detail; body and bike models |
+| `riderHead.ts` | The rider's head: face, ears, hair, vented helmet with straps and cradle, wraparound glasses (fit checked by `riderHead.test.ts`) |
 | `riderPick.ts` | Which rider is under the mouse, found on screen without raycasting |
 | `spectators.ts`, `fences.ts` | Spectator figures; hairpin fences (metal or stone by region) |
 | `alpineHotel.ts`, `modernHotel.ts`, `alpineRestaurant.ts`, `ventouxAntenna.ts`, `island.ts`, `buildings.ts`, `settlement.ts`, `site.ts`, `farms.ts`, `mills.ts` | Buildings and places |

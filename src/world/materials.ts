@@ -8,6 +8,7 @@ export type MatKind =
   | 'matte'
   | 'rough'
   | 'gloss'
+  | 'satin'
   | 'paint'
   | 'carpaint'
   | 'metal'
@@ -51,6 +52,9 @@ function create(kind: MatKind): THREE.Material {
       return std({ roughness: 0.96, metalness: 0, envMapIntensity: 0.6 });
     case 'gloss':
       return std({ roughness: 0.42, metalness: 0.05 });
+    case 'satin':
+      // Moulded plastic with a matte finish: a soft sheen that shows the form, no mirror.
+      return std({ roughness: 0.58, metalness: 0, envMapIntensity: 0.85 });
     case 'paint':
       return std({ roughness: 0.26, metalness: 0.42, envMapIntensity: 1.25 });
     case 'carpaint':

@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { HOOD_GRIP } from './bikes';
 import { atDetail, curve, limb, loft, merge, outline, paint, q, sweep, tube, v3, type Detail } from './geometry';
 import type { Model } from './materials';
+import { buildHead } from './riderHead';
 
 // Rider-local frame: +x forward, +y up, +z right. Lengths in metres.
 export const HIP = v3(-0.29, 1.035);
@@ -86,109 +87,6 @@ function headTransform(): THREE.Matrix4 {
   return new THREE.Matrix4().makeRotationZ(HEAD_TILT).setPosition(HEAD);
 }
 
-/** Aero road helmet: long shell, brow ridge, tapered occipital tail, vent channels and straps. */
-function helmet(hi: boolean): { shell: THREE.BufferGeometry; dark: THREE.BufferGeometry[] } {
-  const NV = q(48, 18);
-  const rimAt = (v: number) => {
-    const c = Math.cos(v);
-    // Deeper at the nape so the tail wraps the occiput; a little shallower at the brow.
-    return Math.PI * (0.5 - 0.08 * c + 0.018 * Math.sin(v) ** 2);
-  };
-  const outer = (u: number, v: number, inset = 1): THREE.Vector3 => {
-    const th = u * rimAt(v);
-    const c = Math.cos(v);
-    const s = Math.sin(v);
-    const front = Math.max(0, c);
-    const back = Math.max(0, -c);
-    const rx = 0.132 + 0.028 * back - 0.01 * front;
-    const ry = 0.122 + 0.01 * back;
-    const rz = 0.116 + 0.006 * Math.abs(s);
-    const p = v3(Math.sin(th) * c * rx, Math.cos(th) * ry, Math.sin(th) * s * rz);
-    const tail = Math.pow(back, 2.4) * THREE.MathUtils.smoothstep(u, 0.28, 1);
-    p.x -= 0.052 * tail;
-    p.y += 0.012 * tail - 0.008 * (1 - u) * (1 - u);
-    // Brow visor: a slight peak above the forehead, then a drop at the rim.
-    const brow = Math.pow(front, 5);
-    p.y += 0.006 * brow * THREE.MathUtils.smoothstep(u, 0.35, 0.78);
-    p.y -= 0.014 * brow * THREE.MathUtils.smoothstep(u, 0.82, 1);
-    p.x += 0.01 * brow * u;
-    return p.multiplyScalar(inset);
-  };
-  const ring = (u: number, inset = 1) => {
-    const r: THREE.Vector3[] = [];
-    for (let k = 0; k < NV; k++) r.push(outer(u, (k / NV) * Math.PI * 2, inset));
-    return r;
-  };
-  const shellRings: THREE.Vector3[][] = [];
-  const steps = q(16, 7);
-  for (let i = 0; i <= steps; i++) {
-    const t = i / steps;
-    // Denser rings near the rim and the crown.
-    const u = 0.04 + 0.9 * (t * t * 0.35 + t * 0.65);
-    shellRings.push(ring(u));
-  }
-  const shell = loft(shellRings, true, false);
-  const edge = loft([ring(0.92), ring(0.96), ring(1), ring(1, 0.86), ring(0.88, 0.86), ring(0.62, 0.86)], false, false);
-  const dark: THREE.BufferGeometry[] = [edge];
-  if (hi) {
-    const channel = (u0: number, u1: number, v: number, w: number) => {
-      const n = 6;
-      const rings: THREE.Vector3[][] = [];
-      for (let i = 0; i <= n; i++) {
-        const u = u0 + ((u1 - u0) * i) / n;
-        const p = outer(u, v);
-        const along = outer(Math.min(1, u + 0.03), v).sub(outer(Math.max(0, u - 0.03), v)).normalize();
-        const normal = p.clone().normalize();
-        const side = new THREE.Vector3().crossVectors(along, normal).normalize();
-        const c = p.addScaledVector(normal, -0.001);
-        rings.push([
-          c.clone().addScaledVector(along, 0.01).addScaledVector(side, w),
-          c.clone().addScaledVector(along, 0.01).addScaledVector(side, -w),
-          c.clone().addScaledVector(along, -0.01).addScaledVector(side, -w),
-          c.clone().addScaledVector(along, -0.01).addScaledVector(side, w),
-        ]);
-      }
-      return loft(rings, true, true);
-    };
-    for (const v of [-0.7, -0.38, 0, 0.38, 0.7]) dark.push(channel(0.28, 0.78, v, 0.007));
-    for (const v of [-0.52, -0.18, 0.18, 0.52]) dark.push(channel(0.58, 0.92, v, 0.006));
-    for (const v of [Math.PI - 0.42, Math.PI, Math.PI + 0.42]) dark.push(channel(0.48, 0.88, v, 0.0075));
-    for (const v of [Math.PI - 0.85, Math.PI + 0.85]) dark.push(channel(0.62, 0.94, v, 0.0055));
-    // Tiny exhaust ports on the tail.
-    for (const v of [-0.28, 0.28, Math.PI - 0.22, Math.PI + 0.22]) {
-      const p = outer(0.9, v);
-      const nrm = p.clone().normalize();
-      dark.push(new THREE.SphereGeometry(1, 8, 5).scale(0.012, 0.0035, 0.006).translate(p.x + nrm.x * 0.001, p.y + nrm.y * 0.001, p.z + nrm.z * 0.001));
-    }
-    for (const side of [-1, 1]) {
-      const a = outer(0.97, side * 1.18);
-      const b = outer(0.985, side * 1.92);
-      const chin = v3(0.048, -0.108, side * 0.032);
-      dark.push(tube(a, chin, 0.0032, 0.0026, 4, false), tube(b, chin, 0.0032, 0.0026, 4, false));
-    }
-    dark.push(new THREE.BoxGeometry(0.016, 0.01, 0.028).translate(0.05, -0.11, 0));
-  }
-  return { shell, dark };
-}
-
-function glasses(): { lens: THREE.BufferGeometry; frame: THREE.BufferGeometry[] } {
-  const arc = (y: number, scale: number, from: number, to: number, n: number) => {
-    const pts: THREE.Vector3[] = [];
-    for (let i = 0; i <= n; i++) {
-      const a = from + ((to - from) * i) / n;
-      pts.push(v3(Math.cos(a) * 0.104 * scale, y, Math.sin(a) * 0.088 * scale));
-    }
-    return pts;
-  };
-  const lens = sweep(arc(0.002, 1.02, -1.15, 1.15, q(14, 6)), (t) => [0.017 - 0.004 * Math.abs(t - 0.5), 0.003], { sides: q(8, 4), exp: 3, ref: v3(0, 1, 0) });
-  const frame = [sweep(arc(0.02, 1.025, -1.2, 1.2, q(12, 5)), () => [0.0035, 0.0035], { sides: 4, exp: 3, ref: v3(0, 1, 0) })];
-  for (const side of [-1, 1]) {
-    const end = v3(Math.cos(1.2) * 0.106, 0.018, side * Math.sin(1.2) * 0.09);
-    frame.push(tube(end, v3(-0.03, 0, side * 0.084), 0.0025, 0.0025, 3));
-  }
-  return { lens, frame };
-}
-
 export interface BodyModels {
   /** Everything that moves with the bike frame. */
   body: Model;
@@ -200,10 +98,11 @@ export interface BodyModels {
 }
 
 export function buildBody(detail: Detail): BodyModels {
-  return atDetail(detail, () => bodyAt(detail === 0));
+  return atDetail(detail, () => bodyAt(detail));
 }
 
-function bodyAt(hi: boolean): BodyModels {
+function bodyAt(detail: Detail): BodyModels {
+  const hi = detail === 0;
   const sides = q(18, 8);
   const jersey: THREE.BufferGeometry[] = [torso(0.16, 1, 1, hi)];
   const accent: THREE.BufferGeometry[] = [torso(0.58, 0.72, 1.016, hi), tube(v3(0.17, 1.325), v3(0.232, 1.402), 0.056, 0.054, q(18, 8), false)];
@@ -235,36 +134,20 @@ function bodyAt(hi: boolean): BodyModels {
       accent.push(new THREE.BoxGeometry(0.012, 0.055, 0.055).translate(-0.3, 1.07, z));
     }
   }
-  // Head, jaw, nose and ears, tilted with the head.
-  const head = headTransform();
-  const face: THREE.BufferGeometry[] = [
-    new THREE.SphereGeometry(1, q(28, 12), q(20, 8)).scale(0.098, 0.112, 0.08),
-    new THREE.SphereGeometry(1, q(18, 8), q(12, 5)).scale(0.062, 0.046, 0.06).translate(0.035, -0.072, 0),
-  ];
-  if (hi) {
-    face.push(new THREE.SphereGeometry(1, 10, 8).scale(0.022, 0.026, 0.013).rotateZ(0.35).translate(0.09, -0.03, 0));
-    for (const side of [-1, 1]) face.push(new THREE.SphereGeometry(1, 10, 8).scale(0.02, 0.03, 0.009).translate(-0.008, -0.01, side * 0.08));
-  }
-  for (const f of face) skin.push(f.applyMatrix4(head));
-  const hair = new THREE.SphereGeometry(1, q(14, 6), q(8, 4), -Math.PI / 2, Math.PI, Math.PI * 0.32, Math.PI * 0.4).scale(0.1, 0.114, 0.083).applyMatrix4(head);
-
-  const helm = helmet(hi);
-  const helmMatrix = new THREE.Matrix4().makeRotationZ(HEAD_TILT + 0.06).setPosition(HEAD.clone().add(v3(-0.006, 0.02)));
-  const shell = helm.shell.applyMatrix4(helmMatrix);
-  const helmDark = helm.dark.map((g) => g.applyMatrix4(helmMatrix));
-  const specs = glasses();
-  const glassMatrix = new THREE.Matrix4().makeRotationZ(HEAD_TILT + 0.1).setPosition(HEAD);
+  // Head, helmet and glasses (riderHead.ts), tilted with the head.
+  const head = buildHead(detail);
+  const headMatrix = headTransform();
+  for (const g of Object.values(head)) g.applyMatrix4(headMatrix);
 
   const body: Model = [
     { geom: merge(jersey.map((g) => paint(g, WHITE, { crease: 1.2 }))), mat: 'cloth', tint: 'jersey' },
     { geom: merge(accent.map((g) => paint(g, WHITE, { crease: 1.2 }))), mat: 'cloth', tint: 'jerseyAccent' },
     { geom: merge(shorts.map((g) => paint(g, WHITE, { crease: 1.2 }))), mat: 'cloth', tint: 'shorts' },
-    { geom: merge([...skin, ...hand].map((g) => paint(g, WHITE, { crease: 1.2 }))), mat: 'matte', tint: 'skin' },
-    { geom: paint(hair, 0x3a2a1e, { crease: 1.2 }), mat: 'matte' },
-    { geom: paint(shell, WHITE, { crease: 0.8 }), mat: 'paint', tint: 'helmet' },
-    { geom: merge(helmDark.map((g) => paint(g, 0x18191c, { crease: 0.8 }))), mat: 'gloss' },
-    { geom: paint(specs.lens.applyMatrix4(glassMatrix), 0x22324a, { crease: 1 }), mat: 'glass' },
-    { geom: merge(specs.frame.map((g) => paint(g.applyMatrix4(glassMatrix), 0x1a1b1e, { crease: 1 }))), mat: 'gloss' },
+    { geom: merge([...[...skin, ...hand].map((g) => paint(g, WHITE, { crease: 1.2 })), head.skin, head.ears]), mat: 'matte', tint: 'skin' },
+    { geom: merge([head.hair, head.straps, head.liner]), mat: 'matte' },
+    { geom: head.shell, mat: 'satin', tint: 'helmet' },
+    { geom: head.frame, mat: 'gloss' },
+    { geom: head.lens, mat: 'glass' },
   ];
 
   // Legs are built at true length along +y and posed joint to joint.
