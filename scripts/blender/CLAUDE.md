@@ -38,14 +38,14 @@ blender -b --factory-startup --python scripts/blender/landmarks.py -- [--preview
 
 | Name | Tris (near / far) | Size at scale 1 | What it is |
 |---|---|---|---|
-| `spruce_a` | 154 / 56 | 10.5 m, 4.6 m wide | Norway spruce, dense dark drooping tiers |
-| `spruce_b` | 150 / 56 | 11.6 m, 3 m wide | Narrow high-altitude spruce |
-| `larch` | 150 / 56 | 10.4 m | Light yellow-green, sparse flat whorls, trunk visible |
+| `spruce_a` | 202 / 72 | 10.5 m, 5.1 m wide | Norway spruce, eight dense dark drooping tiers, branch tips to the ground |
+| `spruce_b` | 170 / 72 | 11.6 m, 3.4 m wide | Narrow high-altitude spruce, green from 0.65 m |
+| `larch` | 170 / 72 | 10.4 m, 4.4 m wide | Light yellow-green whorls from 1.2 m, a little trunk between them |
 | `mugo` | 160 / 60 | 1.9 m tall, 3.5 m wide | Dwarf mountain pine mound (scrub) |
-| `scots_pine` | 116 / 56 | 11.5 m | Bare orange upper trunk, small flat crown high up |
+| `scots_pine` | 156 / 76 | 11.1 m | Orange upper trunk, layered lopsided crown over the upper half (from ~5.5 m) |
 | `aleppo_pine` | 128 / 32 | 8.9 m, 9 m wide | Mediterranean umbrella pine |
 | `cypress` | 106 / 30 | 11.2 m, 2 m wide | Italian columnar cypress |
-| `beech` | 148 / 68 | 11.6 m | Grey trunk, fresh-green oval crown |
+| `beech` | 168 / 68 | 11.6 m | Grey trunk, fresh-green crown from ~3 m, widest low down |
 | `holm_oak` | 110 / 48 | 7.5 m, 7.7 m wide | Dense round dark-olive crown |
 | `boulder_a`..`e` | 32-46 | 1.4-3.1 m | Angular limestone / granite: block, slab, shard, split, chunky |
 | `scree_patch_a`, `_b` | 144 | 5.5-6 m across, 0.4 m tall | 12 small flat stones as one mesh |
@@ -73,6 +73,11 @@ blender -b --factory-startup --python scripts/blender/landmarks.py -- [--preview
   0x3b3734, stone 0x9a948a.
 
 ## Rules
+
+- **Canopies reach low** (playtest, Nov 2026: "the crowns sit too high"). Spruce is green
+  to the ground, larch from ~1.2 m, beech from ~3 m, Scots pine over the upper half. A
+  long bare trunk reads as a lollipop from the saddle. The code-built fallbacks in
+  `models.ts` (home page, previews) follow the same rule.
 
 - **Budgets** (checked by `src/world/propAssets.test.ts`): trees 100-300 triangles and a
   `<name>_far` at most half of that (aim for 40 %); boulders, scree and cliffs 30-150;

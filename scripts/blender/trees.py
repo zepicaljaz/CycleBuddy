@@ -56,49 +56,58 @@ def tier_stack(m, tiers, n, colours, droop_k=0.22, wobble=0.12, light=None):
 # ---------------------------------------------------------------- conifers
 
 def spruce_a(far=False):
-    """Norway spruce: dense dark cone of drooping tiers right down to the ground."""
+    """Norway spruce: a full, dark cone of drooping tiers right down to the ground. The
+    lowest branch tips sweep down to the ground, so only a stub of trunk shows; eight
+    overlapping tiers keep the crown dense, with no daylight between them."""
     m = C.Model('spruce_a_far' if far else 'spruce_a', 101)
-    greens = [C.hex_rgb(h) for h in (0x1c4428, 0x214e30, 0x244f31, 0x275836, 0x2a5c3a, 0x2d6240)]
-    light = foliage_light(gradient=(1, 10.5, 0.08))
+    greens = [C.hex_rgb(h) for h in (0x1c4428, 0x1f4a2d, 0x214e30, 0x244f31, 0x275836, 0x2a5c3a, 0x2d6240, 0x30663f)]
+    light = foliage_light(gradient=(0.75, 10.5, 0.08))
     if far:
-        trunk(m, 4, 0.28, 0.14, 0, 2.2, TRUNK_DARK)
-        tier_stack(m, [(1.0, 4.2, 2.3), (3.9, 3.6, 1.6), (6.6, 3.9, 0.95)], 4, greens[::2], light=light)
+        trunk(m, 4, 0.28, 0.16, 0, 1.0, TRUNK_DARK)
+        tiers = [(0.75, 3.4, 2.55), (2.7, 3.4, 1.95), (4.9, 3.2, 1.35), (7.0, 3.5, 0.75)]
+        tier_stack(m, tiers, 4, greens[::2], light=light)
     else:
-        trunk(m, 5, 0.28, 0.12, 0, 2.6, TRUNK_DARK)
-        tiers = [(1.0, 3.0, 2.35), (2.6, 2.8, 2.0), (4.1, 2.6, 1.65), (5.5, 2.4, 1.3), (6.9, 2.2, 0.95), (8.2, 2.3, 0.55)]
+        trunk(m, 5, 0.28, 0.16, 0, 1.0, TRUNK_DARK)
+        tiers = [(0.75, 2.2, 2.6), (1.7, 2.2, 2.35), (2.7, 2.1, 2.05), (3.75, 2.05, 1.75),
+                 (4.8, 2.0, 1.45), (5.9, 1.9, 1.15), (7.0, 1.9, 0.82), (8.1, 2.4, 0.5)]
         tier_stack(m, tiers, 6, greens, light=light)
     return m
 
 
 def spruce_b(far=False):
-    """Narrow high-altitude spruce: a tall dark spire, half the width of spruce_a."""
+    """Narrow high-altitude spruce: a tall dark spire, a bit over half the width of
+    spruce_a, green from about 0.5 m up with tightly stacked tiers."""
     m = C.Model('spruce_b_far' if far else 'spruce_b', 102)
-    greens = [C.hex_rgb(h) for h in (0x1a3f2c, 0x1d4630, 0x204b33, 0x234f36, 0x26553a, 0x2a5b3e, 0x2e6142)]
-    light = foliage_light(gradient=(1, 11.5, 0.08))
+    greens = [C.hex_rgb(h) for h in (0x1a3f2c, 0x1c432e, 0x1d4630, 0x204b33, 0x234f36, 0x26553a, 0x2a5b3e, 0x2e6142)]
+    light = foliage_light(gradient=(0.65, 11.5, 0.08))
     if far:
-        trunk(m, 4, 0.24, 0.12, 0, 2.4, TRUNK_DARK)
-        tier_stack(m, [(1.2, 4.4, 1.45), (4.5, 4.0, 1.05), (7.7, 3.9, 0.6)], 4, greens[::3], droop_k=0.3, light=light)
+        trunk(m, 4, 0.24, 0.14, 0, 1.1, TRUNK_DARK)
+        tiers = [(0.65, 3.8, 1.7), (3.0, 3.7, 1.3), (5.6, 3.5, 0.92), (8.0, 3.6, 0.5)]
+        tier_stack(m, tiers, 4, greens[::2], droop_k=0.3, light=light)
     else:
-        trunk(m, 5, 0.24, 0.1, 0, 2.8, TRUNK_DARK)
-        tiers = [(1.2, 2.6, 1.5), (2.6, 2.5, 1.32), (4.0, 2.4, 1.15), (5.3, 2.3, 0.98), (6.6, 2.2, 0.8), (7.8, 2.2, 0.6), (9.0, 2.6, 0.38)]
+        trunk(m, 5, 0.24, 0.14, 0, 1.1, TRUNK_DARK)
+        tiers = [(0.65, 2.5, 1.72), (1.8, 2.5, 1.55), (3.0, 2.4, 1.38), (4.25, 2.3, 1.2),
+                 (5.5, 2.2, 1.02), (6.7, 2.1, 0.83), (7.9, 2.1, 0.62), (9.0, 2.6, 0.38)]
         tier_stack(m, tiers, 5, greens, droop_k=0.3, light=light)
     return m
 
 
 def larch(far=False):
-    """European larch: light yellow-green, sparse flat whorls with the trunk showing
-    between them, and a straight leader. Reads lighter and see-through next to spruce."""
+    """European larch: light yellow-green whorls from about 1.2 m up, a straight
+    leader, and a little trunk showing between the whorls. Reads lighter and airier
+    than spruce, but as a full crown, not a pole with a few branches."""
     m = C.Model('larch_far' if far else 'larch', 103)
-    greens = [C.hex_rgb(h) for h in (0x6f8f3e, 0x779741, 0x7d9b46, 0x83a04b, 0x88a650, 0x8eab55, 0x93b05a)]
+    greens = [C.hex_rgb(h) for h in (0x6f8f3e, 0x739340, 0x779741, 0x7d9b46, 0x83a04b, 0x88a650, 0x8eab55, 0x93b05a)]
     light = foliage_light(up=0.1, down=0.2)
     if far:
         trunk(m, 4, 0.3, 0.06, 0, 10.2, TRUNK, cap=False)
-        tiers = [(2.4, 1.0, 1.95), (4.9, 0.9, 1.4), (7.3, 1.2, 0.85)]
-        tier_stack(m, tiers, 4, greens[::3], droop_k=0.2, wobble=0.25, light=light)
+        tiers = [(1.2, 2.2, 2.25), (3.6, 2.0, 1.75), (5.9, 1.8, 1.2), (8.0, 2.2, 0.6)]
+        tier_stack(m, tiers, 4, greens[::2], droop_k=0.22, wobble=0.25, light=light)
     else:
         trunk(m, 5, 0.3, 0.05, 0, 10.4, TRUNK, cap=False)
-        tiers = [(2.3, 0.7, 2.0), (3.7, 0.65, 1.75), (5.0, 0.6, 1.45), (6.2, 0.6, 1.15), (7.3, 0.55, 0.85), (8.3, 0.6, 0.55), (9.1, 1.2, 0.32)]
-        tier_stack(m, tiers, 5, greens, droop_k=0.2, wobble=0.3, light=light)
+        tiers = [(1.2, 1.1, 2.3), (2.25, 1.05, 2.1), (3.3, 1.0, 1.88), (4.35, 0.95, 1.64),
+                 (5.4, 0.9, 1.38), (6.4, 0.85, 1.1), (7.4, 0.85, 0.8), (8.4, 1.6, 0.45)]
+        tier_stack(m, tiers, 5, greens, droop_k=0.22, wobble=0.3, light=light)
     return m
 
 
@@ -128,24 +137,27 @@ def mugo(far=False):
 
 
 def scots_pine(far=False):
-    """Scots pine: tall bare trunk going orange near the top, a slight lean, and a
-    small flat blue-green crown sitting high and to one side."""
+    """Scots pine: a bare trunk going orange near the top, a slight lean, and a
+    layered blue-green crown over the upper half, lopsided to one side."""
     m = C.Model('scots_pine_far' if far else 'scots_pine', 105)
     crown = [C.hex_rgb(h) for h in (0x355a3a, 0x3b6240, 0x416a42, 0x38603d)]
     light = foliage_light(up=0.08, down=0.2)
     lean = (0.04, 0.03)
     n = 4 if far else 5
-    trunk(m, n, 0.32, 0.22, 0, 4.0, TRUNK, tilt=lean)
-    top = C.xform([(0, 0, 4.0)], tilt=lean)[0]
-    trunk(m, n, 0.22, 0.12, 4.0, 9.6, PINE_BARK_TOP, tilt=lean, offset=(0, 0, 0))
-    clumps = [((0.4, 0.2, 9.9), 2.1), ((-1.3, 0.6, 9.2), 1.5)] if far else [
-        ((0.3, 0.1, 10.1), 1.9), ((-1.5, 0.8, 9.3), 1.45), ((1.6, -0.9, 9.0), 1.3), ((0.2, -0.3, 11.0), 1.15)]
-    for i, ((x, y, z), r) in enumerate(clumps):
-        v, f = C.blob(m.rng, r, (1.35, 1.2, 0.5), wobble=0.22, flat_bottom=0.3)
-        m.add(C.xform(v, rot_z=m.rng.random() * 6, offset=(x + top[0] * 2.3, y + top[1] * 2.3, z)), f, crown[i % len(crown)], jitter=0.07, colour_fn=light)
+    trunk(m, n, 0.32, 0.22, 0, 3.6, TRUNK, tilt=lean)
+    top = C.xform([(0, 0, 3.6)], tilt=lean)[0]
+    trunk(m, n, 0.22, 0.12, 3.6, 9.6, PINE_BARK_TOP, tilt=lean, offset=(0, 0, 0))
+    # Clumps from about 5.5 m up: the lowest ones wide and to the sides, the top one small.
+    clumps = [((0.2, 0.1, 9.4), 2.3, 0.75), ((-1.2, 0.6, 7.4), 2.0, 0.6), ((1.1, -0.6, 6.4), 1.8, 0.55)] if far else [
+        ((0.3, 0.1, 10.3), 1.7, 0.55), ((-1.4, 0.8, 9.2), 1.6, 0.5), ((1.5, -0.8, 8.6), 1.6, 0.5),
+        ((0.4, 1.3, 7.5), 1.7, 0.5), ((-1.2, -0.9, 6.7), 1.6, 0.5), ((1.3, 0.5, 6.0), 1.5, 0.45)]
+    for i, ((x, y, z), r, flat) in enumerate(clumps):
+        v, f = C.blob(m.rng, r, (1.35, 1.2, flat), wobble=0.22, flat_bottom=0.3)
+        k = (z - 3.6) / 6.0  # follow the lean up the trunk
+        m.add(C.xform(v, rot_z=m.rng.random() * 6, offset=(x + top[0] * 2.3 * k, y + top[1] * 2.3 * k, z)), f, crown[i % len(crown)], jitter=0.07, colour_fn=light)
     if not far:
-        # Two bare limbs reaching into the side clumps.
-        for (dx, dy, z0, z1) in ((-1.3, 0.6, 8.0, 9.1), (1.4, -0.8, 7.7, 8.8)):
+        # Two bare limbs reaching into the lower side clumps.
+        for (dx, dy, z0, z1) in ((-1.3, 0.6, 6.0, 7.2), (1.3, 0.5, 5.2, 6.1)):
             v, f = C.frustum(4, 0.09, 0.05, 0, 1, m.rng, cap_top=False)
             length = math.sqrt(dx * dx + dy * dy + (z1 - z0) ** 2)
             pitch = math.acos((z1 - z0) / length)
@@ -204,20 +216,21 @@ def crown_blobs(m, blobs, colours, light, flat=None):
 
 
 def beech(far=False):
-    """European beech: tall smooth grey trunk, a big fresh-green oval crown built
-    from a few overlapping clumps. About 11 m."""
+    """European beech: smooth grey trunk, a big fresh-green crown from about 3 m up,
+    built from overlapping clumps, widest low down. About 11 m."""
     m = C.Model('beech_far' if far else 'beech', 108)
     greens = [C.hex_rgb(h) for h in (0x5f8f37, 0x6c9c3d, 0x56853a, 0x649439)]
     light = foliage_light(up=0.1, down=0.22)
-    trunk(m, 4 if far else 6, 0.36, 0.2, 0, 5.6, BEECH_BARK)
+    trunk(m, 4 if far else 6, 0.36, 0.2, 0, 4.6, BEECH_BARK)
     if far:
-        blobs = [((0, 0, 7.4), 3.2, (1, 1, 0.95)), ((0.6, -0.4, 9.4), 2.2, (1, 1, 0.9)), ((-1.2, 0.8, 6.4), 2.0, (1.1, 1, 0.8))]
+        blobs = [((0, 0, 6.6), 3.4, (1, 1, 0.95)), ((0.6, -0.4, 9.0), 2.4, (1, 1, 0.9)), ((-1.2, 0.8, 5.0), 2.3, (1.1, 1, 0.8))]
     else:
         for a in (0.3, 3.4):
-            v, f = C.frustum(4, 0.16, 0.08, 0, 2.4, m.rng, cap_top=False)
-            m.add(C.xform(v, tilt=(0, 0.45), rot_z=a, offset=(0, 0, 4.8)), f, BEECH_BARK, jitter=0.05)
-        blobs = [((0, 0, 7.4), 3.0, (1, 1, 0.9)), ((1.7, 0.6, 6.6), 2.1, (1, 1, 0.85)), ((-1.6, -0.7, 6.8), 2.2, (1, 1, 0.85)),
-                 ((0.5, -1.5, 8.6), 2.0, (1, 1, 0.9)), ((-0.6, 1.3, 9.0), 2.0, (1, 1, 0.9)), ((0.2, 0.1, 10.4), 1.6, (1, 1, 0.85))]
+            v, f = C.frustum(4, 0.16, 0.08, 0, 2.2, m.rng, cap_top=False)
+            m.add(C.xform(v, tilt=(0, 0.5), rot_z=a, offset=(0, 0, 3.4)), f, BEECH_BARK, jitter=0.05)
+        blobs = [((0, 0, 6.8), 3.0, (1, 1, 0.9)), ((1.8, 0.6, 5.2), 2.2, (1, 1, 0.8)), ((-1.7, -0.7, 5.4), 2.3, (1, 1, 0.8)),
+                 ((0.4, 1.6, 4.6), 1.9, (1, 1, 0.75)), ((0.5, -1.5, 8.4), 2.1, (1, 1, 0.9)), ((-0.6, 1.3, 8.8), 2.0, (1, 1, 0.9)),
+                 ((0.2, 0.1, 10.2), 1.7, (1, 1, 0.85))]
     crown_blobs(m, blobs, greens, light)
     return m
 
