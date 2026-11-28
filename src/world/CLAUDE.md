@@ -68,3 +68,4 @@ A real landmark that OpenStreetMap maps (hut, chapel, shrine) goes through `land
 - `StaticBatch` stores positions cell-local (float precision far from the origin) and files a model by its matrix translation. For world-space geometry use `Props.addWorld()`, which recentres it first.
 - `models.ts` and `geometry.ts` both export `colored()`; the `models.ts` one has its own `merge` that does not skip empty parts.
 - `InstancedModel` defaults to `frustumCulled = false`; call `finalize()` for static instances so they cull.
+- Post-processing: a channel below 0 inside the `EffectPass` turns into NaN at the next sRGB encode (`pow`), and the pixel shows pure black. Saturation above 0 and contrast both push dark channels below 0, so `ClampEffect` sits right after `hueSat` (contrast works in sRGB, so the pass encodes there) and again after `vignette`. A new colour effect that can go negative needs a clamp after it too.

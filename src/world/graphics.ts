@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import {
   BloomEffect,
   BrightnessContrastEffect,
+  Effect,
   EffectComposer,
   EffectPass,
   HueSaturationEffect,
@@ -14,6 +15,19 @@ import {
 import { N8AOPostPass } from 'n8ao';
 import type { AtmospherePreset } from './atmosphere';
 import type { TerrainQuality } from './terrain';
+
+// HueSaturationEffect only caps colour at 1. With saturation above 0 it pushes
+// the weak channel of a dark, saturated colour (an orange jersey lit by the
+// brown ground light) below 0. BrightnessContrastEffect works in sRGB, so the
+// pass encodes to sRGB right after it: pow() of a negative is NaN and the pixel
+// comes out pure black. Contrast in turn maps sRGB under ~8/255 below 0, and the
+// final encode does the same to that. Clamp at 0 after each: one max() each in
+// the merged pass shader.
+class ClampEffect extends Effect {
+  constructor() {
+    super('ClampEffect', 'void mainImage(const in vec4 inputColor,const in vec2 uv,out vec4 outputColor){outputColor=vec4(max(inputColor.rgb,0.0),inputColor.a);}');
+  }
+}
 
 // The orthographic shadow camera stores gl_FragCoord.z. Apple GPUs compute that
 // coarsely, so with the sun 9° up a whole face fails the compare and goes black.
@@ -86,6 +100,8 @@ export class Graphics {
   private effectPassBloom: EffectPass | null = null;
   private effectPassPlain: EffectPass | null = null;
   private contrast: BrightnessContrastEffect;
+  private clampSat: ClampEffect;
+  private clampEnd: ClampEffect;
   private vignette: VignetteEffect;
   private smaa: SMAAEffect;
   private quality: QualitySettings = QUALITY.high;
@@ -162,6 +178,8 @@ export class Graphics {
     this.toneMapping = new ToneMappingEffect({ mode: ToneMappingMode.AGX });
     this.contrast = new BrightnessContrastEffect({ brightness: 0.0, contrast: 0.06 });
     this.vignette = new VignetteEffect({ offset: 0.3, darkness: 0.45 });
+    this.clampSat = new ClampEffect();
+    this.clampEnd = new ClampEffect();
     this.smaa = new SMAAEffect();
     this.watchPixelRatio();
   }
@@ -177,10 +195,10 @@ export class Graphics {
   /** The effect pass for the current bloom setting. Bloom that is off is left out, not drawn at zero. */
   private effectPass(): EffectPass {
     if (this.useBloom()) {
-      this.effectPassBloom ??= new EffectPass(this.camera, this.bloom, this.toneMapping, this.hueSat, this.contrast, this.vignette, this.smaa);
+      this.effectPassBloom ??= new EffectPass(this.camera, this.bloom, this.toneMapping, this.hueSat, this.clampSat, this.contrast, this.vignette, this.clampEnd, this.smaa);
       return this.effectPassBloom;
     }
-    this.effectPassPlain ??= new EffectPass(this.camera, this.toneMapping, this.hueSat, this.contrast, this.vignette, this.smaa);
+    this.effectPassPlain ??= new EffectPass(this.camera, this.toneMapping, this.hueSat, this.clampSat, this.contrast, this.vignette, this.clampEnd, this.smaa);
     return this.effectPassPlain;
   }
 
