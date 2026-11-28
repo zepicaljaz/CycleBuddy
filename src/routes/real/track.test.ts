@@ -166,13 +166,15 @@ describe("Alpe d'Huez on its real road", () => {
     const top = towns.find((t) => t.name === "L'Alpe d'Huez");
     expect(foot).toBeDefined();
     expect(foot!.s0).toBeLessThan(50);
+    // Extents are the real streets (src/routes/real/towns/): the D 211 runs past houses to ~700 m,
+    // and the resort's houses start below the last bends.
     expect(foot!.s1).toBeGreaterThan(400);
-    expect(foot!.s1).toBeLessThan(700);
+    expect(foot!.s1).toBeLessThan(760);
     expect(top).toBeDefined();
-    expect(top!.s0).toBeGreaterThan(climb.length - 800);
+    expect(top!.s0).toBeGreaterThan(climb.length - 1300);
     expect(top!.s1).toBeLessThanOrEqual(climb.length + 40);
     expect(top!.s1 - top!.s0).toBeGreaterThan(400);
-    expect(top!.s1 - top!.s0).toBeLessThan(700);
+    expect(top!.s1 - top!.s0).toBeLessThan(1250);
   });
 
   it('closes the lap and never jumps', () => {
@@ -238,8 +240,9 @@ describe('Passo dello Stelvio from Prato on its real road', () => {
     const towns = planTowns(route);
     const at = (name: string) => towns.find((t) => t.name === name)!;
     const prato = at('Prato allo Stelvio');
-    expect(prato.s1 - prato.s0).toBeLessThan(900);
-    expect(prato.s0).toBeGreaterThan(900);
+    // The real street (OpenStreetMap houses along the SS 38): from the Spondigna side through the village.
+    expect(prato.s1 - prato.s0).toBeLessThan(1900);
+    expect(prato.s0).toBeGreaterThan(500);
     expect(prato.s0).toBeLessThan(climb.start + 200);
     expect(prato.s1).toBeGreaterThan(climb.start);
     expect(at('Ponte di Stelvio').s0).toBeGreaterThan(5000);
@@ -477,7 +480,7 @@ describe('Col du Tourmalet from Luz-Saint-Sauveur on its real road', () => {
     expect(east).toBeGreaterThan(1500);
   });
 
-  it('has Luz, Esterre, Cabadur and a short Barèges, and no town above it', () => {
+  it('has Luz, Esterre, Cabadur and Barèges, and no town above it', () => {
     const towns = planTowns(route);
     const at = (name: string) => towns.find((t) => t.name === name)!;
     const luz = at('Luz-Saint-Sauveur');
@@ -489,14 +492,15 @@ describe('Col du Tourmalet from Luz-Saint-Sauveur on its real road', () => {
     expect(luz.s1).toBeGreaterThan(400);
     expect(luz.s1).toBeLessThan(600);
     expect(esterre.s0).toBeGreaterThan(luz.s1);
-    expect(esterre.s0).toBeGreaterThan(650);
+    expect(esterre.s0).toBeGreaterThan(580);
     expect(esterre.s1).toBeLessThan(1200);
     expect(cabadur.s0).toBeGreaterThan(5000);
     expect(cabadur.s1).toBeLessThan(6500);
     expect(bareges.s0).toBeGreaterThan(cabadur.s1);
-    expect(bareges.s0).toBeGreaterThan(6600);
-    expect(bareges.s1).toBeLessThan(7600);
-    expect(bareges.s1 - bareges.s0).toBeLessThan(800);
+    // The real street: Barèges's houses line the D 918 for about 1.4 km.
+    expect(bareges.s0).toBeGreaterThan(6400);
+    expect(bareges.s1).toBeLessThan(7900);
+    expect(bareges.s1 - bareges.s0).toBeLessThan(1450);
     const luzY = route.y[Math.round(luz.s0 / ROUTE_DS)];
     const baregesY = route.y[Math.round(((bareges.s0 + bareges.s1) / 2) / ROUTE_DS)];
     expect(luzY).toBeCloseTo(711, -1);
@@ -932,7 +936,8 @@ describe('Passo Giau from Selva di Cadore on its real road', () => {
     const selva = towns.find((t) => t.name === 'Selva di Cadore')!;
     expect(towns.some((t) => t.name === 'Passo Giau')).toBe(false);
     expect(selva.s0).toBeLessThan(40);
-    expect(selva.s1).toBeGreaterThan(600);
+    // The real street: Selva's houses stand along the first ~280 m of Via IV Novembre.
+    expect(selva.s1).toBeGreaterThan(200);
     expect(selva.s1).toBeLessThan(climb.start + 40);
     expect(def.track!.places!.lots.map((l) => l.name)).toEqual([
       'Passo Giau',

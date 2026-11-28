@@ -372,6 +372,32 @@ low and rock high, the Tourmalet is grass above the trees, the Angliru is meadow
 there, run `node scripts/real-track/cover.mjs <id>` afterwards. Add the id to `ROADS` in
 `cover.test.ts`.
 
+## Towns: as big as the real ones
+
+Each named town on a real road is built from OpenStreetMap's buildings, not as a generic
+street. `node scripts/real-track/buildings.mjs` (add `--fetch` to ask Overpass again,
+and road ids to do only those) reads each track's `towns`, fetches the buildings around
+that stretch into `data/osm/buildings-<id>.json` (centre and `building=*` only, those
+within 150 m of the road), and writes `src/routes/real/towns/<id>.json`:
+
+- **Extent.** Street-front houses (centre within 60 m of the road's centre line) are
+  grouped along the road; a gap over 80 m ends a village. The groups that reach the
+  configured span are the street. In a place with 20 or more of them, each end is trimmed
+  to where at least 4 stand within the next 100 m (a village frays out into lone farms).
+  Never past halfway to the next town. These `fromM`/`toM` replace the track's own.
+- **Houses.** Every building is counted (`osm.all`); garages, sheds, roofs, kiosks and
+  the like are not built as houses. The rest are listed as street front
+  `[metres from the middle, side]` and back row `[metres from the middle, signed distance]`.
+- **In the game** (`settlement.ts`): a town with fewer than 40 street-front houses is a
+  hamlet or village: each house with its yard at its mapped place, name boards, nothing
+  else (no lights, crossings, pavements, car park, side street). A bigger town keeps the
+  square, lights and pavements, but puts a house where each mapped one stands, back-row
+  houses at their mapped distance, and a tower block only from 120 street-front houses.
+  A house that does not fit (slope, junction, square) is nudged up to 6 m, then dropped.
+- **After rebuilding a track** run the script again without `--fetch`: positions are
+  measured on the track's line. A town renamed or added in `build.mjs` needs `--fetch`.
+  `src/world/realTowns.test.ts` checks each town against its file (slow, ~3 min).
+
 ## Adding the next road
 
 1. Fetch the OSM ways for the road into `data/osm/<name>.json` (Overpass; ask

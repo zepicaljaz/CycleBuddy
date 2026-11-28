@@ -57,6 +57,8 @@ export class Site {
   private solids: number[] = [];
   private tmp: RouteSample = { x: 0, y: 0, z: 0, tx: 1, tz: 0, grade: 0 };
   private seed = 1;
+  /** Buildings put down so far (houses, garages, churches...). */
+  buildings = 0;
 
   constructor(
     readonly route: Route,
@@ -204,6 +206,7 @@ export class Site {
     if (g.hi - y > (o.bury ?? 1.8) || y - g.lo > 2.4) return null;
     const origin = this.at(s, side * (front + b.front));
     this.props.place(b.model, placement(origin.x, y, origin.z, yaw), o.tints ?? this.tints());
+    this.buildings++;
     this.occupy(mid.x, mid.z, yaw, depth, b.w);
     this.solid(mid.x, mid.z, yaw, depth, b.w, y, b.h + 0.8);
     return { x: origin.x, y, z: origin.z, yaw };
@@ -222,6 +225,7 @@ export class Site {
     if (!g || g.hi - g.lo > 2.2) return null;
     const y = g.hi - 0.2;
     this.props.place(b.model, placement(x, y, z, yaw), o.tints ?? this.tints());
+    this.buildings++;
     this.occupy(mx, mz, yaw, depth, b.w);
     this.solid(mx, mz, yaw, depth, b.w, y, b.h + 0.8);
     return { x, y, z, yaw };
