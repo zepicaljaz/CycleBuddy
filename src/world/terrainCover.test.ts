@@ -319,11 +319,11 @@ describe('land cover', () => {
         p: 247859601.1001467,
       },
       {
-        // With the treeline and snowline it had before its scenery hints were added.
+        // With the treeline, snowline and rock tone it had before its scenery hints were added.
         name: 'stelvio-prato (real road, no grids loaded)',
         route: () => {
           const def = realClimbRoute(REAL_CLIMB_MAP.get('stelvio-prato')!);
-          return new Route({ ...def, scenery: { ...def.scenery, treeline: 2050, snowline: 2850 } });
+          return new Route({ ...def, scenery: { ...def.scenery, treeline: 2050, snowline: 2850, rockTone: undefined } });
         },
         s: 25001975.50206583,
         picks: [
