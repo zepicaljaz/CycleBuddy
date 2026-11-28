@@ -17,6 +17,10 @@ Real roads (`src/routes/real/tracks/*.json`, `src/assets/terrain/*.bin`) are bui
   `scripts/real-track/landmarks.mjs`; Overpass answers in `data/osm/landmarks-<id>.json`):
   the Russian Chapel, mountain huts and refuges, wayside shrines and crosses on Vršič,
   the Galibier, the Stelvio and Passo Giau. © OpenStreetMap contributors, ODbL.
+- **Towns on the real roads** (`src/routes/real/towns/<id>.json`, built by
+  `scripts/real-track/buildings.mjs`; Overpass answers in `data/osm/buildings-<id>.json`):
+  how many buildings each real town has, where its street begins and ends, and where along
+  the road its houses stand. © OpenStreetMap contributors, ODbL.
 - **Terrain:** Terrain Tiles on AWS Open Data (Mapzen/Tilezen). Sources include SRTM
   (NASA, public domain) and EU-DEM, produced using Copernicus data and information
   funded by the European Union.

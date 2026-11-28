@@ -8,6 +8,7 @@ ground rules: `docs/REAL_ROADS.md`.
 ## What lives here
 - `build.mjs`: the builder. `CONFIGS` holds one entry per road (`vrsic`, `alpe`, `stelvio`, `angliru`, `tourmalet`, `ventoux`, `galibier`, `giau`, `krvavec`).
 - `landmarks.mjs`: OSM landmarks next to the road (Russian Chapel, huts within 180 m, wayside shrines/crosses within 30 m) → `src/routes/real/landmarks.json` in each road's frame. `--fetch` asks Overpass again (maps.mail.ru mirror first); otherwise it reuses `data/osm/landmarks-<id>.json`. Re-run after a road's track is rebuilt (the frame comes from the track's `origin`).
+- `buildings.mjs`: OSM buildings around each named town → `src/routes/real/towns/<id>.json` (real street extent, building count, house positions along the road). `--fetch` asks Overpass again (cache `data/osm/buildings-<id>.json`); road ids limit it. Re-run without `--fetch` after a track is rebuilt; with `--fetch` after a town is added or renamed in `CONFIGS`. Rules: `docs/REAL_ROADS.md` → "Towns: as big as the real ones".
 - `dem.mjs`: Terrain Tiles (Terrarium PNG) download, a small PNG decoder, and a bilinear lat/lon sampler.
 
 ## Inputs and outputs
