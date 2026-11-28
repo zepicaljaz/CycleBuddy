@@ -223,14 +223,18 @@ const CONFIGS = {
   krvavec: {
     id: 'krvavec-cerklje',
     climbId: 'krvavec-cerklje',
-    // Paved road from Grad to Plaža: tertiary Grad, then unclassified through
-    // Ambrož pod Krvavcem, then the ski-area service road to the hotel.
-    osm: 'data/osm/krvavec-grad.json',
-    // OpenStreetMap hamlet Grad: the CyclingCols / Pogi timed start.
-    from: { lat: 46.2701248, lon: 14.4924402 },
+    // The Pogi Challenge approach: road 639 north from Dvorje into Grad, a right turn
+    // onto the Krvavec road (tertiary), then unclassified through Ambrož pod Krvavcem
+    // and the ski-area service road to the hotel.
+    osm: ['data/osm/krvavec-dvorje.json', 'data/osm/krvavec-grad.json'],
+    // South end of road 639 "Dvorje" (way 23318553): the ride rolls in through Dvorje.
+    from: { lat: 46.2559588, lon: 14.4878847 },
     // Service road vertex beside the Plaža restaurant (node 252493393).
     to: { lat: 46.3007269, lon: 14.5261189 },
-    climbStart: { lat: 46.2701248, lon: 14.4924402 },
+    // The timed climb starts at the Grad crossroads on road 639, where the Pogi Challenge
+    // route comes in from Pšata (431 m, 15.2 km to Plaža). The right turn onto the
+    // Krvavec road is 300 m further on (node 46.2652045, 14.4941594).
+    climbStart: { lat: 46.2627984, lon: 14.4933549 },
     summit: { lat: 46.3007269, lon: 14.5261189 },
     startElevation: 431,
     summitElevation: 1594,
@@ -239,11 +243,13 @@ const CONFIGS = {
     balloonAtEnd: true,
     // No published numbered series. Signs count up on the sharp bends.
     hairpins: 'up',
-    // Metres from the valley end of the built road. Grad is the opening street;
-    // Ambrož sits where the road passes the village around 1,085 m.
+    // Metres from the valley end of the built road (OSM way lengths): Dvorje on road 639
+    // to 470 m, Grad from there past the right turn (1,180 m); Ambrož sits where the
+    // road passes the village around 1,085 m.
     towns: [
-      { name: 'Grad', fromM: 0, toM: 400 },
-      { name: 'Ambrož pod Krvavcem', fromM: 8000, toM: 9000 },
+      { name: 'Dvorje', fromM: 0, toM: 470 },
+      { name: 'Grad', fromM: 470, toM: 1250 },
+      { name: 'Ambrož pod Krvavcem', fromM: 8600, toM: 9600 },
     ],
   },
 };
