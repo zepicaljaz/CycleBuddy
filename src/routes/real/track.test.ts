@@ -1007,11 +1007,12 @@ describe('Krvavec on its real road', () => {
     expect(route.y[Math.floor(climb.start / ROUTE_DS)]).toBeCloseTo(431, -1);
     expect(climb.summitElevation).toBeCloseTo(1594, -1);
     expect(Math.abs(climb.gain - c.gain) / c.gain).toBeLessThan(0.03);
-    const grad = nearest(46.2701248, 14.4924402);
+    // The Pogi Challenge start: the Grad crossroads on road 639.
+    const grad = nearest(46.2627984, 14.4933549);
     const plaza = nearest(46.3011603, 14.5263809);
     const tiha = nearest(46.3004116, 14.5265222);
     expect(grad.d).toBeLessThan(20);
-    expect(grad.along).toBeLessThan(climb.start + 40);
+    expect(Math.abs(grad.along - climb.start)).toBeLessThan(40);
     expect(tiha.d).toBeLessThan(30);
     expect(tiha.y).toBeGreaterThan(1580);
     expect(climb.end - tiha.along).toBeLessThan(80);
@@ -1033,8 +1034,31 @@ describe('Krvavec on its real road', () => {
     expect(jezerca.along).toBeGreaterThan(climb.start + 11000);
     expect(jezerca.along).toBeLessThan(climb.start + 13500);
     const towns = planTowns(route);
-    expect(towns.some((t) => t.name === 'Grad' && t.s0 < 50)).toBe(true);
+    expect(towns.some((t) => t.name === 'Dvorje' && t.s0 < 50)).toBe(true);
+    expect(towns.some((t) => t.name === 'Grad' && t.s0 < climb.start && t.s1 > climb.start + 300)).toBe(true);
     expect(towns.some((t) => t.name === 'Ambrož pod Krvavcem')).toBe(true);
+  });
+
+  it('rolls in from Dvorje on road 639 and turns right onto the Krvavec road', () => {
+    // Road 639 at the south end of Dvorje: before the timed start.
+    const dvorje = nearest(46.2559588, 14.4878847);
+    expect(dvorje.d).toBeLessThan(20);
+    expect(dvorje.along).toBeLessThan(climb.start - 700);
+    // The turn off road 639 (node 46.2652045, 14.4941594), about 300 m into the climb.
+    const turn = nearest(46.2652045, 14.4941594);
+    expect(turn.d).toBeLessThan(15);
+    expect(turn.along - climb.start).toBeGreaterThan(250);
+    expect(turn.along - climb.start).toBeLessThan(350);
+    // Heading 40 m before vs 40 m after: x east, z south, so a positive change is a right turn.
+    const head = (s: number) => {
+      const i = Math.floor(s / ROUTE_DS);
+      const j = i + Math.round(10 / ROUTE_DS);
+      return Math.atan2(route.z[j] - route.z[i], route.x[j] - route.x[i]);
+    };
+    let turnAngle = head(turn.along + 40) - head(turn.along - 50);
+    while (turnAngle > Math.PI) turnAngle -= 2 * Math.PI;
+    while (turnAngle < -Math.PI) turnAngle += 2 * Math.PI;
+    expect(turnAngle).toBeGreaterThan(Math.PI / 4);
   });
 
   it('turns at Plaža and comes back down the same road', () => {

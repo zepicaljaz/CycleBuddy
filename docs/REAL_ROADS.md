@@ -264,20 +264,29 @@ is built. They are in `TerrainField`, so a new road gets them on its own.
 
 Built with `node scripts/real-track/build.mjs krvavec`. Same rules as Vršič, with these choices:
 
-- The line is the paved road from the tertiary named Grad in Grad (Cerklje na
-  Gorenjskem), through Ambrož pod Krvavcem and Planina Jezerca, then the ski-area
-  service road to Plaža beside Hotel Krvavec. Tracks toward Zvoh and the gondola stay out.
+- The line follows the Pogi Challenge approach: road 639 north from Dvorje into Grad
+  (Cerklje na Gorenjskem), a right turn onto the Krvavec road, then through Ambrož pod
+  Krvavcem and Planina Jezerca and the ski-area service road to Plaža beside Hotel
+  Krvavec. Tracks toward Zvoh and the gondola stay out. The 922 street north of the turn
+  is not ridden (until Nov 2026 the ride started at its far end and came down it, which
+  put the start 45 m too high and made the turn a left one).
 - The timed climb is the Pogi Challenge / CyclingCols road: 15.2 km from the Grad
-  hamlet (431 m) to Plaža (1,594 m). The climb starts on the first metre. After the
-  corner rounding the line is 15.50 km (2.0 % long). On a full kilometre the gradient
-  stays inside a point of that profile. The 30 m terrain is about 13 m off along the
-  road, so it is used for the mountains and not for the slope.
+  crossroads on road 639 (431 m, where the Pogi Challenge route comes in from Pšata) to
+  Plaža (1,594 m). The right turn off road 639 comes 300 m in. The ride starts 0.9 km
+  before, on road 639 at the south end of Dvorje (section 0, terrain eased onto 431 m).
+  On the built line the climb is 15.23 km (0.2 % long). Two checks put the start there:
+  the terrain at the crossroads reads 432 m against the published 431 m, and the
+  distance to Plaža matches. The published Pogi Challenge GPX (cyclinginslovenia.com
+  route 220: 9.1 km of neutral convoy from Klanc, then 15.1 km of climb) reaches Grad on
+  the same road. On a full kilometre the gradient stays inside a point of the CyclingCols
+  profile. The 30 m terrain is about 13 m off along the road, so it is used for the
+  mountains and not for the slope.
 - There is no published numbered hairpin series. Signs count up from the foot, on
   the sharp bends of this line only. The bends stay as mapped (`minRadius: 0`).
-- The turn at Plaža and the turn on the Grad street are the same small balloon as
+- The turn at Plaža and the turn at the start in Dvorje are the same small balloon as
   Vršič, so the ride comes back down this road and can climb it again.
-- Towns, measured from the valley end: Grad on the opening street, Ambrož pod
-  Krvavcem where the road passes the village around 1,085 m. The pastures above
+- Towns, measured from the valley end: Dvorje to 470 m, Grad from there past the
+  right turn, Ambrož pod Krvavcem where the road passes the village around 1,085 m. The pastures above
   Jezerca stay open (`pastureAbove` 1,400 m).
 
 ## Land cover
