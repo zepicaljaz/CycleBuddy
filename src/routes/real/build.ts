@@ -1,6 +1,6 @@
 import { mulberry32 } from '../../util/math';
 import { bend, descent, level, rolling } from '../sections';
-import type { ClimbDef, Difficulty, RouteDef, SectionDef, SectionStyle, TownDef, TraceStep, TrackDef } from '../types';
+import type { ClimbDef, Difficulty, RealTownHouses, RouteDef, SectionDef, SectionStyle, TownDef, TraceStep, TrackDef } from '../types';
 import { REAL_CLIMBS } from './data';
 import type { RealClimb, RealStage, StagePoint } from './types';
 import TRACK_INDEX from './trackIndex.json';
@@ -146,6 +146,11 @@ function climbStyle(c: { pieces: GradePiece[]; hairpins: number; where?: RealCli
  * rides lap it; hill-climb races start at the foot and finish on the summit.
  */
 type TrackTown = { name: string; fromM: number; toM: number };
+/** One road's real towns (src/routes/real/towns/<id>.json, from scripts/real-track/buildings.mjs). */
+type RealTownFile = {
+  source: string;
+  towns: (TrackTown & { osm: { all: number; houses: number; front: number }; front: [number, number][]; back: [number, number][] })[];
+};
 type TrackFile = TrackDef & { id: string; sections: number[]; town?: TrackTown; towns?: TrackTown[]; climbFromSection?: number };
 
 /**
@@ -162,6 +167,16 @@ const TRACK_LOADERS = new Map(
 );
 /** Tracks fetched so far, by id. */
 const TRACKS = new Map<string, TrackFile>();
+/**
+ * Real towns per road: extent and house positions measured on OpenStreetMap. Lazy like the
+ * tracks and fetched with them; a road without a file keeps the track's town spans.
+ */
+const TOWN_LOADERS = new Map(
+  Object.entries(import.meta.glob('./towns/*.json', { import: 'default' }) as Record<string, () => Promise<RealTownFile>>).map(
+    ([path, load]) => [path.slice(path.lastIndexOf('/') + 1, -'.json'.length), load] as const,
+  ),
+);
+const REAL_TOWNS = new Map<string, RealTownFile>();
 const trackLoads = new Map<string, Promise<void>>();
 
 export function hasRealRoad(id: string): boolean {
@@ -184,8 +199,10 @@ export function ensureTrack(id: string): Promise<void> {
   if (!load || TRACKS.has(id)) return Promise.resolve();
   let p = trackLoads.get(id);
   if (!p) {
-    p = load().then((t) => {
+    const towns = TOWN_LOADERS.get(id);
+    p = Promise.all([load(), towns ? towns() : null]).then(([t, real]) => {
       if (t.id !== id) throw new Error(`tracks/${id}.json has id "${t.id}": the file name must be the climb id`);
+      if (real) REAL_TOWNS.set(id, real);
       TRACKS.set(id, t);
     });
     // A failed fetch (offline, a new deploy) may be retried by the next caller.
@@ -218,7 +235,7 @@ export function realRoadDifficulty(c: RealClimb): Difficulty {
  * beginning of the valley (Vršič, in Kranjska Gora).
  */
 /** A town measured from the start of the road, placed in whichever section that distance falls in. */
-function townOnTrack(sections: number[], place: TrackTown): TownDef {
+function townOnTrack(sections: number[], place: TrackTown, real?: RealTownHouses): TownDef {
   const mid = (place.fromM + place.toM) / 2;
   let start = 0;
   let section = 0;
@@ -229,7 +246,9 @@ function townOnTrack(sections: number[], place: TrackTown): TownDef {
     if (mid <= start + len) break;
     start += len;
   }
-  return { name: place.name, section, along: mid - start, length: Math.max(180, place.toM - place.fromM) };
+  // A real town is as long as its houses reach; a generated street is at least 180 m.
+  const length = Math.max(real ? 60 : 180, place.toM - place.fromM);
+  return { name: place.name, section, along: mid - start, length, ...(real ? { real } : {}) };
 }
 
 function trackClimbRoute(c: RealClimb, t: TrackFile): RouteDef {
@@ -272,7 +291,12 @@ function trackClimbRoute(c: RealClimb, t: TrackFile): RouteDef {
       rockTone: c.rockTone,
       trees: c.trees,
     },
-    towns: places.map((place) => townOnTrack(t.sections, place)),
+    towns: places.map((place) => {
+      // The real extent and houses from OpenStreetMap, when the road has them.
+      const real = REAL_TOWNS.get(c.id)?.towns.find((r) => r.name === place.name);
+      if (!real) return townOnTrack(t.sections, place);
+      return townOnTrack(t.sections, real, { osm: real.osm.all, front: real.front, back: real.back });
+    }),
     track: t,
   };
 }

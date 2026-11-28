@@ -225,7 +225,12 @@ function board(site: Site, x: number, y: number, z: number, yaw: number, w: numb
 /** Everything a town needs along its street. */
 function buildTown(site: Site, town: TownSpan, junctions: Junction[], lights: Lights, signals: Signal[]): void {
   const { route, rng } = site;
-  const sc = (town.s0 + town.s1) / 2;
+  // A real hamlet or village is houses and yards, no lights, pavements or side street.
+  if (town.real && town.real.front.length < REAL_VILLAGE) {
+    buildRealVillage(site, town);
+    return;
+  }
+  const sc = town.mid ?? (town.s0 + town.s1) / 2;
   const half = (town.s1 - town.s0) / 2;
   const gaps: Record<number, [number, number][]> = { [-1]: [], [1]: [] };
   const reserved: Record<number, [number, number][]> = { [-1]: [], [1]: [] };
@@ -329,9 +334,10 @@ function buildTown(site: Site, town: TownSpan, junctions: Junction[], lights: Li
     }
   }
 
-  // The street frontage, densest at the centre.
+  // The street frontage, densest at the centre. A real town puts a house where each mapped one stands.
   const kinds = TOWN_KINDS[site.style];
-  for (const side of [-1, 1] as const) {
+  if (town.real) realFrontage(site, town, sc, half, reserved);
+  else for (const side of [-1, 1] as const) {
     let s = town.s0 + 2 + rng() * 3;
     let benches = 0;
     while (s < town.s1 - 4) {
@@ -365,14 +371,15 @@ function buildTown(site: Site, town: TownSpan, junctions: Junction[], lights: Li
 
   // Apartment blocks behind, and a tower in the bigger towns.
   const back = BACK_ROW[site.style];
-  for (let i = 0; i < Math.round(half / 40) * 2; i++) {
+  if (town.real) realBackRow(site, town, sc, back);
+  else for (let i = 0; i < Math.round(half / 40) * 2; i++) {
     const side = i % 2 ? 1 : -1;
     const b = building(weighted(rng(), back), Math.floor(rng() * 6));
     const s = town.s0 + 12 + rng() * (2 * half - 24);
     const front = FRONT + 18 + rng() * 6;
     if (site.put(b, s, side, front, { minRoad: front - 1.5 })) backLot(site, s, side, front, b);
   }
-  if (half > 95 && site.style !== 'moor') {
+  if ((town.real ? town.real.front.length >= REAL_TOWER : half > 95) && site.style !== 'moor') {
     for (let i = 0; i < 6; i++) {
       const s = town.s0 + 20 + rng() * (2 * half - 40);
       const front = FRONT + 22 + rng() * 6;
@@ -380,12 +387,93 @@ function buildTown(site: Site, town: TownSpan, junctions: Junction[], lights: Li
     }
   }
 
-  // Name boards facing traffic as it enters.
+  nameBoards(site, town);
+}
+
+/** Name boards facing traffic as it enters. */
+function nameBoards(site: Site, town: TownSpan): void {
   const mat = signMat(`town:${town.name}`, () => textTexture([{ text: town.name, size: 54, color: '#1c2430', weight: '700' }], '#f4efe4', 512, 160));
   const a = site.at(town.s0 - 9, EDGE + 1.3);
   board(site, a.x, site.roadY(town.s0 - 9), a.z, Math.atan2(-a.tx, -a.tz), 2.4, 0.76, mat, 2.4, 0xf4efe4);
   const b = site.at(town.s1 + 9, -EDGE - 1.3);
   board(site, b.x, site.roadY(town.s1 + 9), b.z, Math.atan2(b.tx, b.tz), 2.4, 0.76, mat, 2.4, 0xf4efe4);
+}
+
+// --------------------------------------------------------------------------------------- real towns
+// Real roads carry each town's mapped houses (src/routes/real/towns/<id>.json, from
+// scripts/real-track/buildings.mjs): as many as OpenStreetMap has, at their place along
+// the street and on their side of it. Before that, every town was a full street of
+// houses on both sides for its whole length, three to ten times the real count.
+
+/** Fewer street-front houses than this is a hamlet or village: houses and yards only. */
+export const REAL_VILLAGE = 40;
+/** A real town this big (street-front houses) may get a tower block behind. */
+export const REAL_TOWER = 120;
+/** Nudges (metres along the road) tried when a house does not fit exactly where the map has it. */
+const NUDGE = [0, 3, -3, 6, -6];
+/** A village house on its own may move further: there is no street front to keep. */
+const VILLAGE_NUDGE = [0, 3, -3, 6, -6, 10, -10, 14, -14];
+
+/** Street-front houses of a real town at their mapped place, the town kinds by distance from the middle. */
+function realFrontage(site: Site, town: TownSpan, sc: number, half: number, reserved: Record<number, [number, number][]>): void {
+  const { rng } = site;
+  const kinds = TOWN_KINDS[site.style];
+  const top = (s: number) => site.roadY(s) + KERB;
+  for (const [rel, side] of town.real!.front) {
+    const dc = Math.abs(rel) / Math.max(half, 1);
+    const kind = weighted(rng(), kinds[dc < 0.45 ? 0 : dc < 0.8 ? 1 : 2]);
+    const b = building(kind, Math.floor(rng() * 6));
+    const dense = kind === 'shop' || kind === 'townhouse';
+    const setback = kind === 'shop' ? 0.1 : dense ? 0.3 + rng() * 0.9 : 2.6 + rng() * 2.4;
+    for (const n of NUDGE) {
+      const mid = sc + rel + n;
+      if (mid - b.w / 2 < town.s0 - 4 || mid + b.w / 2 > town.s1 + 4) continue;
+      if (reserved[side].some(([r0, r1]) => mid + b.w / 2 > r0 && mid - b.w / 2 < r1)) continue;
+      const spot = site.put(b, mid, side, FRONT + setback, { floor: top(mid) + 0.02 });
+      if (!spot) continue;
+      if (setback > 2) frontGarden(site, mid, side, b, setback);
+      break;
+    }
+  }
+}
+
+/** Houses behind the street front, at their mapped place and distance from the road. */
+function realBackRow(site: Site, town: TownSpan, sc: number, kinds: Weights): void {
+  const { rng } = site;
+  for (const [rel, d] of town.real!.back) {
+    const side = d > 0 ? 1 : -1;
+    const b = building(weighted(rng(), kinds), Math.floor(rng() * 6));
+    const front = Math.max(FRONT + 14, Math.abs(d) - (b.front + b.back) / 2);
+    for (const n of NUDGE) {
+      const s = sc + rel + n;
+      if (site.put(b, s, side, front, { minRoad: front - 1.5 })) {
+        backLot(site, s, side, front, b);
+        break;
+      }
+    }
+  }
+}
+
+/**
+ * A real hamlet or village: each mapped house with its yard (or on its own where the
+ * yard does not fit the slope), and the name boards. No lights, crossings, pavements,
+ * car park or side street: Grad or Plan Lachat is a few houses along the road.
+ */
+function buildRealVillage(site: Site, town: TownSpan): void {
+  const { rng, style } = site;
+  const real = town.real!;
+  const sc = town.mid ?? (town.s0 + town.s1) / 2;
+  const place = (s: number, side: 1 | -1, front: number) => {
+    for (const n of NUDGE) {
+      if (yard(site, s + n, side, front)) return;
+    }
+    // Too steep for a yard (Trafoi, Ambrož): the house alone, a little further along or back.
+    const b = building(weighted(rng(), YARD_KINDS[style]), Math.floor(rng() * 6));
+    for (const back of [0, 5]) for (const n of VILLAGE_NUDGE) if (site.put(b, s + n, side, front + back, { bury: 1.8 })) return;
+  };
+  for (const [rel, side] of real.front) place(sc + rel, side > 0 ? 1 : -1, EDGE + 6 + rng() * 6);
+  for (const [rel, d] of real.back) place(sc + rel, d > 0 ? 1 : -1, Math.max(EDGE + 16, Math.abs(d) - 6));
+  nameBoards(site, town);
 }
 
 /** Length of a side street that fits at s, or 0. */
@@ -822,11 +910,15 @@ function buildYards(site: Site, towns: TownSpan[], junctions: Junction[]): void 
   }
 }
 
-/** Towns and country houses. Returns the traffic light stop lines for the traffic. */
-export function buildSettlements(site: Site, towns: TownSpan[], junctions: Junction[]): Signal[] {
+/** Towns and country houses. Returns the traffic light stop lines for the traffic. `built` gets each town's building count (tests). */
+export function buildSettlements(site: Site, towns: TownSpan[], junctions: Junction[], built?: number[]): Signal[] {
   const lights = new Lights();
   const signals: Signal[] = [];
-  for (const town of towns) buildTown(site, town, junctions, lights, signals);
+  for (const town of towns) {
+    const before = site.buildings;
+    buildTown(site, town, junctions, lights, signals);
+    built?.push(site.buildings - before);
+  }
   buildYards(site, towns, junctions);
   lights.finish(site.props);
   return signals;

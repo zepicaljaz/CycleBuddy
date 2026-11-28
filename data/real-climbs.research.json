@@ -2857,16 +2857,17 @@
      11.8
     ]
    ],
-   "description": "The Pogi Challenge climb: from the end of Grad, near Cerklje na Gorenjskem, the paved road climbs past Ambrož pod Krvavcem and Planina Jezerca to Plaža beside Hotel Krvavec. The first kilometres are the steepest, there is a short dip near km 3, then a hard run through Ambrož to Jezerca and a steeper finish across the pastures to 1,594 m. It is Tadej Pogačar's home climb and the finish of the Tour of Slovenia 2024 stage to Plaža.",
+   "description": "The Pogi Challenge climb: from the crossroads in Grad, near Dvorje and Cerklje na Gorenjskem, the road turns right off road 639 and climbs past Ambrož pod Krvavcem and Planina Jezerca to Plaža beside Hotel Krvavec. The first kilometres are the steepest, there is a short dip near km 3, then a hard run through Ambrož to Jezerca and a steeper finish across the pastures to 1,594 m. It is Tadej Pogačar's home climb and the finish of the Tour of Slovenia 2024 stage to Plaža.",
    "famous_for": "Pogačar's home climb; Pogi Challenge finish; Tour of Slovenia summit at Plaža",
    "sources": [
     "https://www.cyclingcols.com/col/krvavec",
     "https://cyclingcols.b-cdn.net/p/Krvavec.png",
     "https://pogichallenge.com/en/",
     "https://www.rtvslo.si/sport/kolesarstvo/sklancavklanc/zelite-s-kolesom-osvojiti-krvavec-medtem-ko-vas-lovi-sam-pogacar/788089",
-    "https://pjammcycling.com/climb/870.Krvavec"
+    "https://pjammcycling.com/climb/870.Krvavec",
+    "https://www.cyclinginslovenia.com/en/routes/220"
    ],
-   "notes": "Elevation labels every ~0.5 km read from the CyclingCols Grad profile image (15.2 km, 431 -> 1,594 m, 7.7 %). Each segment grade is (elevation change) / (distance between labels). The road continues on asphalt past Planina Jezerca to Plaža (OpenStreetMap restaurant node). The Pogi Challenge timed climb is the same road: 15.13 km, 1,177 m, 7.9 % from the fork at Grad to the hotel. Older myCols / Tour finishes stopped at Jezerca (~11.6–12.2 km)."
+   "notes": "Elevation labels every ~0.5 km read from the CyclingCols Grad profile image (15.2 km, 431 -> 1,594 m, 7.7 %). Each segment grade is (elevation change) / (distance between labels). The road continues on asphalt past Planina Jezerca to Plaža (OpenStreetMap restaurant node). The Pogi Challenge timed climb is the same road: 15.13 km, 1,177 m, 7.9 % from the fork at Grad to the hotel. Start: the Grad crossroads on road 639 (46.26280, 14.49335), where the Pogi Challenge route comes in from Pšata after its neutral convoy from Klanc (published GPX, cyclinginslovenia.com route 220); the right turn off road 639 onto the Krvavec road is 300 m on. Older myCols / Tour finishes stopped at Jezerca (~11.6–12.2 km)."
   },
   {
    "id": "grossglockner-fusch",

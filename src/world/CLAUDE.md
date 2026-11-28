@@ -13,7 +13,7 @@ Everything drawn in a ride or behind the menus. Three.js, low-poly, vertex colou
 - `geometry.ts`: builders (`paint`, `colored`, `merge`, `loft`, `sweep`, `tube`, `placement`...) and detail levels: `Detail` 0/1/2, `atDetail()`, `q(close, mid)`.
 - `batch.ts`: `prepare()` (merge a model per surface), `StaticBatch` (bake static things into one mesh per surface per map cell, cull by cell), `InstancedModel` (many copies, per-instance matrix + tint, `commit()` uploads only used slots).
 - `props.ts`: `Props` = a `StaticBatch(240)` + tree clearings + animated updaters (only within `UPDATE_RANGE` 1500 m); shared prop models.
-- `scenery.ts`, `site.ts`, `settlement.ts`, `buildings.ts`: roadside, towns and the `Site` placement helper (`at`, `ground`, `free`, `occupy`, `solid`).
+- `scenery.ts`, `site.ts`, `settlement.ts`, `buildings.ts`: roadside, towns and the `Site` placement helper (`at`, `ground`, `free`, `occupy`, `solid`). Real towns (`TownSpan.real`, from `routes/real/towns/`) put a house at each mapped one; under `REAL_VILLAGE` street-front houses they are houses and yards only (`buildRealVillage`). Generated towns keep the full street.
 - `climbs.ts`, `fences.ts`, `spectators.ts`: climb furniture, hairpin fences, crowds.
 - `riders.ts`, `riderBody.ts`, `bikes.ts`, `riderPick.ts`: instanced riders with three detail levels; mouse picking without raycasts.
 - Landmarks: `alpineHotel.ts`, `modernHotel.ts`, `alpineRestaurant.ts`, `ventouxAntenna.ts`, `island.ts`, `mappedPlaces.ts` (OSM lakes, car parks), `landmarks.ts` (OSM-mapped Russian Chapel, mountain huts, wayside shrines and crosses on the real roads; Blender models).
@@ -53,6 +53,7 @@ A real landmark that OpenStreetMap maps (hut, chapel, shrine) goes through `land
 - `npx vitest run src/world/terrainField.test.ts` (road sits on terrain, lakes, tree seating, hairpin banks per real road; slow-ish)
 - `npx vitest run src/world/terrainCover.test.ts src/routes/real/sceneryHints.test.ts` (land cover: colours, props by class, cliffs face downhill and keep off the road, scree only on scree, dwarf pine above the treeline, hints valid and sourced; pins roads without cover)
 - `npx vitest run src/world/landmarks.test.ts src/world/propAssets.test.ts` (mapped landmarks: sources, placement, model budgets; ~2 min)
+- `npx vitest run src/world/realTowns.test.ts` (real towns: extent, building count no bigger than OSM, before/after table; slow, ~3 min)
 - `npx vitest run src/world/climbs.test.ts src/world/fences.test.ts src/world/traffic.test.ts src/world/convoy.test.ts src/world/riderPick.test.ts`
 - Rendering has no tests: look at it in the preview, and check `/play?perf` (fps, draw calls, triangles) for perf work.
 

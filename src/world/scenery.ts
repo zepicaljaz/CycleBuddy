@@ -16,6 +16,7 @@ import { fencePost, fenceSpan, guardrailBeam, guardrailPost, stoneWall, woodPost
 import { addCrowdMotion, colored, flagPole, nationFlag } from './models';
 import { buildSpectator, pickSpectator, type SpectatorKind } from './spectators';
 import { Props } from './props';
+import type { RealTownHouses } from '../routes/types';
 import { buildSettlements, type Signal } from './settlement';
 import { buildMappedPlaces } from './mappedPlaces';
 import { Site, styleFor } from './site';
@@ -273,6 +274,10 @@ export interface TownSpan {
   s0: number;
   s1: number;
   name: string;
+  /** A real town's mapped houses, positions from `mid` (real roads, src/routes/real/towns/). */
+  real?: RealTownHouses;
+  /** Where the real town's middle is on the route (its positions are measured from here). */
+  mid?: number;
 }
 
 const TOWN_NAMES = ['Aldeno', 'Brenta', 'Colle Verde', 'Lago', 'Monteluce', 'Osteria', 'Rivamonte', 'San Pietro', 'Valdora', 'Ponte'];
@@ -281,7 +286,7 @@ function coversTown(towns: TownSpan[], s: number, pad = 0): boolean {
   return towns.some((t) => s >= t.s0 - pad && s <= t.s1 + pad);
 }
 
-function townSpans(route: Route, named: { section: number; along: number; length: number; name: string }[] | undefined): TownSpan[] {
+function townSpans(route: Route, named: { section: number; along: number; length: number; name: string; real?: RealTownHouses }[] | undefined): TownSpan[] {
   if (!named?.length) return [];
   return named.map((t) => {
     const centre = (route.sectionStart[t.section] ?? 0) + t.along;
@@ -296,7 +301,7 @@ function townSpans(route: Route, named: { section: number; along: number; length
       s0 = Math.max(0, s0 - (s1 - route.length));
       s1 = route.length;
     }
-    return { s0, s1, name: t.name };
+    return t.real ? { s0, s1, name: t.name, real: t.real, mid: centre } : { s0, s1, name: t.name };
   });
 }
 

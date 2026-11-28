@@ -94,6 +94,22 @@ export interface TownDef {
   along: number;
   /** Street length along the road, metres. */
   length: number;
+  /** The real town's houses from OpenStreetMap (real roads only). Without it the street is generated. */
+  real?: RealTownHouses;
+}
+
+/**
+ * Where a real town's houses stand, from OpenStreetMap (src/routes/real/towns/<id>.json,
+ * written by scripts/real-track/buildings.mjs). Positions are metres along the road from
+ * the middle of the street.
+ */
+export interface RealTownHouses {
+  /** Every mapped building on the street, outbuildings included. */
+  osm: number;
+  /** Houses on the street front: [metres from the middle, side (+1 right, -1 left of travel)]. */
+  front: [number, number][];
+  /** Houses behind: [metres from the middle, signed distance from the centre line]. */
+  back: [number, number][];
 }
 
 /** Size and place of one height grid around a real road, in world metres. */

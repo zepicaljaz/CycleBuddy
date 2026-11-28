@@ -264,20 +264,29 @@ is built. They are in `TerrainField`, so a new road gets them on its own.
 
 Built with `node scripts/real-track/build.mjs krvavec`. Same rules as Vršič, with these choices:
 
-- The line is the paved road from the tertiary named Grad in Grad (Cerklje na
-  Gorenjskem), through Ambrož pod Krvavcem and Planina Jezerca, then the ski-area
-  service road to Plaža beside Hotel Krvavec. Tracks toward Zvoh and the gondola stay out.
+- The line follows the Pogi Challenge approach: road 639 north from Dvorje into Grad
+  (Cerklje na Gorenjskem), a right turn onto the Krvavec road, then through Ambrož pod
+  Krvavcem and Planina Jezerca and the ski-area service road to Plaža beside Hotel
+  Krvavec. Tracks toward Zvoh and the gondola stay out. The 922 street north of the turn
+  is not ridden (until Nov 2026 the ride started at its far end and came down it, which
+  put the start 45 m too high and made the turn a left one).
 - The timed climb is the Pogi Challenge / CyclingCols road: 15.2 km from the Grad
-  hamlet (431 m) to Plaža (1,594 m). The climb starts on the first metre. After the
-  corner rounding the line is 15.50 km (2.0 % long). On a full kilometre the gradient
-  stays inside a point of that profile. The 30 m terrain is about 13 m off along the
-  road, so it is used for the mountains and not for the slope.
+  crossroads on road 639 (431 m, where the Pogi Challenge route comes in from Pšata) to
+  Plaža (1,594 m). The right turn off road 639 comes 300 m in. The ride starts 0.9 km
+  before, on road 639 at the south end of Dvorje (section 0, terrain eased onto 431 m).
+  On the built line the climb is 15.23 km (0.2 % long). Two checks put the start there:
+  the terrain at the crossroads reads 432 m against the published 431 m, and the
+  distance to Plaža matches. The published Pogi Challenge GPX (cyclinginslovenia.com
+  route 220: 9.1 km of neutral convoy from Klanc, then 15.1 km of climb) reaches Grad on
+  the same road. On a full kilometre the gradient stays inside a point of the CyclingCols
+  profile. The 30 m terrain is about 13 m off along the road, so it is used for the
+  mountains and not for the slope.
 - There is no published numbered hairpin series. Signs count up from the foot, on
   the sharp bends of this line only. The bends stay as mapped (`minRadius: 0`).
-- The turn at Plaža and the turn on the Grad street are the same small balloon as
+- The turn at Plaža and the turn at the start in Dvorje are the same small balloon as
   Vršič, so the ride comes back down this road and can climb it again.
-- Towns, measured from the valley end: Grad on the opening street, Ambrož pod
-  Krvavcem where the road passes the village around 1,085 m. The pastures above
+- Towns, measured from the valley end: Dvorje to 470 m, Grad from there past the
+  right turn, Ambrož pod Krvavcem where the road passes the village around 1,085 m. The pastures above
   Jezerca stay open (`pastureAbove` 1,400 m).
 
 ## Land cover
@@ -362,6 +371,32 @@ low and rock high, the Tourmalet is grass above the trees, the Angliru is meadow
 **A new road** gets its cover at the end of `build.mjs` automatically. If the network failed
 there, run `node scripts/real-track/cover.mjs <id>` afterwards. Add the id to `ROADS` in
 `cover.test.ts`.
+
+## Towns: as big as the real ones
+
+Each named town on a real road is built from OpenStreetMap's buildings, not as a generic
+street. `node scripts/real-track/buildings.mjs` (add `--fetch` to ask Overpass again,
+and road ids to do only those) reads each track's `towns`, fetches the buildings around
+that stretch into `data/osm/buildings-<id>.json` (centre and `building=*` only, those
+within 150 m of the road), and writes `src/routes/real/towns/<id>.json`:
+
+- **Extent.** Street-front houses (centre within 60 m of the road's centre line) are
+  grouped along the road; a gap over 80 m ends a village. The groups that reach the
+  configured span are the street. In a place with 20 or more of them, each end is trimmed
+  to where at least 4 stand within the next 100 m (a village frays out into lone farms).
+  Never past halfway to the next town. These `fromM`/`toM` replace the track's own.
+- **Houses.** Every building is counted (`osm.all`); garages, sheds, roofs, kiosks and
+  the like are not built as houses. The rest are listed as street front
+  `[metres from the middle, side]` and back row `[metres from the middle, signed distance]`.
+- **In the game** (`settlement.ts`): a town with fewer than 40 street-front houses is a
+  hamlet or village: each house with its yard at its mapped place, name boards, nothing
+  else (no lights, crossings, pavements, car park, side street). A bigger town keeps the
+  square, lights and pavements, but puts a house where each mapped one stands, back-row
+  houses at their mapped distance, and a tower block only from 120 street-front houses.
+  A house that does not fit (slope, junction, square) is nudged up to 6 m, then dropped.
+- **After rebuilding a track** run the script again without `--fetch`: positions are
+  measured on the track's line. A town renamed or added in `build.mjs` needs `--fetch`.
+  `src/world/realTowns.test.ts` checks each town against its file (slow, ~3 min).
 
 ## Adding the next road
 
