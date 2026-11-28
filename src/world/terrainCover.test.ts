@@ -135,18 +135,52 @@ describe('land cover', () => {
       expect(meadow[1] - meadow[2]).toBeGreaterThan((rock[1] - rock[2]) * 2);
     });
 
-    it('a steep meadow is only a little darker, never grey', () => {
-      const flat = [...covered.faceColor(200, 1230, 300, 1, 1, 0.5)];
-      // A steep DEM under the meadow: same node class, steeper real ground.
-      const steepField = new TerrainField({ ...road, seed: 5, scenery: SCENERY, dem: demFrom((_x, z) => 1200 + 0.9 * z), cover: coverFrom(() => LandCover.meadow) });
-      const steep = [...new ChunkBuilder(steepField, 5).faceColor(200, 1230, 300, BANK_NY, 1, 0.5)];
-      const hue = (c: number[]) => c[1] / (c[0] + c[1] + c[2]);
-      expect(hue(steep)).toBeCloseTo(hue(flat), 2);
-      expect(steep[1]).toBeLessThan(flat[1]);
-      expect(steep[1]).toBeGreaterThan(flat[1] * 0.85);
+    // Green against grey: how far green leads blue, against the brightness.
+    const greenness = (c: number[]) => (c[1] - c[2]) / (c[0] + c[1] + c[2]);
+    const meadowOn = (pitch: number, y = 1230) => {
+      const f = new TerrainField({ ...road, seed: 5, scenery: SCENERY, dem: demFrom((_x, z) => 1200 + pitch * z), cover: coverFrom(() => LandCover.meadow) });
+      const b = new ChunkBuilder(f, 5);
+      // Average over a patch of points: the rock shows through in noisy patches.
+      const sum = [0, 0, 0];
+      for (let k = 0; k < 40; k++) {
+        const c = b.faceColor(150 + k * 23, y, 300 + (k % 5) * 31, 1 / Math.hypot(1, pitch), 1, 0.5);
+        for (let ch = 0; ch < 3; ch++) sum[ch] += c[ch] / 40;
+      }
+      return sum;
+    };
+
+    it('a meadow on an ordinary slope stays green, on the steepest ground it turns grey', () => {
+      const flat = greenness(meadowOn(0));
+      // About 27°: green, a little darker at most.
+      expect(greenness(meadowOn(0.5))).toBeGreaterThan(flat * 0.95);
+      // About 50° (a steep mountain face): the rock shows, most of the green is gone.
+      const steep = greenness(meadowOn(1.2));
+      expect(steep).toBeLessThan(flat * 0.5);
     });
 
-    it('a road bank is not rock unless the cover says rock', () => {
+    it('a steep cut beside the road at a hairpin shows rock, an ordinary bank does not', () => {
+      const bank = [...covered.faceColor(200, 1215, 24, BANK_NY, 1, 0.5)];
+      expect(covered.lastKind).toBe(LandCover.meadow);
+      // A face steeper than about 55° beside the road (a cut into the hillside): grey.
+      const cut = [...covered.faceColor(200, 1215, 24, 0.5, 1, 0.5)];
+      expect(greenness(cut)).toBeLessThan(greenness(bank) * 0.6);
+      // The same steep face 300 m from the road is decided by the real ground (gentle here): green.
+      const away = [...covered.faceColor(200, 1230, 300, 0.5, 1, 0.5)];
+      expect(greenness(away)).toBeGreaterThan(greenness(bank) * 0.9);
+    });
+
+    it('above the screeLine (Ventoux) the grass on the map is pale gravel', () => {
+      const sc = { ...SCENERY, treeline: 1500, screeLine: 1520 };
+      const f = new TerrainField({ ...road, seed: 5, scenery: sc, dem: gentle, cover: coverFrom(() => LandCover.meadow) });
+      const b = new ChunkBuilder(f, 5);
+      const low = [...b.faceColor(200, 1400, 300, 1, 1, 0.5)];
+      const top = [...b.faceColor(200, 1800, 300, 1, 1, 0.5)];
+      expect(greenness(low)).toBeGreaterThan(0.15);
+      expect(greenness(top)).toBeLessThan(greenness(low) * 0.4);
+      expect(top[0] + top[1] + top[2]).toBeGreaterThan(low[0] + low[1] + low[2]);
+    });
+
+    it('a road bank is not rock unless the cover says rock (class)', () => {
       // Points 20-30 m from the road: the cut bank, triangle normal at the 0.9 pitch.
       for (const x of [200, 1000]) {
         covered.faceColor(x, 1215, 24, BANK_NY, 1, 0.5);
@@ -234,6 +268,26 @@ describe('land cover', () => {
       const bushes = props.filter((p) => p.type === PROP_SCRUB);
       expect(bushes.length).toBeGreaterThan(500);
       for (const p of bushes) expect(field.coverAt(p.x, p.z)).toBe(LandCover.scrub);
+    });
+
+    it('each bush carries the colour of the ground under it, nothing else does', () => {
+      const res = builder.build({ id: 1, x0: 512, z0: 0, size: 512, segs: 64, treeSpacing: 9, propDetail: 0, treeScale: 1 });
+      const n = res.props.length / 6;
+      expect(res.propTints.length).toBe(n * 3);
+      let bushes = 0;
+      for (let i = 0; i < n; i++) {
+        const t = [res.propTints[i * 3], res.propTints[i * 3 + 1], res.propTints[i * 3 + 2]];
+        if (res.props[i * 6 + 5] !== PROP_SCRUB) {
+          expect(t).toEqual([0, 0, 0]);
+          continue;
+        }
+        bushes++;
+        const x = 512 + res.props[i * 6];
+        const z = res.props[i * 6 + 2];
+        const ground = builder.faceColor(x, res.props[i * 6 + 1], z, 1, 1, 0.5);
+        for (let ch = 0; ch < 3; ch++) expect(t[ch]).toBeCloseTo(ground[ch], 5);
+      }
+      expect(bushes).toBeGreaterThan(100);
     });
 
     it('boulders lie only on rock, scree and cliff, or at a cliff foot, and are seated', () => {

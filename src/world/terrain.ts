@@ -5,6 +5,33 @@ import type { Biome, SceneryDef } from '../routes/types';
 import { addWindSway, broadleafDetailed, broadleafSimple, cactus, pineDetailed, pineSimple, rock, rockWarm, shrub, spruceDetailed, spruceSimple } from './models';
 import { isPropAsset, propAsset } from './propAssets';
 
+/** Prop type of scrub and dwarf pine (terrainChunk PROP_SCRUB; a value import would pull the chunk builder into this file). */
+const SCRUB_TYPE = 3;
+/** How far a bush's tint moves from its model's own green toward the ground under it. */
+const GROUND_TINT = 0.6;
+/** A bush is a step darker than the open ground around it. */
+const BUSH_SHADE = 0.82;
+const MEAN_COLOR = new WeakMap<THREE.BufferGeometry, [number, number, number]>();
+/** Average vertex colour of a model (per vertex; faces are flat, so it follows the face count). */
+function meanColor(geom: THREE.BufferGeometry): [number, number, number] {
+  let m = MEAN_COLOR.get(geom);
+  if (!m) {
+    const col = geom.getAttribute('color');
+    m = [0.05, 0.12, 0.04];
+    if (col && col.count > 0) {
+      let r = 0, g = 0, b = 0;
+      for (let i = 0; i < col.count; i++) {
+        r += col.getX(i);
+        g += col.getY(i);
+        b += col.getZ(i);
+      }
+      m = [r / col.count, g / col.count, b / col.count];
+    }
+    MEAN_COLOR.set(geom, m);
+  }
+  return m;
+}
+
 const NEAR = 512;
 const FAR = NEAR * 4;
 /** Far tiles beyond this distance grow sparser trees. */
@@ -264,6 +291,7 @@ export class TerrainManager {
     casters.push(mesh);
 
     const props = res.props;
+    const tints = res.propTints ?? new Float32Array(0);
     const count = props.length / 6;
     if (count > 0) {
       const geoms = spec.propDetail === 0 ? this.propGeoms.detailed : this.propGeoms.simple;
@@ -309,6 +337,9 @@ export class TerrainManager {
           list = sorted;
         }
         const rockProp = isRockProp(type);
+        // Bushes take part of their colour from the ground under them (the worker samples it).
+        const groundTinted = type === SCRUB_TYPE && tints.length === count * 3;
+        const mean = groundTinted ? meanColor(geom) : null;
         const inst = new THREE.InstancedMesh(geom, rockProp ? this.rockMaterial : this.propMaterial, list.length);
         const [tr, tg, tb] = this.rockTint;
         list.forEach((i, k) => {
@@ -325,7 +356,18 @@ export class TerrainManager {
           inst.setMatrixAt(k, m);
           const tint = 0.86 + ((i * 7919) % 100) / 400;
           if (rockProp) inst.setColorAt(k, c.setRGB(tint * tr, tint * tg, tint * tb));
-          else inst.setColorAt(k, c.setRGB(tint * (0.9 + h1 * 0.2), tint * (1.0 + h2 * 0.05), tint * (0.84 + (1 - h1) * 0.14)));
+          else if (mean && tints[i * 3 + 1] > 0) {
+            const to = (ch: number) => Math.min(2.4, Math.max(0.45, (tints[i * 3 + ch] * BUSH_SHADE) / Math.max(mean[ch], 1e-3)));
+            const base = [0.9 + h1 * 0.2, 1.0 + h2 * 0.05, 0.84 + (1 - h1) * 0.14];
+            inst.setColorAt(
+              k,
+              c.setRGB(
+                tint * (base[0] + (to(0) - base[0]) * GROUND_TINT),
+                tint * (base[1] + (to(1) - base[1]) * GROUND_TINT),
+                tint * (base[2] + (to(2) - base[2]) * GROUND_TINT),
+              ),
+            );
+          } else inst.setColorAt(k, c.setRGB(tint * (0.9 + h1 * 0.2), tint * (1.0 + h2 * 0.05), tint * (0.84 + (1 - h1) * 0.14)));
         });
         inst.receiveShadow = true;
         inst.computeBoundingSphere();
