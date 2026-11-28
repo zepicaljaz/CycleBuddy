@@ -31,50 +31,53 @@ const merge = (parts: THREE.BufferGeometry[]) => {
 };
 
 export function pineDetailed(): THREE.BufferGeometry {
-  const trunk = colored(new THREE.CylinderGeometry(0.22, 0.32, 3, 5).translate(0, 1.5, 0), 0x6b4a32);
+  // Crown from about 0.6 m up, four overlapping tiers (scripts/blender trees: canopies reach low).
+  const trunk = colored(new THREE.CylinderGeometry(0.22, 0.32, 1.6, 5).translate(0, 0.8, 0), 0x6b4a32);
   const tiers = [
-    { r: 2.6, h: 4.2, y: 3.6, c: 0x2f5d34 },
-    { r: 2.0, h: 3.6, y: 5.9, c: 0x356b3a },
-    { r: 1.35, h: 3.0, y: 7.9, c: 0x3c7741 },
+    { r: 2.8, h: 4.0, y: 2.6, c: 0x2f5d34 },
+    { r: 2.3, h: 3.6, y: 4.4, c: 0x326436 },
+    { r: 1.75, h: 3.2, y: 6.1, c: 0x356b3a },
+    { r: 1.15, h: 2.8, y: 7.7, c: 0x3c7741 },
   ].map((t, i) => colored(new THREE.ConeGeometry(t.r, t.h, 7).translate(0, t.y, 0).rotateY(i * 0.7), t.c, 0.06, i + 3));
   return merge([trunk, ...tiers]);
 }
 
 /** Narrow, dark conifer. Used where a forest is spruce and nothing else. */
 export function spruceDetailed(): THREE.BufferGeometry {
-  const trunk = colored(new THREE.CylinderGeometry(0.16, 0.26, 3.6, 5).translate(0, 1.8, 0), 0x5a4030);
+  const trunk = colored(new THREE.CylinderGeometry(0.16, 0.26, 1.6, 5).translate(0, 0.8, 0), 0x5a4030);
   const tiers = [
-    { r: 1.55, h: 3.2, y: 3.1, c: 0x1c4428 },
-    { r: 1.25, h: 2.9, y: 4.8, c: 0x214e30 },
-    { r: 0.95, h: 2.6, y: 6.3, c: 0x275836 },
-    { r: 0.58, h: 2.2, y: 7.7, c: 0x2d6240 },
+    { r: 1.7, h: 3.0, y: 2.2, c: 0x1c4428 },
+    { r: 1.45, h: 2.8, y: 3.6, c: 0x1f4a2d },
+    { r: 1.2, h: 2.6, y: 4.9, c: 0x214e30 },
+    { r: 0.92, h: 2.4, y: 6.1, c: 0x275836 },
+    { r: 0.58, h: 2.2, y: 7.4, c: 0x2d6240 },
   ].map((t, i) => colored(new THREE.ConeGeometry(t.r, t.h, 7).translate(0, t.y, 0).rotateY(i * 0.55), t.c, 0.05, i + 11));
   return merge([trunk, ...tiers]);
 }
 
 export function spruceSimple(): THREE.BufferGeometry {
-  const trunk = colored(new THREE.CylinderGeometry(0.18, 0.24, 2.2, 4).translate(0, 1.1, 0), 0x5a4030);
-  const crown = colored(new THREE.ConeGeometry(1.25, 8.2, 6).translate(0, 5.4, 0), 0x214e30, 0.05, 8);
+  const trunk = colored(new THREE.CylinderGeometry(0.18, 0.24, 1.2, 4).translate(0, 0.6, 0), 0x5a4030);
+  const crown = colored(new THREE.ConeGeometry(1.4, 8.4, 6).translate(0, 4.9, 0), 0x214e30, 0.05, 8);
   return merge([trunk, crown]);
 }
 
 export function pineSimple(): THREE.BufferGeometry {
-  const trunk = colored(new THREE.CylinderGeometry(0.25, 0.3, 2, 4).translate(0, 1, 0), 0x6b4a32);
-  const crown = colored(new THREE.ConeGeometry(2.4, 8, 5).translate(0, 5.5, 0), 0x32633a, 0.05, 2);
+  const trunk = colored(new THREE.CylinderGeometry(0.25, 0.3, 1.2, 4).translate(0, 0.6, 0), 0x6b4a32);
+  const crown = colored(new THREE.ConeGeometry(2.6, 8.6, 5).translate(0, 5.0, 0), 0x32633a, 0.05, 2);
   return merge([trunk, crown]);
 }
 
 export function broadleafDetailed(crown: readonly [number, number, number] = [0x5f8f37, 0x6c9c3d, 0x56853a]): THREE.BufferGeometry {
-  const trunk = colored(new THREE.CylinderGeometry(0.2, 0.32, 3.2, 5).translate(0, 1.6, 0), 0x6e5038);
-  const c1 = colored(new THREE.IcosahedronGeometry(2.6, 0).scale(1, 0.85, 1).translate(0, 4.6, 0), crown[0], 0.08, 4);
+  const trunk = colored(new THREE.CylinderGeometry(0.2, 0.32, 2.8, 5).translate(0, 1.4, 0), 0x6e5038);
+  const c1 = colored(new THREE.IcosahedronGeometry(2.8, 0).scale(1, 0.85, 1).translate(0, 4.2, 0), crown[0], 0.08, 4);
   const c2 = colored(new THREE.IcosahedronGeometry(1.7, 0).translate(1.1, 5.6, 0.6), crown[1], 0.08, 5);
   const c3 = colored(new THREE.IcosahedronGeometry(1.5, 0).translate(-1.0, 5.2, -0.8), crown[2], 0.08, 6);
   return merge([trunk, c1, c2, c3]);
 }
 
 export function broadleafSimple(crown = 0x5f8f37): THREE.BufferGeometry {
-  const trunk = colored(new THREE.CylinderGeometry(0.25, 0.3, 2.6, 4).translate(0, 1.3, 0), 0x6e5038);
-  const top = colored(new THREE.IcosahedronGeometry(2.8, 0).scale(1, 0.9, 1).translate(0, 4.6, 0), crown, 0.06, 7);
+  const trunk = colored(new THREE.CylinderGeometry(0.25, 0.3, 2.2, 4).translate(0, 1.1, 0), 0x6e5038);
+  const top = colored(new THREE.IcosahedronGeometry(3.0, 0).scale(1, 0.9, 1).translate(0, 4.4, 0), crown, 0.06, 7);
   return merge([trunk, top]);
 }
 

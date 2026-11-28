@@ -1,6 +1,7 @@
 import type { RouteDef } from './types';
 import { CAREER_WORLDS } from './careerWorlds';
 import { bend, climb, descent, hairpins, lakeside, larchBends, level, profile, rolling, steady } from './sections';
+import { flora } from './flora';
 
 export const ROUTES: RouteDef[] = [
   {
@@ -22,7 +23,7 @@ export const ROUTES: RouteDef[] = [
       level(7, bend(), 3),
     ],
     climbs: [{ id: 'riviera-cap', name: 'Cap Ferrat Kicker', inspiredBy: 'Coastal headland climb', fromSection: 2, toSection: 2 }],
-    scenery: { mountainHeight: 260, treeline: 1800, snowline: 3500, waterLevel: 0, forestDensity: 0.45 },
+    scenery: { mountainHeight: 260, treeline: 1800, snowline: 3500, waterLevel: 0, forestDensity: 0.45, trees: flora('cypressCoast') },
   },
   {
     id: 'lake',
@@ -41,7 +42,7 @@ export const ROUTES: RouteDef[] = [
       lakeside(3.6, bend(26, 460), 1.1),
     ],
     climbs: [],
-    scenery: { mountainHeight: 80, treeline: 1700, snowline: 4000, waterLevel: 16, forestDensity: 0.58, lakeshore: true },
+    scenery: { mountainHeight: 80, treeline: 1700, snowline: 4000, waterLevel: 16, forestDensity: 0.58, lakeshore: true, trees: flora('alps') },
   },
   {
     id: 'cypress',
@@ -64,7 +65,7 @@ export const ROUTES: RouteDef[] = [
       { id: 'cypress-olive', name: 'Olive Hill', inspiredBy: 'Short coastal climb', fromSection: 1, toSection: 1 },
       { id: 'cypress-lantern', name: 'Lantern Hill', inspiredBy: 'Short steep lane above a harbour', fromSection: 5, toSection: 5 },
     ],
-    scenery: { mountainHeight: 340, treeline: 1700, snowline: 3400, waterLevel: 0, forestDensity: 0.5 },
+    scenery: { mountainHeight: 340, treeline: 1700, snowline: 3400, waterLevel: 0, forestDensity: 0.5, trees: flora('cypressCoast') },
   },
   {
     id: 'hills',
@@ -95,7 +96,7 @@ export const ROUTES: RouteDef[] = [
       { id: 'hills-wall', name: 'The Forest Wall', inspiredBy: 'Steep Flemish-style wall', fromSection: 8, toSection: 8 },
       { id: 'hills-ridge', name: 'Long Ridge', inspiredBy: 'Steady 7 km drag', fromSection: 11, toSection: 11 },
     ],
-    scenery: { mountainHeight: 520, treeline: 1700, snowline: 3500, waterLevel: null, forestDensity: 0.7 },
+    scenery: { mountainHeight: 520, treeline: 1700, snowline: 3500, waterLevel: null, forestDensity: 0.7, trees: flora('lowland') },
   },
   {
     id: 'alpine',
@@ -112,7 +113,7 @@ export const ROUTES: RouteDef[] = [
       rolling(10, 5.2, 34, bend(42, 320)),
     ],
     climbs: [{ id: 'alpine-geant', name: 'Alpe du Geant', inspiredBy: "Alpe d'Huez (13.8 km, 8.1%, 21 hairpins)", fromSection: 1, toSection: 1 }],
-    scenery: { mountainHeight: 1400, treeline: 2050, snowline: 2600, waterLevel: null, forestDensity: 0.8 },
+    scenery: { mountainHeight: 1400, treeline: 2050, snowline: 2600, waterLevel: null, forestDensity: 0.8, trees: flora('larchAlps') },
   },
   {
     id: 'provence',
@@ -131,7 +132,7 @@ export const ROUTES: RouteDef[] = [
       rolling(9, 4.6, 42),
     ],
     climbs: [{ id: 'provence-giant', name: 'Giant of Provence', inspiredBy: 'The bendy side of the Giant (21.8 km, 8.0%)', fromSection: 4, toSection: 4 }],
-    scenery: { mountainHeight: 900, treeline: 1550, snowline: 3200, waterLevel: null, forestDensity: 0.75 },
+    scenery: { mountainHeight: 900, treeline: 1550, snowline: 3200, waterLevel: null, forestDensity: 0.75, trees: flora('provenceMountain') },
   },
   {
     id: 'cielo',
@@ -156,7 +157,7 @@ export const ROUTES: RouteDef[] = [
       { name: 'Pianaccio', section: 2, along: 1994, length: 150 },
       { name: 'Le Prese', section: 2, along: 6994, length: 150 },
     ],
-    scenery: { mountainHeight: 1700, treeline: 2100, snowline: 2650, waterLevel: null, forestDensity: 0.75 },
+    scenery: { mountainHeight: 1700, treeline: 2100, snowline: 2650, waterLevel: null, forestDensity: 0.75, trees: flora('larchAlps') },
   },
   {
     id: 'calobra',
@@ -175,7 +176,7 @@ export const ROUTES: RouteDef[] = [
       climb([5.8, 10, 7.4, 11.0, 10.2, 6.8, 6.4, 10, 4.8, 2.8], 9.4, hairpins(48, 8, 12)),
     ],
     climbs: [{ id: 'calobra', name: 'Coll de Marina', inspiredBy: 'Sa Calobra to Coll dels Reis, Mallorca (9.4 km, 7.1%, 26 hairpins)', fromSection: 6, toSection: 6 }],
-    scenery: { mountainHeight: 1100, treeline: 620, snowline: 4000, waterLevel: 0, forestDensity: 0.28, biome: 'limestone' },
+    scenery: { mountainHeight: 1100, treeline: 620, snowline: 4000, waterLevel: 0, forestDensity: 0.28, biome: 'limestone', trees: flora('mediterranean') },
   },
   {
     id: 'canyon',
@@ -260,7 +261,7 @@ export const ROUTES: RouteDef[] = [
       { id: 'oak-chapel', name: 'Chapel Wall', inspiredBy: 'Short steep hill out of a village', fromSection: 4, toSection: 4 },
       { id: 'oak-meadow', name: 'Long Meadow', inspiredBy: 'Steady five-kilometre drag', fromSection: 7, toSection: 7 },
     ],
-    scenery: { mountainHeight: 460, treeline: 1600, snowline: 3200, waterLevel: null, forestDensity: 0.78 },
+    scenery: { mountainHeight: 460, treeline: 1600, snowline: 3200, waterLevel: null, forestDensity: 0.78, trees: flora('lowland') },
   },
   {
     id: 'badlands',
@@ -317,7 +318,7 @@ export const ROUTES: RouteDef[] = [
       { name: 'Villard', section: 1, along: 500, length: 150 },
       { name: 'Le Saix', section: 5, along: 590, length: 180 },
     ],
-    scenery: { mountainHeight: 1500, treeline: 2000, snowline: 2550, waterLevel: null, forestDensity: 0.72 },
+    scenery: { mountainHeight: 1500, treeline: 2000, snowline: 2550, waterLevel: null, forestDensity: 0.72, trees: flora('alps') },
   },
   {
     id: 'larch',
@@ -391,7 +392,7 @@ export const ROUTES: RouteDef[] = [
       { name: 'Millcross', section: 5, along: 780, length: 188 },
       { name: 'High Lea', section: 8, along: 1650, length: 188 },
     ],
-    scenery: { mountainHeight: 540, treeline: 1500, snowline: 2400, waterLevel: null, forestDensity: 0.74 },
+    scenery: { mountainHeight: 540, treeline: 1500, snowline: 2400, waterLevel: null, forestDensity: 0.74, trees: flora('larchAlps') },
   },
   ...CAREER_WORLDS,
 ];

@@ -1,6 +1,7 @@
 import type { RouteDef } from './types';
 import { MORE_SEGMENTS, MORE_WORLDS } from './moreWorlds';
 import { bend, climb, descent, hairpins, level, rolling } from './sections';
+import { flora } from './flora';
 
 const pins = (count: number) => hairpins(count, 10, 14);
 
@@ -35,7 +36,7 @@ export const CAREER_WORLDS: RouteDef[] = [
       { id: 'low-harbour', name: 'Harbour Rise', inspiredBy: 'A short bridge ramp on an otherwise flat plain', fromSection: 4, toSection: 4 },
       { id: 'low-dike', name: 'Dike Top', inspiredBy: 'A second short rise, steeper for a few hundred metres', fromSection: 6, toSection: 6 },
     ],
-    scenery: { mountainHeight: 160, treeline: 400, snowline: 2200, waterLevel: 0, forestDensity: 0.18 },
+    scenery: { mountainHeight: 160, treeline: 400, snowline: 2200, waterLevel: 0, forestDensity: 0.18, trees: flora('lowland') },
   },
   {
     id: 'mistral',
@@ -62,7 +63,7 @@ export const CAREER_WORLDS: RouteDef[] = [
       { id: 'mis-cote', name: 'Cote du Vent', inspiredBy: 'A short step before the exposed ridge', fromSection: 5, toSection: 5 },
       { id: 'mis-vent', name: 'Crest de Vent', inspiredBy: 'A bare ridge above a windy valley, steepest in the middle', fromSection: 7, toSection: 7 },
     ],
-    scenery: { mountainHeight: 780, treeline: 1450, snowline: 2900, waterLevel: null, forestDensity: 0.42 },
+    scenery: { mountainHeight: 780, treeline: 1450, snowline: 2900, waterLevel: null, forestDensity: 0.42, trees: flora('mediterranean') },
   },
   {
     id: 'argent',
@@ -93,7 +94,7 @@ export const CAREER_WORLDS: RouteDef[] = [
       { id: 'arg-rampe', name: 'Rampe de Lune', inspiredBy: 'The short step that leads straight into the Mur', fromSection: 10, toSection: 10 },
       { id: 'arg-lune', name: 'Mur de Lune', inspiredBy: 'The queen summit, near the end of the valley', fromSection: 12, toSection: 12 },
     ],
-    scenery: { mountainHeight: 1780, treeline: 2050, snowline: 2550, waterLevel: null, forestDensity: 0.76 },
+    scenery: { mountainHeight: 1780, treeline: 2050, snowline: 2550, waterLevel: null, forestDensity: 0.76, trees: flora('alps') },
   },
   {
     id: 'dolomite',
@@ -128,7 +129,7 @@ export const CAREER_WORLDS: RouteDef[] = [
       { id: 'dol-sella', name: 'Sella Grigia', inspiredBy: 'The step that starts the queen, straight before Monte Grigio', fromSection: 13, toSection: 13 },
       { id: 'dol-grigio', name: 'Monte Grigio', inspiredBy: 'The queen summit, the third climb of that final chain', fromSection: 15, toSection: 15 },
     ],
-    scenery: { mountainHeight: 1740, treeline: 1980, snowline: 2500, waterLevel: null, forestDensity: 0.7 },
+    scenery: { mountainHeight: 1740, treeline: 1980, snowline: 2500, waterLevel: null, forestDensity: 0.7, trees: flora('dolomites') },
   },
   {
     id: 'sierra',
@@ -166,7 +167,7 @@ export const CAREER_WORLDS: RouteDef[] = [
       { id: 'sie-paso', name: 'Paso del Cielo', inspiredBy: 'The step that leads straight into Alto del Cielo', fromSection: 12, toSection: 12 },
       { id: 'sie-cielo', name: 'Alto del Cielo', inspiredBy: 'The queen summit, the third climb of the final chain', fromSection: 14, toSection: 14 },
     ],
-    scenery: { mountainHeight: 1520, treeline: 1650, snowline: 3100, waterLevel: null, forestDensity: 0.28, biome: 'limestone' },
+    scenery: { mountainHeight: 1520, treeline: 1650, snowline: 3100, waterLevel: null, forestDensity: 0.28, biome: 'limestone', trees: flora('mediterraneanMountain') },
   },
   {
     id: 'pyrenees',
@@ -196,7 +197,7 @@ export const CAREER_WORLDS: RouteDef[] = [
       { id: 'pyr-pas', name: 'Pas del Foc', inspiredBy: 'The step that leads straight into Port del Foc', fromSection: 9, toSection: 9 },
       { id: 'pyr-foc', name: 'Port del Foc', inspiredBy: 'The queen summit, the third climb of the final chain', fromSection: 11, toSection: 11 },
     ],
-    scenery: { mountainHeight: 1860, treeline: 2000, snowline: 2480, waterLevel: null, forestDensity: 0.74 },
+    scenery: { mountainHeight: 1860, treeline: 2000, snowline: 2480, waterLevel: null, forestDensity: 0.74, trees: flora('pyrenees') },
   },
   {
     id: 'flanders',
@@ -264,7 +265,7 @@ export const CAREER_WORLDS: RouteDef[] = [
       { id: 'ard-mur', name: 'Cote de Mur', inspiredBy: 'A short wall, the kind of hill that splits a classic', fromSection: 4, toSection: 4 },
       { id: 'ard-roche', name: 'Cote de la Roche', inspiredBy: 'The long ridge that decides the hardest one-day race', fromSection: 7, toSection: 7 },
     ],
-    scenery: { mountainHeight: 860, treeline: 1500, snowline: 2400, waterLevel: null, forestDensity: 0.74 },
+    scenery: { mountainHeight: 860, treeline: 1500, snowline: 2400, waterLevel: null, forestDensity: 0.74, trees: flora('jura') },
   },
   {
     id: 'glenmass',
@@ -326,7 +327,7 @@ export const CAREER_WORLDS: RouteDef[] = [
       { id: 'lev-costa', name: 'Costa Alta', inspiredBy: 'The second cape, straight after the descent of Col del Far', fromSection: 5, toSection: 5 },
       { id: 'lev-marina', name: 'Cap de Marina', inspiredBy: 'The last cape, set near the end of the loop', fromSection: 10, toSection: 10 },
     ],
-    scenery: { mountainHeight: 980, treeline: 720, snowline: 2600, waterLevel: 0, forestDensity: 0.26, biome: 'limestone' },
+    scenery: { mountainHeight: 980, treeline: 720, snowline: 2600, waterLevel: 0, forestDensity: 0.26, biome: 'limestone', trees: flora('mediterranean') },
   },
 ];
 
