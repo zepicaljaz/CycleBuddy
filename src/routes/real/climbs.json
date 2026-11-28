@@ -446,6 +446,9 @@
  {
   "id": "angliru-la-vega",
   "name": "Alto de l'Angliru",
+  "broadleaf": true,
+  "trees": {"broadleaves": ["beech"]},
+  "sceneryNote": "Scenery hints, not measured: Riosa's woods are broadleaf, \"haya, roble, castaño, avellano, abedul, tilo, tejo, acebo, fresno, arce, aliso\" (beech, oak, chestnut, hazel, birch...). https://es.wikipedia.org/wiki/Riosa . Tree models: every tree is broadleaf (beech stands in for the oak and chestnut too); no spruce or larch. Land cover, where a road has it, wins over these.",
   "treeline": 1500,
   "openAlong": [
    { "fromM": 5000, "toM": 6000, "radius": 80 }
@@ -489,6 +492,8 @@
  {
   "id": "sa-calobra",
   "name": "Sa Calobra (Coll dels Reis)",
+  "trees": {"conifers": ["aleppo_pine"], "broadleaves": ["holm_oak"]},
+  "sceneryNote": "Scenery hints, not measured: bare limestone with rosemary and juniper up high; \"As you get further down, the vegetation grows denser, with centuries-old olive trees giving way to Aleppo pines and carob trees\". https://www.en-vols.com/en/getaways/travel/mallorca-sa-calobra-spain/ . Tree models: Aleppo pine; holm oak stands in for the dark evergreen olive, carob and holm oak of the Tramuntana.",
   "side": "Port de Sa Calobra",
   "country": "Spain",
   "region": "Mallorca (Balearic Islands)",
@@ -685,6 +690,8 @@
   "snowline": 2450,
   "biome": "limestone",
   "pastureAbove": 1400,
+  "trees": {"conifers": ["spruce_a", "spruce_a", "spruce_b"], "broadleaves": ["beech"]},
+  "sceneryNote": "Scenery hints, not measured: \"Od turistične kmetije naprej se cesta skozi gozd vzpenja vse do planine Jezerca\" (from Ambrož the road climbs through forest to Planina Jezerca), a row of spruces beside the road on the pastures above, dwarf pine (ruševje) and grass higher up. https://www.visitcerklje.si/aktivnosti/pohodnistvo/krvavec . Tree models: spruce (no larch or Scots pine as in the limestone set), beech kept for the lower valley woods (not sourced), dwarf pine = the mugo on scrub cells.",
   "side": "Grad (Cerklje na Gorenjskem)",
   "country": "Slovenia",
   "region": "Upper Carniola (Kamnik-Savinja Alps)",

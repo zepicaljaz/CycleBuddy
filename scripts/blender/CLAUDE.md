@@ -126,12 +126,15 @@ blender -b --factory-startup --python scripts/blender/landmarks.py -- [--preview
     the treeline), slot 4 `cliff_face_a-c` and slot 5 `scree_patch_a/b` (land-cover
     cliffs and scree on real roads, no code-built fallback).
   - a road's `scenery.trees` hint (climbs.json) replaces slots 0/1 by name, e.g. Ventoux
-    holm_oak/beech + larch/spruce_b.
+    holm_oak/beech + larch/spruce_b, Sa Calobra aleppo_pine/holm_oak, Krvavec spruce/beech.
+    `broadleaf: true` (Angliru) puts every tree in slot 1.
+  - generated worlds set `scenery.trees` from `src/routes/flora.ts` (`FLORA`): Alps,
+    larch Alps, Dolomites, Jura, Pyrenees, uplands, lowland, Provence mountain,
+    Mediterranean (aleppo_pine + holm_oak), Mediterranean mountain, cypress coast
+    (aleppo_pine, cypress + holm_oak). Each world only grows trees that belong together.
 - Cliffs and scree (and boulders) draw with a plain `rockMaterial` in `terrain.ts`, not
   the wind-sway prop material (sway grows with height above 2 m and would bend a 14 m
   cliff). Cliffs face +Z and the worker turns each so +Z points downhill.
-- Not placed yet: `aleppo_pine`, `cypress` (no sourced road wants them yet).
-- Mediterranean limestone worlds (Tuscany, Sicily, Catalonia, Andalusia, Corsica) share
-  the biome with Vršič, Giau and Ventoux, so they get the alpine set for now. A scenery
-  flag (for example `flora: 'mediterranean'`) could switch them to aleppo_pine, cypress
-  and holm_oak.
+- `aleppo_pine` and `cypress` grow on the Mediterranean worlds (Riviera, Cypress Coast,
+  Serra Marina, Mistral, Levante, Tuscany, Sicily, Catalonia, Andalusia, Corsica, Sierra
+  Roja) and on Sa Calobra.
