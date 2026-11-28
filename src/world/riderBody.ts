@@ -1,7 +1,8 @@
 import * as THREE from 'three';
-import { HOOD_GRIP } from './bikes';
 import { atDetail, curve, limb, loft, merge, outline, paint, q, sweep, tube, v3, type Detail } from './geometry';
 import type { Model } from './materials';
+import { armJoints, buildArms, SLEEVE_SCALE, upperArmR } from './riderArms';
+import { JERSEY_HEM, SPINE, table, TH, TN, torsoRings, torsoSides, TT, TW } from './riderTorso';
 
 // Rider-local frame: +x forward, +y up, +z right. Lengths in metres.
 export const HIP = v3(-0.29, 1.035);
@@ -13,35 +14,13 @@ export const SHIN = 0.42;
 export const ANKLE = v3(-0.11, 0.085);
 
 const WHITE = 0xffffff;
-const SHOULDER = v3(0.15, 1.34, 0.18);
 const HEAD = v3(0.297, 1.505);
 const HEAD_TILT = -0.35;
 
-/** Piecewise-linear table lookup. */
-export function table(ts: number[], vs: number[], t: number): number {
-  if (t <= ts[0]) return vs[0];
-  for (let i = 1; i < ts.length; i++) {
-    if (t <= ts[i]) {
-      const f = (t - ts[i - 1]) / (ts[i] - ts[i - 1]);
-      return vs[i - 1] + (vs[i] - vs[i - 1]) * f;
-    }
-  }
-  return vs[vs.length - 1];
-}
-
-/** Torso centre line from the saddle to the neck, and its width, depth and belly tables along it. */
-export const SPINE = [v3(-0.31, 1.04), v3(-0.25, 1.08), v3(-0.19, 1.135), v3(-0.12, 1.18), v3(-0.06, 1.225), v3(0.0, 1.265), v3(0.06, 1.3), v3(0.11, 1.325), v3(0.15, 1.345), v3(0.185, 1.36), v3(0.215, 1.37)];
-export const TT = [0, 0.08, 0.16, 0.28, 0.4, 0.52, 0.64, 0.74, 0.84, 0.92, 1];
-export const TW = [0.148, 0.162, 0.15, 0.136, 0.142, 0.156, 0.17, 0.176, 0.168, 0.138, 0.1];
-export const TH = [0.108, 0.114, 0.108, 0.096, 0.102, 0.11, 0.118, 0.114, 0.1, 0.082, 0.07];
-export const TN = [1, 1.02, 0.98, 0.94, 1.02, 1.1, 1.14, 1.1, 1.02, 0.94, 0.88];
-/** Where the jersey's hem sits on the spine (0 at the saddle, 1 at the neck). The shorts show below it. */
-export const JERSEY_HEM = 0.16;
-
 function torso(from: number, to: number, scale: number, hi: boolean): THREE.BufferGeometry {
   const spine = new THREE.CatmullRomCurve3(SPINE, false, 'centripetal');
-  const n = hi ? Math.max(4, Math.round((to - from) * 32)) : Math.max(2, Math.round((to - from) * q(22, 8)));
-  const sides = q(36, 14);
+  const n = torsoRings(from, to, hi);
+  const sides = torsoSides();
   const shape = outline(sides, 2.15);
   const rings: THREE.Vector3[][] = [];
   const T = new THREE.Vector3();
@@ -59,31 +38,6 @@ function torso(from: number, to: number, scale: number, hi: boolean): THREE.Buff
   }
   return loft(rings, true, true);
 }
-
-/** Elbow position from shoulder and wrist, bending outward and down. */
-function elbow(s: THREE.Vector3, w: THREE.Vector3, l1: number, l2: number, side: number): THREE.Vector3 {
-  const d = Math.min(w.distanceTo(s), l1 + l2 - 1e-3);
-  const u = w.clone().sub(s).normalize();
-  const bend = v3(0, -0.45, side * 0.9);
-  bend.addScaledVector(u, -bend.dot(u)).normalize();
-  const cos = (l1 * l1 + d * d - l2 * l2) / (2 * l1 * d);
-  const a = Math.acos(Math.max(-1, Math.min(1, cos)));
-  return s.clone().addScaledVector(u, Math.cos(a) * l1).addScaledVector(bend, Math.sin(a) * l1);
-}
-
-/** Tube between joints with a radius profile and an optional slice of it. */
-function segment(a: THREE.Vector3, b: THREE.Vector3, r: (t: number) => number, from: number, to: number, sides: number, rings: number, scale = 1): THREE.BufferGeometry {
-  const path: THREE.Vector3[] = [];
-  for (let i = 0; i <= rings; i++) path.push(a.clone().lerp(b, from + ((to - from) * i) / rings));
-  return sweep(path, (t) => {
-    const rr = r(from + (to - from) * t) * scale;
-    return [rr, rr];
-  }, { sides });
-}
-
-/** Upper arm from 4 cm inside the shoulder joint, so the deltoid bulge is part of the same tube. */
-const upperArmR = (t: number) => table([0, 0.15, 0.32, 0.55, 0.88, 1], [0.05, 0.057, 0.049, 0.043, 0.037, 0.035], t);
-const forearmR = (t: number) => table([0, 0.2, 0.6, 1], [0.036, 0.039, 0.033, 0.025], t);
 
 function headTransform(): THREE.Matrix4 {
   return new THREE.Matrix4().makeRotationZ(HEAD_TILT).setPosition(HEAD);
@@ -202,31 +156,17 @@ export interface BodyModels {
 }
 
 export function buildBody(detail: Detail): BodyModels {
-  return atDetail(detail, () => bodyAt(detail === 0));
+  return atDetail(detail, () => bodyAt(detail));
 }
 
-function bodyAt(hi: boolean): BodyModels {
+function bodyAt(detail: Detail): BodyModels {
+  const hi = detail === 0;
   const sides = q(18, 8);
   const jersey: THREE.BufferGeometry[] = [torso(JERSEY_HEM, 1, 1, hi)];
   const accent: THREE.BufferGeometry[] = [torso(0.58, 0.72, 1.016, hi), tube(v3(0.17, 1.325), v3(0.232, 1.402), 0.056, 0.054, q(18, 8), false)];
-  const skin: THREE.BufferGeometry[] = [];
-  const hand: THREE.BufferGeometry[] = [];
-  for (const side of [-1, 1]) {
-    const s = SHOULDER.clone().setZ(side * SHOULDER.z);
-    const grip = HOOD_GRIP.clone().setZ(side * HOOD_GRIP.z);
-    const wrist = grip.clone().add(v3(-0.045, 0.02, 0));
-    const e = elbow(s, wrist, 0.29, 0.255, side);
-    const s0 = s.clone().addScaledVector(e.clone().sub(s).normalize(), -0.04);
-    jersey.push(segment(s0, e, upperArmR, 0, 0.6, sides, q(7, 3), 1.07));
-    accent.push(segment(s0, e, upperArmR, 0.55, 0.62, sides, 1, 1.09));
-    skin.push(segment(s0, e, upperArmR, 0.55, 1, sides, q(4, 2)));
-    skin.push(new THREE.SphereGeometry(0.036, sides, q(6, 3)).translate(e.x, e.y, e.z));
-    skin.push(segment(e, wrist, forearmR, 0, 1, sides, q(6, 2)));
-    // Hand wrapped over the hood, fingers curling down its front.
-    const handPath = curve([wrist, wrist.clone().add(v3(0.025, -0.006)), grip.clone().add(v3(0.008, 0.006)), grip.clone().add(v3(0.03, -0.008)), grip.clone().add(v3(0.038, -0.034))], q(8, 3));
-    hand.push(sweep(handPath, (t) => [table([0, 0.3, 0.6, 1], [0.026, 0.04, 0.041, 0.03], t), table([0, 0.3, 0.7, 1], [0.019, 0.021, 0.015, 0.011], t)], { sides: q(10, 6), exp: 2.6 }));
-    if (hi) hand.push(tube(wrist.clone().add(v3(0.015, -0.012, -side * 0.025)), grip.clone().add(v3(0.012, -0.012, -side * 0.024)), 0.01, 0.008, 6));
-  }
+  // Sleeves grow out of the jersey; each bare arm is one piece from the sleeve to the fingertips (riderArms).
+  const arms = buildArms(detail);
+  const skin: THREE.BufferGeometry[] = [...arms.skin];
   skin.push(tube(v3(0.17, 1.325), v3(0.275, 1.455), 0.05, 0.046, sides));
   if (hi) {
     // Centre zip and a pair of rear pockets on the jersey.
@@ -256,9 +196,9 @@ function bodyAt(hi: boolean): BodyModels {
   const glassMatrix = new THREE.Matrix4().makeRotationZ(HEAD_TILT + 0.1).setPosition(HEAD);
 
   const body: Model = [
-    { geom: merge(jersey.map((g) => paint(g, WHITE, { crease: 1.2 }))), mat: 'cloth', tint: 'jersey' },
-    { geom: merge(accent.map((g) => paint(g, WHITE, { crease: 1.2 }))), mat: 'cloth', tint: 'jerseyAccent' },
-    { geom: merge([...skin, ...hand].map((g) => paint(g, WHITE, { crease: 1.2 }))), mat: 'matte', tint: 'skin' },
+    { geom: merge([...jersey.map((g) => paint(g, WHITE, { crease: 1.2 })), arms.sleeve]), mat: 'cloth', tint: 'jersey' },
+    { geom: merge([...accent.map((g) => paint(g, WHITE, { crease: 1.2 })), arms.cuff]), mat: 'cloth', tint: 'jerseyAccent' },
+    { geom: merge(skin.map((g) => paint(g, WHITE, { crease: 1.2 }))), mat: 'matte', tint: 'skin' },
     { geom: paint(hair, 0x3a2a1e, { crease: 1.2 }), mat: 'matte' },
     { geom: paint(shell, WHITE, { crease: 0.8 }), mat: 'paint', tint: 'helmet' },
     { geom: merge(helmDark.map((g) => paint(g, 0x18191c, { crease: 0.8 }))), mat: 'gloss' },
@@ -314,18 +254,14 @@ function polkaDots(hi: boolean): Model {
     }
   }
   for (const side of [-1, 1]) {
-    const s = SHOULDER.clone().setZ(side * SHOULDER.z);
-    const grip = HOOD_GRIP.clone().setZ(side * HOOD_GRIP.z);
-    const wrist = grip.clone().add(v3(-0.045, 0.02, 0));
-    const e = elbow(s, wrist, 0.29, 0.255, side);
-    const s0 = s.clone().addScaledVector(e.clone().sub(s).normalize(), -0.04);
+    const { s0, e } = armJoints(side);
     const arm = e.clone().sub(s0);
     const along = arm.clone().normalize();
     const outward = new THREE.Vector3().crossVectors(along, up);
     if (outward.z * side < 0) outward.negate();
     outward.normalize();
     for (const t of [0.22, 0.45]) {
-      const center = s0.clone().addScaledVector(arm, t).addScaledVector(outward, upperArmR(t) * 1.07);
+      const center = s0.clone().addScaledVector(arm, t).addScaledVector(outward, upperArmR(t) * SLEEVE_SCALE);
       place(center, outward, 0.016);
     }
   }

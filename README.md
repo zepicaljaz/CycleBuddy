@@ -176,7 +176,7 @@ cyclebuddy/
 | `terrain.ts`, `terrainChunk.ts`, `terrainWorker.ts`, `terrainField.ts` | Terrain tiles built in workers with levels of detail and trees; the height field (with real elevation and land cover for real roads; colour and props from the cover map, see `docs/REAL_ROADS.md` → Land cover at runtime, tests in `terrainCover.test.ts`) |
 | `scenery.ts` | Roadside: towns, fences (culled per 500 m cell), race crowd (culled per 400 m cell), finish, signs |
 | `climbs.ts` | Climb furniture: km bornes, hairpin numbers, stone walls, graffiti |
-| `riders.ts`, `riderBody.ts`, `riderHips.ts`, `bikes.ts` | Instanced riders with three levels of detail; body, bike and the skinned shorts and thighs (one piece, bent at the hips in the vertex shader) |
+| `riders.ts`, `riderBody.ts`, `riderHips.ts`, `riderArms.ts`, `riderTorso.ts`, `bikes.ts` | Instanced riders with three levels of detail; body and bike; the skinned shorts and thighs (one piece, bent at the hips in the vertex shader); sleeves grown out of the jersey and each bare arm one piece to the fingertips; the torso the jersey is lofted from, as a distance field to blend into |
 | `riderPick.ts` | Which rider is under the mouse, found on screen without raycasting |
 | `spectators.ts`, `fences.ts` | Spectator figures; hairpin fences (metal or stone by region) |
 | `alpineHotel.ts`, `modernHotel.ts`, `alpineRestaurant.ts`, `ventouxAntenna.ts`, `island.ts`, `buildings.ts`, `settlement.ts`, `site.ts`, `farms.ts`, `mills.ts` | Buildings and places |

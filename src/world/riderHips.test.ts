@@ -2,7 +2,8 @@ import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
 import type { Detail } from './geometry';
 import { isosurface } from './isosurface';
-import { FOOT_Z, HIP, LEG_Z, SPINE, table, TH, THIGH, TN, TT, TW } from './riderBody';
+import { FOOT_Z, HIP, LEG_Z, THIGH } from './riderBody';
+import { SPINE, table, TH, TN, TT, TW } from './riderTorso';
 import { buildHips, HEM, THIGH_REST } from './riderHips';
 
 /** The vertex shader's bend in TypeScript: each vertex turns about its hip by its share of that thigh's turn. */

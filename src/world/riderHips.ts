@@ -1,9 +1,10 @@
 import * as THREE from 'three';
 import { markRange, type InstancedModel } from './batch';
 import { atDetail, limb, merge, paint, q, v3, type Detail } from './geometry';
-import { ellipsoid, isosurface, smax, smin } from './isosurface';
+import { clip, ellipsoid, isosurface, smax, smin, soup } from './isosurface';
 import { keepShared, material, type MatKind, type Model } from './materials';
-import { FOOT_Z, HIP, JERSEY_HEM, LEG_Z, SPINE, table, TH, THIGH, TN, TT, TW } from './riderBody';
+import { FOOT_Z, HIP, LEG_Z, THIGH } from './riderBody';
+import { capped, ellipse, JERSEY_HEM, SPINE, stationsAt, table, torsoField, type Station } from './riderTorso';
 
 /*
  * Pelvis, seat and both thighs down to the knee as one skinned piece.
@@ -60,16 +61,6 @@ const K_HIP = 0.04;
 /** Hip weights ramp from pelvis to thigh over this difference in their distance fields. */
 const KW = 0.11;
 
-interface Station {
-  x: number;
-  y: number;
-  tx: number;
-  ty: number;
-  w: number;
-  h: number;
-  nose: number;
-}
-
 /** The jersey hem's plane: a point on it and its normal, pointing up the spine. */
 const HEM_PLANE = (() => {
   const spine = new THREE.CatmullRomCurve3(SPINE, false, 'centripetal');
@@ -78,75 +69,15 @@ const HEM_PLANE = (() => {
   return { x: c.x, y: c.y, tx: t.x, ty: t.y };
 })();
 
-/** Waist cross-sections along the spine from the seat up to `to`. */
+/** Waist cross-sections along the spine from the seat up to the detail level's `to`. */
 function stations(detail: Detail): Station[] {
   const { to, scale } = WAIST[detail];
-  const spine = new THREE.CatmullRomCurve3(SPINE, false, 'centripetal');
-  const T = new THREE.Vector3();
-  const out: Station[] = [];
-  const n = 20;
-  for (let i = 0; i <= n; i++) {
-    const t = (to * i) / n;
-    const c = spine.getPoint(t);
-    spine.getTangent(t, T);
-    const l = Math.hypot(T.x, T.y);
-    out.push({ x: c.x, y: c.y, tx: T.x / l, ty: T.y / l, w: table(TT, TW, t) * scale, h: table(TT, TH, t) * scale, nose: table(TT, TN, t) });
-  }
-  return out;
+  return stationsAt(Array.from({ length: 21 }, (_, i) => (to * i) / 20), scale);
 }
 
-/** 2D ellipse distance (Quilez's bound), half axes a and b. */
-function ellipse(u: number, v: number, a: number, b: number): number {
-  const k0 = Math.hypot(u / a, v / b);
-  if (k0 < 1e-9) return -Math.min(a, b);
-  return (k0 * (k0 - 1)) / Math.hypot(u / (a * a), v / (b * b));
-}
-
-/** Lower torso through the stations: domed at the seat, flat at the top. */
+/** Lower torso through the stations: domed at the seat, flat at the top (hidden under the jersey). */
 function waist(st: Station[], x: number, y: number, z: number): number {
-  let best = Infinity;
-  let bi = 0;
-  let bs = 0;
-  for (let i = 0; i < st.length - 1; i++) {
-    const a = st[i];
-    const b = st[i + 1];
-    const ex = b.x - a.x;
-    const ey = b.y - a.y;
-    const s = Math.max(0, Math.min(1, ((x - a.x) * ex + (y - a.y) * ey) / (ex * ex + ey * ey)));
-    const dx = x - a.x - ex * s;
-    const dy = y - a.y - ey * s;
-    const d2 = dx * dx + dy * dy;
-    if (d2 < best) {
-      best = d2;
-      bi = i;
-      bs = s;
-    }
-  }
-  const a = st[bi];
-  const b = st[bi + 1];
-  const lerp = (p: number, r: number) => p + (r - p) * bs;
-  const cx = lerp(a.x, b.x);
-  const cy = lerp(a.y, b.y);
-  let tx = lerp(a.tx, b.tx);
-  let ty = lerp(a.ty, b.ty);
-  const tl = Math.hypot(tx, ty);
-  tx /= tl;
-  ty /= tl;
-  const ox = x - cx;
-  const oy = y - cy;
-  const along = ox * tx + oy * ty;
-  // N = T × Z points to the belly, as in the jersey loft.
-  const ln = ox * ty - oy * tx;
-  const w = lerp(a.w, b.w);
-  const h = lerp(a.h, b.h) * (ln > 0 ? lerp(a.nose, b.nose) : 1);
-  if (bi === 0 && bs === 0 && along < 0) return ellipsoid(z, ln, along, w, h, WAIST_DOME);
-  // The top end is hidden under the jersey, so a flat cap is enough there.
-  return capped(ellipse(z, ln, w, h), bi === st.length - 2 && bs === 1 ? along : -1);
-}
-
-/** Exact distance for a section field `d` closed by an end plane `end` (both signed). */
-function capped(d: number, end: number): number {
-  return Math.min(Math.max(d, end), 0) + Math.hypot(Math.max(d, 0), Math.max(end, 0));
+  return torsoField(st, x, y, z, WAIST_DOME);
 }
 
 /** Both buttocks, tilted with the pelvis. */
@@ -226,44 +157,6 @@ function leftWeight(st: Station[], x: number, y: number, z: number): number {
   return w * ss(-z, 0.002, 0.018);
 }
 
-/** Cuts a triangle soup to the side where `s(p) <= 0`. `s` must be linear, so the cut lands exactly on it. */
-function clip(pos: number[], nor: number[], s: (x: number, y: number, z: number) => number): { pos: number[]; nor: number[] } {
-  const P: number[] = [];
-  const N: number[] = [];
-  const poly: number[][] = [];
-  for (let t = 0; t < pos.length; t += 9) {
-    const vs = [0, 1, 2].map((k) => {
-      const o = t + k * 3;
-      return [pos[o], pos[o + 1], pos[o + 2], nor[o], nor[o + 1], nor[o + 2], s(pos[o], pos[o + 1], pos[o + 2])];
-    });
-    if (vs.every((v) => v[6] <= 0)) {
-      for (const v of vs) P.push(v[0], v[1], v[2]), N.push(v[3], v[4], v[5]);
-      continue;
-    }
-    if (vs.every((v) => v[6] > 0)) continue;
-    poly.length = 0;
-    for (let k = 0; k < 3; k++) {
-      const a = vs[k];
-      const b = vs[(k + 1) % 3];
-      if (a[6] <= 0) poly.push(a);
-      if (a[6] <= 0 !== b[6] <= 0) {
-        const f = a[6] / (a[6] - b[6]);
-        const v = a.map((x, i) => x + (b[i] - x) * f);
-        const l = Math.hypot(v[3], v[4], v[5]) || 1;
-        v[3] /= l;
-        v[4] /= l;
-        v[5] /= l;
-        v[6] = 0;
-        poly.push(v);
-      }
-    }
-    for (let k = 1; k + 1 < poly.length; k++) {
-      for (const v of [poly[0], poly[k], poly[k + 1]]) P.push(v[0], v[1], v[2]), N.push(v[3], v[4], v[5]);
-    }
-  }
-  return { pos: P, nor: N };
-}
-
 /** Grid cell of the surface mesh per detail level. Each half is cut and mirrored, so any cell keeps the legs apart. */
 const CELL: Record<Detail, number> = { 0: 0.021, 1: 0.038, 2: 0.058 };
 
@@ -271,14 +164,8 @@ const CELL: Record<Detail, number> = { 0: 0.021, 1: 0.038, 2: 0.058 };
 function shorts(detail: Detail): THREE.BufferGeometry {
   const st = stations(detail);
   const iso = isosurface((x, y, z) => leftField(st, x, y, z), { min: [-0.49, 0.68, -0.25], max: [0.09, 1.34, 0.04] }, CELL[detail]);
-  const soup: number[] = [];
-  const soupN: number[] = [];
-  for (const i of iso.index) {
-    soup.push(iso.positions[i * 3], iso.positions[i * 3 + 1], iso.positions[i * 3 + 2]);
-    soupN.push(iso.normals[i * 3], iso.normals[i * 3 + 1], iso.normals[i * 3 + 2]);
-  }
-  let half = clip(soup, soupN, (_x, _y, z) => z);
-  half = clip(half.pos, half.nor, (x, y, z) => alongLeft(x, y, z) - HEM);
+  let half = clip(soup(iso), (_x, _y, z) => z);
+  half = clip(half, (x, y, z) => alongLeft(x, y, z) - HEM);
   const n = half.pos.length / 3;
   // Both halves, the right one mirrored in z with its winding turned back.
   const position = new Float32Array(n * 6);
