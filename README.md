@@ -163,6 +163,7 @@ cyclebuddy/
 |---|---|
 | `routes/route.ts` | A route: samples a loop every 2 m, smooths the grade, finds the climbs, reverse travel |
 | `routes/definitions.ts`, `moreWorlds.ts`, `careerWorlds.ts` | Every loop's definition (sections, styles, towns) |
+| `routes/flora.ts` | Tree sets per kind of world (Alps, Dolomites, Jura, Pyrenees, uplands, lowland, Mediterranean...): which Blender tree models a generated world grows |
 | `routes/regions.ts` | The six Free ride landscapes, the loops in each, and the Real climbs category |
 | `routes/sections.ts`, `grades.ts`, `types.ts`, `validate.ts` | Section shapes, gradient resolution, types, definition checks |
 | `routes/real/` | Real climbs and stages: `climbs.json`, `stages.json`, checks (`data.ts`), builders (`build.ts`), real tracks (`tracks/`, loaded on demand), their length/climbing index (`trackIndex.json`, `npm run track-index`), terrain and land-cover loading (`terrain.ts`) |

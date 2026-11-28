@@ -12,6 +12,7 @@ physics, AI, world and HUD read.
 - `grades.ts`: km pieces to 100 m grade steps (`kmPieces`, `piecesToGrades`, `piecesGain`).
 - `definitions.ts`: the hand-written loops plus `...CAREER_WORLDS` = `ROUTES`; `getRouteDef` falls back to `ROUTES[0]` for an unknown id.
 - `moreWorlds.ts`, `careerWorlds.ts`: spec-built worlds and career worlds, with `STAGE_SEGMENTS` (stretches of a world used as stages).
+- `flora.ts`: `FLORA` tree sets and `flora(name)`. Every generated world with forest sets `scenery.trees: flora('...')` (a `moreWorlds` spec: `flora: '...'`), so a Mediterranean coast grows Aleppo pine and holm oak and not spruce. Desert, moor and spruce-biome worlds keep their biome's own set.
 - `regions.ts`: the six Free ride landscapes, `REAL_RIDE` category, `climbHairpinFence` (stone or metal by landscape).
 - `validate.ts`: `routeDefProblems`, run by `getRoute` (throws on a broken def).
 - `real/`: real climbs, stages and real roads. Own CLAUDE.md.
@@ -25,7 +26,7 @@ physics, AI, world and HUD read.
 - `Route.sample(s, out)` and `place(s, lateral, out)` take an `out` object. In per-frame or per-step code pass a reused one; don't allocate. See `docs/PERFORMANCE.md`.
 
 ## Add a Free ride loop
-1. Write the `RouteDef` in `definitions.ts` (or a spec in `moreWorlds.ts`): unique `id`, `seed`, sections, climbs (section ranges), scenery, towns.
+1. Write the `RouteDef` in `definitions.ts` (or a spec in `moreWorlds.ts`): unique `id`, `seed`, sections, climbs (section ranges), scenery (with a tree set from `flora.ts` that fits the place), towns.
 2. Add the id to exactly one landscape in `regions.ts` (`RIDE_REGIONS`). `route.test.ts` fails if a loop is in none or two.
 3. Add `public/route-previews/<id>.jpg` (400×225). `tests/conventions.test.js` fails without it.
 4. Add new files to the README map. Run `npx vitest run src/routes/route.test.ts`.

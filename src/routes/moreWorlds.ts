@@ -1,5 +1,6 @@
 import type { Biome, Difficulty, RouteDef, SectionDef } from './types';
 import { bend, climb, descent, hairpins, level, rolling, steady } from './sections';
+import { type FLORA, flora } from './flora';
 
 const pins = (count: number) => hairpins(count, 10, 14);
 
@@ -33,6 +34,8 @@ interface Spec {
   forest: number;
   water: number | null;
   biome?: Biome;
+  /** Tree set (src/routes/flora.ts). Omitted keeps the biome's own set. */
+  flora?: keyof typeof FLORA;
   pieces: Piece[];
   segments: Seg[];
 }
@@ -78,6 +81,7 @@ function build(spec: Spec): RouteDef {
       waterLevel: spec.water,
       forestDensity: spec.forest,
       biome: spec.biome,
+      ...(spec.flora ? { trees: flora(spec.flora) } : {}),
     },
   };
 }
@@ -194,6 +198,7 @@ const WORLDS: Spec[] = [
     snow: 2000,
     forest: 0.62,
     water: null,
+    flora: 'jura',
     pieces: [
       flat(5),
       up(4.4, [6.2, 6.8, 7, 6.4], 'Cote de la Combe', 0, 'jur-combe-c', 'The first climb, after five flat kilometres'),
@@ -224,6 +229,7 @@ const WORLDS: Spec[] = [
     snow: 2100,
     forest: 0.4,
     water: null,
+    flora: 'uplands',
     pieces: [
       flat(5),
       up(4.2, [5.8, 6.4, 6.6, 6], 'Plateau du Cendre', 0, 'mas-cendre', 'The first climb, after five flat kilometres'),
@@ -255,6 +261,7 @@ const WORLDS: Spec[] = [
     snow: 2300,
     forest: 0.55,
     water: null,
+    flora: 'alps',
     pieces: [
       flat(5),
       flat(6.4), flat(6.2), flat(5.6),
@@ -288,6 +295,7 @@ const WORLDS: Spec[] = [
     snow: 2200,
     forest: 0.66,
     water: null,
+    flora: 'alps',
     pieces: [
       flat(5),
       flat(6.4), flat(6.2), flat(5.6),
@@ -321,6 +329,7 @@ const WORLDS: Spec[] = [
     snow: 2400,
     forest: 0.48,
     water: null,
+    flora: 'cypressCoast',
     biome: 'limestone',
     pieces: [
       flat(5),
@@ -352,6 +361,7 @@ const WORLDS: Spec[] = [
     snow: 2300,
     forest: 0.58,
     water: null,
+    flora: 'uplands',
     pieces: [
       flat(6.4), flat(6.2), flat(5.6),
       roll(4.8, 3.2),
@@ -383,6 +393,7 @@ const WORLDS: Spec[] = [
     snow: 2600,
     forest: 0.22,
     water: 0,
+    flora: 'mediterranean',
     biome: 'limestone',
     pieces: [
       flat(6.4), flat(6.2), flat(5.6),
@@ -419,6 +430,7 @@ const WORLDS: Spec[] = [
     snow: 2400,
     forest: 0.36,
     water: 0,
+    flora: 'mediterranean',
     biome: 'limestone',
     pieces: [
       flat(5),
@@ -485,6 +497,7 @@ const WORLDS: Spec[] = [
     snow: 2500,
     forest: 0.18,
     water: null,
+    flora: 'mediterraneanMountain',
     biome: 'limestone',
     pieces: [
       flat(6.4), flat(6.2), flat(5.6),
@@ -607,6 +620,7 @@ const WORLDS: Spec[] = [
     snow: 2300,
     forest: 0.38,
     water: 0,
+    flora: 'mediterraneanMountain',
     biome: 'limestone',
     pieces: [
       flat(5),
@@ -706,6 +720,7 @@ const WORLDS: Spec[] = [
     snow: 2300,
     forest: 0.62,
     water: null,
+    flora: 'alps',
     biome: 'alpine',
     pieces: [
       flat(10),
