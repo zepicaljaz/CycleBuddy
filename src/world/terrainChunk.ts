@@ -25,6 +25,11 @@ export interface ChunkResult {
    * 4 cliff face (PROP_CLIFF), 5 scree patch (PROP_SCREE). A cliff's rotation turns its +Z front downhill.
    */
   props: Float32Array;
+  /**
+   * r, g, b per prop: the ground colour under it (linear, as the terrain draws it), for props that
+   * take their tint from the ground (scrub). 0, 0, 0 for the rest.
+   */
+  propTints: Float32Array;
   minY: number;
   maxY: number;
 }
@@ -235,18 +240,23 @@ export class ChunkBuilder {
     const field = this.field;
     const dn = field.demNormalY(cx, cz);
     const nyC = dn.w > 0 ? lerp(ny, dn.ny, dn.w) : ny;
-    if (field.hasCover && field.coverMix(cx, cz, this.coverW) > 0) return this.coverColor(cx, cy, cz, nyC, aoV, jitter);
+    if (field.hasCover && field.coverMix(cx, cz, this.coverW) > 0) return this.coverColor(cx, cy, cz, nyC, ny, aoV, jitter);
     return this.generatedColor(cx, cy, cz, nyC, aoV, jitter);
   }
 
   /**
-   * Colour from the land-cover map: what is really there. Rock only where the
-   * map says rock or cliff, pale stone on scree, snow on glacier; forest floor,
-   * meadow and scrub stay green at any slope, a steep one is only a little
-   * darker. Each class of the four surrounding nodes is mixed by distance, so a
-   * class edge is a short blend and not a 25 m staircase.
+   * Colour from the land-cover map: what is really there. Rock where the map
+   * says rock or cliff, pale stone on scree, snow on glacier. Meadow and scrub
+   * stay green on ordinary slopes; on the steepest ground (the DEM over 25 m
+   * steeper than about 35°, fully grey from about 50°) and on steep cuts beside
+   * the road at hairpins (the face itself steeper than about 40°), the rock
+   * shows through, as it does in the mountains: grass does not hold there. The
+   * forest floor greys less, its trees stay. Above a road's screeLine (Ventoux)
+   * the thin grass and krummholz are pale gravel, as the bare summit is.
+   * Each class of the four surrounding nodes is mixed by distance, so a class
+   * edge is a short blend and not a 25 m staircase.
    */
-  private coverColor(cx: number, cy: number, cz: number, nyC: number, aoV: number, jitter: number): RGB {
+  private coverColor(cx: number, cy: number, cz: number, nyC: number, ny: number, aoV: number, jitter: number): RGB {
     const sc = this.field.scenery;
     const n = this.noise;
     const biome = sc.biome ?? 'alpine';
@@ -316,6 +326,27 @@ export class ChunkBuilder {
       col[2] += part[2] * wk;
     }
     this.lastKind = kind;
+    const open = w[LandCover.meadow] + w[LandCover.scrub];
+    const vegW = open + w[LandCover.forest];
+    // Above the screeLine (Ventoux's bare limestone top) grass, scrub and the dwarf pine's
+    // floor turn to gravel over 150 m: WorldCover calls the stony summit "grassland" and
+    // "tree cover", and it rode green.
+    let gravel = 0;
+    if (sc.screeLine != null && vegW > 0) {
+      gravel = smoothstep(sc.screeLine - 30, sc.screeLine + 150, cy) * (open * 0.85 + w[LandCover.forest] * 0.7);
+      if (gravel > 0) mix(col, mix(GRAVEL, GRAVEL_DARK, patch * 0.55, this.tmp), gravel, col);
+    }
+    // Steep ground shows its rock. DEM steepness over 25 m for the mountains (stable at every
+    // mesh size), the face's own normal for steep cuts beside the road. Lower down, where grass
+    // and woods hold on steeper ground, a little less.
+    let rocky = 0;
+    if (vegW > 0) {
+      const rise = smoothstep(sc.treeline - 900, sc.treeline - 150, cy);
+      const demSteep = smoothstep(0.84, 0.64, nyC) * (0.55 + 0.45 * rise);
+      const cut = ny < 0.78 && this.field.roadDistance(cx, cz) < 40 ? smoothstep(0.78, 0.55, ny) : 0;
+      rocky = Math.min(0.92, Math.max(demSteep, cut) * (0.7 + 0.6 * patch)) * (open + 0.45 * w[LandCover.forest]) * (1 - gravel);
+      if (rocky > 0) mix(col, mix(pal.rock, pal.rockDark, 0.25 + steep * 0.4, this.tmp), rocky, col);
+    }
     const bare = w[LandCover.rock] + w[LandCover.scree] + w[LandCover.cliff];
     // Seasonal snow above the snowline only settles on bare ground that is not too steep.
     const snowLine = sc.snowline + n.noise(cx / 500, cz / 500) * 140;
@@ -323,7 +354,7 @@ export class ChunkBuilder {
     mix(col, pal.snow, snow, col);
     this.waterAndVerge(col, pal, cx, cy, cz);
     // Slope darkens vegetation a little (a steep wood is in its own shade); it never turns it grey.
-    const veg = 1 - bare - w[LandCover.glacier];
+    const veg = Math.max(0, 1 - bare - w[LandCover.glacier] - rocky - gravel);
     const slopeShade = 1 - 0.12 * smoothstep(0.92, 0.62, nyC) * veg;
     const shade = aoV * (0.94 + jitter * 0.12) * (1 - snow * 0.05) * slopeShade;
     col[0] *= shade;
@@ -573,15 +604,39 @@ export class ChunkBuilder {
       edge(segs, k + 1, segs, k);
     }
 
+    const props = this.scatterProps(req);
     return {
       id: req.id,
       positions: Float32Array.from(positions),
       normals: Float32Array.from(normals),
       colors: Float32Array.from(colors),
-      props: this.scatterProps(req),
+      props,
+      propTints: this.groundTints(req, props),
       minY,
       maxY,
     };
+  }
+
+  /**
+   * The ground colour under each scrub prop, so a bush sits in its own ground's green (a dry yellow
+   * one on high grass, a dark one in the wood) instead of one dark green everywhere. Sampled flat,
+   * without the facet jitter and concavity shade; terrain.ts blends it into the instance tint.
+   */
+  private groundTints(req: ChunkRequest, props: Float32Array): Float32Array {
+    const n = props.length / 6;
+    const out = new Float32Array(n * 3);
+    const kind = this.lastKind;
+    for (let i = 0; i < n; i++) {
+      if (props[i * 6 + 5] !== PROP_SCRUB) continue;
+      const x = req.x0 + props[i * 6];
+      const z = req.z0 + props[i * 6 + 2];
+      const c = this.faceColor(x, props[i * 6 + 1], z, 1, 1, 0.5);
+      out[i * 3] = c[0];
+      out[i * 3 + 1] = c[1];
+      out[i * 3 + 2] = c[2];
+    }
+    this.lastKind = kind;
+    return out;
   }
 
   private scatterProps(req: ChunkRequest): Float32Array {
@@ -690,12 +745,14 @@ export class ChunkBuilder {
       out.push(lx, ground.y - 0.3 - sink, lz, scale, r1 * Math.PI * 2, broadleaf ? 1 : 0);
       return true;
     };
+    // Ventoux above its screeLine: the odd dwarf pine on bare stone, not a band of scrub.
+    const bareTop = sc.screeLine != null ? 1 - 0.7 * smoothstep(sc.screeLine, sc.screeLine + 150, h) : 1;
     if (cls === LandCover.forest) {
       // Above the road's real treeline (noisy by +-120 m) WorldCover's "tree cover" is krummholz:
       // dwarf pine and green alder, not tall conifers. Galibier's above 2,000 m, the Stelvio's
       // above 2,100 m grew full spruces before.
       if (h > treeline) {
-        if (r3 < 0.45 * (1 - smoothstep(1.0, 1.4, tan))) out.push(lx, ground.y - 0.15 - sink * 0.5, lz, (0.8 + r2 * 0.6) * req.treeScale, r1 * Math.PI * 2, PROP_SCRUB);
+        if (r3 < 0.45 * bareTop * (1 - smoothstep(1.0, 1.4, tan))) out.push(lx, ground.y - 0.15 - sink * 0.5, lz, (0.8 + r2 * 0.6) * req.treeScale, r1 * Math.PI * 2, PROP_SCRUB);
         return;
       }
       tree((0.9 * 0.85 + 0.07) * (1 - smoothstep(0.9, 1.1, tan)));
@@ -707,7 +764,7 @@ export class ChunkBuilder {
       return;
     }
     if (cls === LandCover.scrub) {
-      if (r3 < 0.55 * (1 - smoothstep(1.0, 1.4, tan))) {
+      if (r3 < 0.55 * bareTop * (1 - smoothstep(1.0, 1.4, tan))) {
         // A low bush now; the dwarf pine model goes into the PROP_SCRUB slot in terrain.ts.
         const scale = (0.9 + r2 * 0.7) * req.treeScale;
         out.push(lx, ground.y - 0.15 - sink * 0.5, lz, scale, r1 * Math.PI * 2, PROP_SCRUB);

@@ -405,15 +405,28 @@ data section; this is what the terrain does with it.
 - **Slope for colour.** On a road with a DEM the steepness that colours a face
   is the DEM's over 25 m around the face centre (`demNormalY`), not the
   triangle's own normal. The invented facets and bumps stay in the geometry
-  but never decide a colour, a cut bank or hairpin bank takes the colour of
-  the slope it was cut into, and a face has the same class on the 8 m mesh
-  beside the rider and the 64 m far tiles. Generated roads keep the triangle
+  never decide the class, and a face has the same class on the 8 m mesh
+  beside the rider and the 64 m far tiles. One exception for the rock blend
+  (below): within 40 m of the road a face steeper than about 40° (a cut at a
+  hairpin) greys by its own normal. Generated roads keep the triangle
   normal and look exactly as before (`terrainCover.test.ts` pins that).
 - **Colour.** Where cover is known: rock and cliff are the only grey (darker
   the steeper the real ground), scree the pale stone (the gravel colour where
   the road sets `screeLine`), glacier snow, forest the forest floor, scrub a
-  darker olive, meadow, water and built-up the altitude grass. Slope only
-  darkens vegetation by up to 12 %. Seasonal snow above `snowline` settles only
+  darker olive, meadow, water and built-up the altitude grass. **Steep ground
+  shows its rock** (Nov 2026, the brother's playtest: everything read as grass,
+  unlike the homepage valley): on meadow and scrub, from about 35° of real slope
+  (DEM over 25 m) the rock colour blends in, fully grey (up to 92 %, in 16 m
+  noise patches) from about 50°; a little less below the treeline-900 m, and
+  the forest floor at 45 % of that (its trees stay). Steep cuts beside the road
+  (the face over ~40°, within 40 m) grey the same way. Above that, slope
+  darkens vegetation by up to 12 %. **Above `screeLine`** (Ventoux) meadow,
+  scrub and the dwarf-pine floor fade to the pale gravel over 150 m (85 % / 70 %),
+  and the dwarf pine there thins to 30 %: WorldCover maps the bare summit as
+  grass and tree cover, and it rode green. **Bushes** (slot 3) take 60 % of
+  their tint from the ground colour under them (`propTints`, sampled in the
+  worker; a step darker than the ground), so a bush on dry high grass is olive
+  and one in the wood dark. Seasonal snow above `snowline` settles only
   on bare classes. Lake sand and the worn verge are as before. The
   treeline/noise look runs only where cover is 0. Scree (WorldCover's "bare /
   sparse vegetation" under 35°) gets soft 40 m patches of dry grass, up to 45 %,

@@ -29,5 +29,6 @@ function run(req: ChunkRequest) {
     res.normals.buffer,
     res.colors.buffer,
     res.props.buffer,
+    res.propTints.buffer,
   ]);
 }
